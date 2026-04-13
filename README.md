@@ -29,7 +29,7 @@ CampusNest is a mobile application designed to help students easily find and exp
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/IAM-NO-4/campusnest.git
+   git clone https://github.com/IAM-NO-4/campusNest1.git
    ```
 2. Open the project in Android Studio
 3. Sync Gradle and install dependencies
