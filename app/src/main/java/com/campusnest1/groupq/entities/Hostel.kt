@@ -1,12 +1,15 @@
 package com.campusnest1.groupq.entities
 
 data class Hostel(
+    //Added distance and image url
     val hostelId: String = "",
     val name: String = "",
     val location: Any = "",
     val lowestPrice: String = "",
     val highestPrice: String = "",
     val ownerId: String = "",
-    val rating: Double = 0.0,
+    val distance: String = "",
+    val imageUrl: String = "",
+    val rating: Double = 0.0, // Duplicate entry in review entity
     val description: String = ""
 )
