@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "996359270583",
+    "project_id": "campusnest01",
+    "storage_bucket": "campusnest01.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:996359270583:android:aba4722369a677c7391d32",
+        "android_client_info": {
+          "package_name": "com.campusnest1.groupq"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAq673Wjnbpw0JFoCGp0AthVTbFzMvORlE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
