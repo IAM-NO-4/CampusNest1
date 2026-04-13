@@ -2,12 +2,15 @@ package com.campusnest1.groupq
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.campusnest1.groupq.entities.*
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.firestore
+import com.campusnest1.groupq.navigation.AppNavHost
 
+//@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +64,25 @@ class MainActivity : ComponentActivity() {
                 }
 
         }
+        for (i in 0..5) {
+            val User = User(
+                userId =  "U" + (i+1),
+                name = "User "+ (i+1),
+                email = "user$i@gmail.com",
+                phone = "071234567$i"
+            )
+            db.collection("Students")
+                .document(User.userId)
+                .set(User)
+                .addOnSuccessListener {
+                    println("Data inserted successfully")
+                }.addOnFailureListener { e ->
+                    println("failed" + e.message)
+                }
+
+        }
+
+
 
     }
 }
