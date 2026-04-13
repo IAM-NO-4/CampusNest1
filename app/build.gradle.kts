@@ -57,7 +57,6 @@ dependencies {
     
     // Extended icons for Icons.AutoMirrored.Filled.DirectionsWalk
     implementation(libs.androidx.compose.material.icons.extended)
-    implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.ui.text)
 
