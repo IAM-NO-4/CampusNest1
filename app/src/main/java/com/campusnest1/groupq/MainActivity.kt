@@ -2,13 +2,12 @@ package com.campusnest1.groupq
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.campusnest1.groupq.entities.*
+import com.campusnest1.groupq.model.*
+import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.firestore
-import com.campusnest1.groupq.navigation.AppNavHost
 
 //@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -19,68 +18,22 @@ class MainActivity : ComponentActivity() {
         FirebaseApp.initializeApp(this)
 
         val db = Firebase.firestore
+        val mod = registerViewModel()
 
-        for (i in 0..10) {
-            val hostel = Hostel(
-                hostelId = "hostel$i",
-                name = "Hotel #$i",
-                location = if (i < 3) {
-                    "Kampala"
-                } else if (i < 6) {
-                    "Wandegeya"
-                } else if (i < 8) {
-                    "Kikoni"
-                } else {
-                    "Kikumikikumi"
-                },
-                lowestPrice = "200k",
-                highestPrice = "500k",
-                ownerId = "user #"
-            )
+        val user1 = User(
+            userId = "wasaff",
+            name = "IAM NO four",
+            email = "maama7@gmail.com",
+            phone = "0757716179",
 
-            db.collection("Hostels")
-                .document(hostel.hostelId)
-                .set(hostel)
-                .addOnSuccessListener {
-                    println("Data inserted successfully")
-                }.addOnFailureListener { e ->
-                    println("failed" + e.message)
-                }
-        }
-        for (i in 0..3) {
-            val Manager = Manager(
-                managerId = "Mng$i",
-                name = "Manager $i",
-                email = "manager$i@gmail.com",
-                phone = "071234567$i"
-            )
-            db.collection("Managers")
-                .document(Manager.managerId)
-                .set(Manager)
-                .addOnSuccessListener {
-                    println("Data inserted successfully")
-                }.addOnFailureListener { e ->
-                    println("failed" + e.message)
-                }
+        )
+        val pas = "iam@12"
+      mod.register(user1.email,pas,user1)
 
-        }
-        for (i in 0..5) {
-            val User = User(
-                userId =  "U" + (i+1),
-                name = "User "+ (i+1),
-                email = "user$i@gmail.com",
-                phone = "071234567$i"
-            )
-            db.collection("Students")
-                .document(User.userId)
-                .set(User)
-                .addOnSuccessListener {
-                    println("Data inserted successfully")
-                }.addOnFailureListener { e ->
-                    println("failed" + e.message)
-                }
 
-        }
+
+
+
 
 
 
