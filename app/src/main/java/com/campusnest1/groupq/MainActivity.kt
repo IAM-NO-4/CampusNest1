@@ -2,12 +2,13 @@ package com.campusnest1.groupq
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.campusnest1.groupq.entities.*
+import com.campusnest.groupq.ui.theme.CampusNestTheme
 import com.campusnest1.groupq.model.*
 import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 import com.google.firebase.Firebase
