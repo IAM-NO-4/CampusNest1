@@ -24,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.campusnest1.groupq.entities.Hostel
+import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.ui.MockData.mockHostels
 import com.campusnest1.groupq.ui.theme.*
 
