@@ -1,7 +1,7 @@
 package com.campusnest1.groupq.ui
 
-import com.campusnest1.groupq.entities.Hostel
-import com.campusnest1.groupq.entities.Room
+import com.campusnest1.groupq.model.Hostel
+import com.campusnest1.groupq.model.Room
 
 object MockData{
     val mockHostels = listOf(

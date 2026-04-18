@@ -1,4 +1,4 @@
-package com.campusnest1.groupq.entities
+package com.campusnest1.groupq.model
 
 data class Favorite(
     val favoriteId: String = "",
