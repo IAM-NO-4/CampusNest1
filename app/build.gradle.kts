@@ -37,10 +37,12 @@ android {
 }
 
 dependencies {
-    implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-common")
+    implementation("com.google.firebase:firebase-auth-ktx")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -50,10 +52,23 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
+
+    // Coil for image loading
+    implementation(libs.coil.compose)
+
+    // Extended icons for Icons.AutoMirrored.Filled.DirectionsWalk
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.navigation.compose)
     // koin
     implementation("io.insert-koin:koin-android:3.5.3")
     implementation("io.insert-koin:koin-androidx-compose:3.5.3")
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.constraintlayout)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
