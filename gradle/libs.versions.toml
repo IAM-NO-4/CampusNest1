@@ -14,6 +14,11 @@ credentialsPlayServicesAuth = "1.6.0"
 googleid = "1.2.0"
 coil = "2.6.0"
 navigation = "2.7.7"
+appcompat = "1.7.0"
+material = "1.12.0"
+activity = "1.9.3"
+constraintlayout = "2.2.0"
+
 
 
 [libraries]
@@ -41,6 +46,13 @@ googleid = { group = "com.google.android.libraries.identity.googleid", name = "g
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
