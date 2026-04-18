@@ -312,29 +312,13 @@ fun HostelCard(hostel: Hostel) {
                     fontWeight = FontWeight.Bold,
                     color = TextDark
                 )
-                
+
+                //Rating
                 Surface(
                     color = Color(0xFFFFF9E6),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = null,
-                            tint = StarYellow,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = hostel.rating.toString(),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = TextDark
-                        )
-                    }
+                    HostelRating(hostel)
                 }
             }
 
@@ -364,6 +348,7 @@ fun HostelCard(hostel: Hostel) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                //Price
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
                         text = "UGX ${hostel.highestPrice}",
@@ -396,9 +381,31 @@ fun HostelCard(hostel: Hostel) {
     }
 }
 
+@Composable
+fun HostelRating(hostel: Hostel) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.Star,
+            contentDescription = null,
+            tint = StarYellow,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = hostel.rating.toString(),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = TextDark
+        )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
-fun CampusNestAppPreview() {
+fun HomeScreenPreview() {
     CampusNestTheme {
         CampusNestApp()
     }

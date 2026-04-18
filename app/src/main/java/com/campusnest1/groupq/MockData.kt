@@ -38,8 +38,8 @@ object MockData{
     )
 
     val mockRooms = listOf(
-        Room(type = "Premium Single", price = 450.0, isAvailable = false),
-        Room(type = "Shared Double", price = 300.0, isAvailable = true)
+        Room(type = "Premium Single", price = 2000000.0, isAvailable = false, status = "Full", capacity = 1, beds = 1),
+        Room(type = "Shared Double", price = 850000.0, isAvailable = true, status = "Available", capacity = 2, beds = 2)
     )
 
 
