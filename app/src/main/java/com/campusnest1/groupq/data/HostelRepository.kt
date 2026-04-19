@@ -1,6 +1,6 @@
 package com.campusnest1.groupq.data
 
-import com.campusnest1.groupq.entities.Hostel
+import com.campusnest1.groupq.model.Hostel
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 

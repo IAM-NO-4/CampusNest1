@@ -53,8 +53,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.campusnest1.groupq.entities.Hostel
-import com.campusnest1.groupq.entities.Room
+import com.campusnest1.groupq.model.Hostel
+import com.campusnest1.groupq.model.Room
 import com.campusnest1.groupq.ui.theme.BackgroundLight
 import com.campusnest1.groupq.ui.theme.CampusNestTheme
 import com.campusnest1.groupq.ui.theme.OrangeAccent
@@ -318,7 +318,7 @@ fun AmenitiesList(amenities: List<String>) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = BackgroundLight,
+                    color = Color(0xFFF5F5F5),
                     modifier = Modifier.size(56.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
