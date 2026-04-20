@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.campusnest.groupq.ui.theme.CampusNestTheme
+import com.campusnest1.groupq.ui.theme.CampusNestTheme
 import com.campusnest1.groupq.model.*
 import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 import com.google.firebase.Firebase
@@ -16,7 +16,6 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.firestore
 import com.campusnest1.groupq.navigation.AppNavHost
 import com.campusnest1.groupq.ui.CampusNestApp
-import com.campusnest1.groupq.ui.theme.CampusNestTheme
 
 //@AndroidEntryPoint
 class MainActivity : ComponentActivity() {

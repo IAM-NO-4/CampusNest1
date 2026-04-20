@@ -1,20 +1,38 @@
 package com.campusnest1.groupq
 
+import android.content.Intent
 import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.activity.viewModels
+import com.example.campusnet.ui.LoginScreen
+import com.campusnest1.groupq.ui.theme.CampusNestTheme
+import com.campusnest1.groupq.viewmodel.auth.loginViewModel
 
-class AuthActivity : AppCompatActivity() {
+class AuthActivity : ComponentActivity() {
+    private val viewModel: loginViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_auth)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        setContent {
+            CampusNestTheme {
+                LoginScreen(
+                    onLoginClick = { email, password ->
+                        viewModel.login(email, password) { user ->
+                            if (user != null) {
+                                startActivity(Intent(this, MainActivity::class.java))
+                                finish()
+                            }
+                        }
+                    },
+                    onSignUp = {},
+                    onForgotPassword = {},
+                    onGoogleSignIn = {},
+                    onAppleSignIn = {}
+                )
+            }
         }
     }
 }
