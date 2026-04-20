@@ -14,6 +14,7 @@ object MockData{
             imageUrl = "https://example.com/image1.jpg", // Coil will use this later
             rating = 4.8,
             distance = "0.5 km from Main Gate",
+            amenities = listOf("Free Wi-Fi", "Security")
         ),
         Hostel(
             hostelId = "2",
@@ -23,7 +24,8 @@ object MockData{
             highestPrice = "400",
             imageUrl = "https://example.com/image2.jpg",
             rating = 4.5,
-            distance = "1.2 km from Main Gate"
+            distance = "1.2 km from Main Gate",
+            amenities = listOf("Spa", "Security")
         ),
         Hostel(
             hostelId = "3",
@@ -33,13 +35,14 @@ object MockData{
             highestPrice = "250",
             imageUrl = "https://example.com/image3.jpg",
             rating = 4.1,
-            distance = "2.5 km from Main Gate"
+            distance = "2.5 km from Main Gate",
+            amenities = listOf("Free Wi-Fi", "Gym", "Security")
         )
     )
 
     val mockRooms = listOf(
-        Room(type = "Premium Single", price = 450.0, isAvailable = false),
-        Room(type = "Shared Double", price = 300.0, isAvailable = true)
+        Room(type = "Premium Single", price = 2000000.0, isAvailable = false, status = "Full", capacity = 1, beds = 1),
+        Room(type = "Shared Double", price = 850000.0, isAvailable = true, status = "Available", capacity = 2, beds = 2)
     )
 
 

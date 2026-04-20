@@ -1,7 +1,7 @@
 package com.campusnest1.groupq.model
 
 data class Hostel(
-    //Added distance and image url
+    //Added distance, amenities and image url
     val hostelId: String = "",
     val name: String = "",
     val location: Any = "",
@@ -11,5 +11,6 @@ data class Hostel(
     val distance: String = "",
     val imageUrl: String = "",
     val rating: Double = 0.0, // Duplicate entry in review entity
-    val description: String = ""
+    val description: String = "",
+    val amenities: List<String> = emptyList(),
 )
