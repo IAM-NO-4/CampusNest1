@@ -4,9 +4,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,7 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -26,12 +28,11 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -44,6 +45,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -55,11 +60,11 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.model.Room
-import com.campusnest1.groupq.ui.theme.BackgroundLight
 import com.campusnest1.groupq.ui.theme.CampusNestTheme
+import com.campusnest1.groupq.ui.theme.GreySurface
 import com.campusnest1.groupq.ui.theme.OrangeAccent
-import com.campusnest1.groupq.ui.theme.StarYellow
 import com.campusnest1.groupq.ui.theme.TealPrimary
+import com.campusnest1.groupq.ui.theme.TealSecondary
 import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.ui.theme.TextGrey
 
@@ -99,25 +104,7 @@ fun HostelDetailsScreen(hostel: Hostel, rooms: List<Room> = emptyList()) {
                         HostelRating(hostel)
                     }
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(top = 4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = null,
-                            tint = TealPrimary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        
-                        Spacer(modifier = Modifier.width(4.dp))
-                        
-                        Text(
-                            text = hostel.location.toString(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = TextGrey
-                        )
-                    }
+                    HostelAddress(hostel)
 
                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -176,12 +163,35 @@ fun HostelDetailsScreen(hostel: Hostel, rooms: List<Room> = emptyList()) {
             }
 
             // Room Cards
-            items(rooms) { room ->
-                RoomCard(room)
+            itemsIndexed(rooms) { index, room ->
+                RoomCard(room, isSelected = index == 0)
             }
             
             item { Spacer(modifier = Modifier.height(20.dp)) }
         }
+    }
+}
+
+@Composable
+fun HostelAddress(hostel: Hostel) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(top = 4.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.LocationOn,
+            contentDescription = null,
+            tint = TealPrimary,
+            modifier = Modifier.size(18.dp)
+        )
+
+        Spacer(modifier = Modifier.width(4.dp))
+
+        Text(
+            text = hostel.location.toString(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextGrey
+        )
     }
 }
 
@@ -240,68 +250,79 @@ fun HostelHeaderImage(hostel: Hostel) {
 }
 
 @Composable
-fun RoomCard(room: Room) {
+fun RoomCard(room: Room, isSelected: Boolean = false) {
     val statusColor = if (room.status.contains("Full")) Color.Red else Color(0xFFF2994A)
     val statusBg = if (room.status.contains("Full")) Color(0xFFFFEBEE) else Color(0xFFFFF3E0)
+    val borderColor = if (isSelected) TealPrimary else if (room.status.isNotEmpty()) statusBg else Color.Transparent
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        border = if (room.status.isNotEmpty()) BorderStroke(1.dp, statusBg) else null
+        border = BorderStroke(1.dp, borderColor)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = room.type,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = TextDark
-                )
-                if (room.status.isNotEmpty()) {
-                    Surface(color = statusBg, shape = RoundedCornerShape(12.dp)) {
-                        Text(
-                            text = room.status,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = statusColor,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-            
-            Row(
-                modifier = Modifier.padding(top = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Icons.Default.Bed, null, tint = TextGrey, modifier = Modifier.size(16.dp))
-                Text(" ${room.beds} Bed", color = TextGrey, fontSize = 13.sp)
-                Spacer(modifier = Modifier.width(12.dp))
-                Icon(Icons.Default.Person, null, tint = TextGrey, modifier = Modifier.size(16.dp))
-                Text(" ${room.capacity} Person", color = TextGrey, fontSize = 13.sp)
+        Row(modifier = Modifier.height(IntrinsicSize.Min)){
+            //Vertical Accent Bar
+            if(isSelected){
+                Surface(
+                    modifier = Modifier.width(6.dp).fillMaxHeight(),
+                    color = TealPrimary
+                ){}
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text("Monthly Rent", color = TextGrey, fontSize = 12.sp)
-                    Text("UGX ${room.price.toInt()}", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = TextDark)
-                }
-                Button(
-                    onClick = { /* TODO */ },
-                    colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
-                    shape = RoundedCornerShape(12.dp)
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Select")
+                    Text(
+                        text = room.type,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = TextDark
+                    )
+                    if (room.status.isNotEmpty()) {
+                        Surface(color = statusBg, shape = RoundedCornerShape(12.dp)) {
+                            Text(
+                                text = room.status,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                color = statusColor,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Bed, null, tint = TextGrey, modifier = Modifier.size(16.dp))
+                    Text(" ${room.beds} Bed", color = TextGrey, fontSize = 13.sp)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Icon(Icons.Default.Person, null, tint = TextGrey, modifier = Modifier.size(16.dp))
+                    Text(" ${room.capacity} Person", color = TextGrey, fontSize = 13.sp)
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("Monthly Rent", color = TextGrey, fontSize = 12.sp)
+                        Text("UGX ${room.price.toInt()}", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = TextDark)
+                    }
+                    Button(
+                        onClick = { /* TODO */ },
+                        colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Select")
+                    }
                 }
             }
         }
@@ -314,11 +335,14 @@ fun AmenitiesList(amenities: List<String>) {
         contentPadding = PaddingValues(top = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(amenities) { amenity ->
+        itemsIndexed(amenities) { index, amenity ->
+            val isSelected = index == 0
+            val bgColor = if (isSelected) TealSecondary else GreySurface
+            val iconColor = if (isSelected) TealPrimary else TextGrey
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFFF5F5F5),
+                    color = bgColor,
                     modifier = Modifier.size(56.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
@@ -330,7 +354,7 @@ fun AmenitiesList(amenities: List<String>) {
                                 else -> Icons.Default.Done
                             },
                             contentDescription = null,
-                            tint = TealPrimary
+                            tint = iconColor
                         )
                     }
                 }
@@ -347,6 +371,19 @@ fun AmenitiesList(amenities: List<String>) {
 
 @Composable
 fun BottomBookingBar(lowestPrice: String) {
+    var showBookingSheet by remember { mutableStateOf(false) }
+    if (showBookingSheet){
+        BookingBottomSheet(
+            hostel = MockData.mockHostels[0],
+            room = MockData.mockRooms[0],
+            onDismiss = { showBookingSheet = false },
+            onBook = { date, time ->
+                showBookingSheet = true
+                //  booking logic
+            }
+        )
+    }
+
     Surface(
         shadowElevation = 16.dp,
         color = Color.White,
