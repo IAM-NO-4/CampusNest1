@@ -38,16 +38,10 @@ fun AppNavHost() {
         }
 
         composable(Screen.Home.route) {
-            HomeScreen(navController)
+            MainScreen()
         }
 
-        composable(Screen.Details.route) {
-            Text(text = "Details Screen")
-        }
     }
 }
 
-@Composable
-fun HomeScreen(x0: NavHostController) {
-  //
-}
+
