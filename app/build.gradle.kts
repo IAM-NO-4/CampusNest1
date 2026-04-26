@@ -73,7 +73,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.compose.ui.test)
+    implementation(libs.androidx.ui.text)
+    androidTestImplementation(libs.androidx.compose.ui.test)
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.material3)
 
