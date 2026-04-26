@@ -1,6 +1,6 @@
 package com.campusnest1.groupq.data
 
-import com.campusnest1.groupq.entities.User
+import com.campusnest1.groupq.model.User
 import kotlinx.coroutines.flow.Flow
 
 interface AuthRepository {
