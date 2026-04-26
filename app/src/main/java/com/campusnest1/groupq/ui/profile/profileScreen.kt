@@ -9,7 +9,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Apartment
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.ConfirmationNumber
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Nightlight
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Route
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,33 +31,64 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.campusnest1.groupq.viewmodel.HostelViewModel
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 
 @Composable
 fun ProfileScreen(
     navController: NavController? = null,
-    profileView: profileViewModel, regView: registerViewModel = viewModel()
+    profileView: profileViewModel = viewModel(),
+    hostelViewModel: HostelViewModel = viewModel()
 ){
-   // profileScreenContent()
-}
-@Preview(showBackground = true, heightDp = 1100)
-@Composable
-fun profileScreenPreview(
-    navController: NavController? = null,
-){
-    profileScreenContent(
-        fname = "Alex", course = "Software Eng", studyYear = "2",
-        lname = "Muhanji",
+    val uiState = profileView.uiState
+    val user = profileView.currentUser
+    val nameParts = user?.displayName?.split(" ") ?: listOf("Student", "")
+
+    // Fetch updated counts when screen opens
+    LaunchedEffect(Unit) {
+        hostelViewModel.loadStudentData()
+    }
+
+    ProfileScreenContent(
+        fname = nameParts.getOrNull(0) ?: "Student",
+        lname = nameParts.getOrNull(1) ?: "",
+        course = uiState.course ?: "Not Set",
+        studyYear = uiState.yearOfStudy ?: "",
+        savedCount = hostelViewModel.savedHostels.value.size,
+        bookingCount = hostelViewModel.bookingHistory.value.size,
+        isNotificationsEnabled = profileView.isNotificationsEnabled.value,
+        onToggleNotifications = { profileView.toggleNotifications(it) },
         navController = navController
     )
 }
 
+@Preview(showBackground = true, heightDp = 1100)
+@Composable
+fun ProfileScreenPreview(){
+    ProfileScreenContent(
+        fname = "Alex",
+        course = "Software Eng",
+        studyYear = "2",
+        lname = "Muhanji",
+        savedCount = 4,
+        bookingCount = 56,
+        isNotificationsEnabled = true,
+        onToggleNotifications = {},
+        navController = null
+    )
+}
 
 @Composable
-fun profileScreenContent(
-    fname: String, course: String, studyYear: String,
+fun ProfileScreenContent(
+    fname: String,
+    course: String,
+    studyYear: String,
     lname: String,
+    savedCount: Int,
+    bookingCount: Int,
+    isNotificationsEnabled: Boolean,
+    onToggleNotifications: (Boolean) -> Unit,
     navController: NavController?
 ){
     val scrollState = rememberScrollState()
@@ -104,29 +143,30 @@ fun profileScreenContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = fname,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF333333)
                 )
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = lname,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Gray
                 )
-
+            }
             
             Spacer(modifier = Modifier.height(8.dp))
             
             Surface(
                 shape = RoundedCornerShape(20.dp),
                 color = Color(0xFFEFEFEF)
-                
             ) {
                 Text(
-                    text = course + " Year: "+ studyYear,
+                    text = "$course Year: $studyYear",
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                     fontSize = 13.sp,
                     color = Color.Gray
@@ -209,14 +249,59 @@ fun profileScreenContent(
             SettingsItem(icon = Icons.Default.Person, label = "Personal Info",
                 onItemClick = { navController?.navigate("profile_settings") })
 
-            SettingsItem(icon = Icons.Default.History, label = "Booking History", badgeCount = 56,
+            SettingsItem(icon = Icons.Default.History, label = "Booking History", badgeCount = bookingCount,
                 onItemClick = { navController?.navigate("booking_history") })
 
-            SettingsItem(icon = Icons.Default.Favorite, label = "Saved Hostels",badgeCount = 4, iconTint = Color.Red,
+            SettingsItem(icon = Icons.Default.Favorite, label = "Saved Hostels", badgeCount = savedCount, iconTint = Color.Red,
                 onItemClick = { navController?.navigate("saved_hostels") })
 
-            SettingsItem(icon = Icons.Default.Notifications, label = "Notification Settings",
-                onItemClick = { navController?.navigate("notification_settings") })
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Notification Settings Switch Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            modifier = Modifier.size(40.dp),
+                            shape = CircleShape,
+                            color = Color(0xFFF5F5F5)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = null,
+                                modifier = Modifier.padding(10.dp),
+                                tint = Color(0xFF333333)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = "Notification Settings",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF333333)
+                        )
+                    }
+
+                    Switch(
+                        checked = isNotificationsEnabled,
+                        onCheckedChange = onToggleNotifications,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = Color(0xFF00A3A3)
+                        )
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -260,7 +345,7 @@ fun profileScreenContent(
                 }
             }
 
-            // bottom spacer to ensure the content is fully viewable when scrolling
+            // bottom spacer
             Spacer(modifier = Modifier.height(100.dp))
         }
     }
@@ -372,9 +457,7 @@ fun SettingsItem(
             }
 
             IconButton(
-                onClick = {
-                onItemClick()
-                },
+                onClick = { onItemClick() },
                 modifier = Modifier.size(24.dp)
             ) {
                 Icon(
@@ -383,9 +466,6 @@ fun SettingsItem(
                     tint = Color.LightGray
                 )
             }
-
-
-
         }
     }
 }
