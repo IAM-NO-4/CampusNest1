@@ -1,4 +1,4 @@
-package com.campusnest1.groupq.entities
+package com.campusnest1.groupq.model
 
 sealed class AuthState {
     object Idle: AuthState()
