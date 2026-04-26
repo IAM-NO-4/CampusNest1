@@ -16,6 +16,8 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import com.campusnest1.groupq.viewmodel.HostelViewModel
+import org.koin.androidx.compose.koinViewModel
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -29,7 +31,7 @@ import com.campusnest1.groupq.ui.MockData.mockHostels
 import com.campusnest1.groupq.ui.theme.*
 
 @Composable
-fun CampusNestApp() {
+fun CampusNestApp(viewModel: HostelViewModel = koinViewModel()) {
     var selectedTab by remember { mutableStateOf("All") }
     val categories = listOf("All", "Hostels", "Events")
 
@@ -117,7 +119,7 @@ fun CampusNestApp() {
             Spacer(modifier = Modifier.height(8.dp))
             
             Box(modifier = Modifier.weight(1f)){
-                HostelList(hostels = mockHostels)
+                HostelList(hostels = mockHostels, viewModel = viewModel)
             }
         }
     }
@@ -222,19 +224,25 @@ fun SearchBar(onSearchClick: () -> Unit) {
 }
 
 @Composable
-fun HostelList(hostels: List<Hostel>) {
+fun HostelList(hostels: List<Hostel>, viewModel: HostelViewModel) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(20.dp),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         items(hostels) { hostel ->
-            HostelCard(hostel = hostel)
+            HostelCard(hostel = hostel, viewModel = viewModel)
         }
     }
 }
 
 @Composable
-fun HostelCard(hostel: Hostel) {
+fun HostelCard(hostel: Hostel, viewModel: HostelViewModel) {
+    val isSaved = viewModel.savedStatus[hostel.hostelId] ?: false
+    
+    LaunchedEffect(hostel.hostelId) {
+        viewModel.checkIfSaved(hostel.hostelId)
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -291,11 +299,11 @@ fun HostelCard(hostel: Hostel) {
                     color = Color.White,
                     shape = CircleShape
                 ) {
-                    IconButton(onClick = { /* TODO */ }) {
+                    IconButton(onClick = { viewModel.toggleFavorite(hostel.hostelId) }) {
                         Icon(
-                            imageVector = Icons.Default.FavoriteBorder,
+                            imageVector = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Favorite",
-                            tint = TextGrey,
+                            tint = if (isSaved) Color.Red else TextGrey,
                             modifier = Modifier.size(20.dp)
                         )
                     }
