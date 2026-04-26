@@ -4,9 +4,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.*
-import com.campusnest1.groupq.ui.HomeScreen
+import com.campusnest1.groupq.ui.CampusNestApp
 import com.campusnest1.groupq.ui.HostelScreen
-import com.campusnest1.groupq.ui.profile.profileScreen
+import com.campusnest1.groupq.ui.profile.ProfileScreen
+import androidx.compose.foundation.layout.padding
 
 @Composable
 fun MainScreen() {
@@ -26,7 +27,7 @@ fun MainScreen() {
         ) {
 
             composable("home") {
-                HomeScreen(navController)
+                CampusNestApp()
             }
 
            composable("hostels") {
