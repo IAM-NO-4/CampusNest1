@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -45,6 +46,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,9 +69,15 @@ import com.campusnest1.groupq.ui.theme.TealPrimary
 import com.campusnest1.groupq.ui.theme.TealSecondary
 import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.ui.theme.TextGrey
+import com.campusnest1.groupq.viewmodel.HostelViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun HostelDetailsScreen(hostel: Hostel, rooms: List<Room> = emptyList()) {
+fun HostelDetailsScreen(
+    hostel: Hostel,
+    rooms: List<Room> = emptyList(),
+    viewModel: HostelViewModel = koinViewModel()
+) {
     Scaffold(
         bottomBar = {
             //Bottom Bar
@@ -83,7 +91,7 @@ fun HostelDetailsScreen(hostel: Hostel, rooms: List<Room> = emptyList()) {
         ) {
             // Header Image Section
             item {
-                HostelHeaderImage(hostel)
+                HostelHeaderImage(hostel, viewModel)
             }
 
             // Details/ Content
@@ -196,7 +204,13 @@ fun HostelAddress(hostel: Hostel) {
 }
 
 @Composable
-fun HostelHeaderImage(hostel: Hostel) {
+fun HostelHeaderImage(hostel: Hostel, viewModel: HostelViewModel) {
+    val isSaved = viewModel.savedStatus[hostel.hostelId] ?: false
+
+    LaunchedEffect(hostel.hostelId) {
+        viewModel.checkIfSaved(hostel.hostelId)
+    }
+
     Box(modifier = Modifier.height(300.dp).fillMaxWidth()) {
         AsyncImage(
             model = hostel.imageUrl,
@@ -225,8 +239,12 @@ fun HostelHeaderImage(hostel: Hostel) {
                     }
                 }
                 Surface(shape = CircleShape, color = Color.White) {
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(Icons.Default.FavoriteBorder, null, tint = Color.Red)
+                    IconButton(onClick = { viewModel.toggleFavorite(hostel.hostelId) }) {
+                        Icon(
+                            imageVector = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Favorite",
+                            tint = if (isSaved) Color.Red else Color.LightGray
+                        )
                     }
                 }
             }

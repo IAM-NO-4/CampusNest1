@@ -44,10 +44,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.ui.theme.BackgroundLight
@@ -67,11 +66,17 @@ import com.campusnest1.groupq.ui.theme.RedAccentLight
 import com.campusnest1.groupq.ui.theme.TealPrimary
 import com.campusnest1.groupq.ui.theme.TealSecondary
 import com.campusnest1.groupq.ui.theme.TextGrey
+import com.campusnest1.groupq.viewmodel.HostelViewModel
 
 @Composable
-fun HostelSearchScreen(hostel: Hostel){
-    var showFilterSheet by remember {mutableStateOf(false)} //Remember if the drawer open
-    var activeFilterType by remember {mutableStateOf("")} // Remember which filter clicked
+fun HostelSearchScreen(
+    hostel: Hostel,
+    viewModel: HostelViewModel = viewModel()
+){
+    // Load hostels into ViewModel on first composition
+    LaunchedEffect(Unit) {
+        viewModel.loadAllHostels(MockData.mockHostels)
+    }
 
     Scaffold(
         topBar = { SearchTopBar() },
@@ -79,10 +84,9 @@ fun HostelSearchScreen(hostel: Hostel){
     ){ padding ->
         Column(modifier = Modifier.padding(padding)){
             FilterChipsRow(
-                selectedFilter = activeFilterType,
+                selectedFilter = viewModel.activeFilterType,
                 onFilterClick = { filterName ->
-                    activeFilterType = filterName
-                    showFilterSheet = true
+                    viewModel.openFilterSheet(filterName)
                 }
             )
 
@@ -90,7 +94,7 @@ fun HostelSearchScreen(hostel: Hostel){
                 modifier = Modifier.fillMaxSize().weight(1f),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-                items(MockData.mockHostels){hostel->
+                items(viewModel.filteredHostels){hostel ->
                     SearchHostelCard(hostel)
                 }
             }
@@ -98,10 +102,16 @@ fun HostelSearchScreen(hostel: Hostel){
 
     }
 
-    if (showFilterSheet){
+    if (viewModel.showFilterSheet){
         FilterBottomSheet(
-            filterType = activeFilterType,
-            onDismiss = { showFilterSheet = false}
+            filterType = viewModel.activeFilterType,
+            initialPriceRange = viewModel.priceRange,
+            initialLocation = viewModel.selectedLocation,
+            initialRooms = viewModel.selectedRoomTypes,
+            onApply = { newPriceRange, newLocation, newRooms ->
+                viewModel.applyFilters(newPriceRange, newLocation, newRooms)
+            },
+            onDismiss = { viewModel.closeFilterSheet() }
         )
     }
 }
@@ -256,14 +266,20 @@ fun SearchHostelCard(hostel: Hostel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FilterBottomSheet(filterType: String, onDismiss: () -> Unit) {
-    var priceRange by remember {mutableStateOf(200_000f..3_000_000f)}
+fun FilterBottomSheet(
+    filterType: String,
+    initialPriceRange: ClosedFloatingPointRange<Float>,
+    initialLocation: String,
+    initialRooms: Set<String>,
+    onApply: (ClosedFloatingPointRange<Float>, String, Set<String>) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var priceRange by remember { mutableStateOf(initialPriceRange) }
+    var selectedLocation by remember { mutableStateOf(initialLocation) }
+    var selectedRooms by remember { mutableStateOf(initialRooms) }
 
     val roomOptions = listOf("Single", "Double", "Triple")
-    var selectedRooms by remember { mutableStateOf(setOf<String>())}
-
     val locations = listOf("Kikoni", "Kikumi Kikumi", "Wandegeya", "Mulago", "Nakulabye")
-    var selectedLocation by remember { mutableStateOf("")}
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -352,7 +368,7 @@ fun FilterBottomSheet(filterType: String, onDismiss: () -> Unit) {
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = onDismiss,
+                onClick = { onApply(priceRange, selectedLocation, selectedRooms) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
             ){

@@ -3,6 +3,10 @@ package com.campusnest1.groupq.ui.profile
 data class ProfileUiState(
     val profileId: String = "",
     val userId: String = "",
+    val fname: String = "",
+    val lname: String = "",
+    val email: String = "",
+    val phone: String = "",
     val course: String? = "",
     val yearOfStudy: String? = "",
     val currentHostel: String? = "",

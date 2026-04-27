@@ -2,7 +2,7 @@ package com.campusnest1.groupq.data
 
 import com.google.firebase.auth.FirebaseAuth
 import com.campusnest1.groupq.data.AuthRepository
-import com.campusnest1.groupq.entities.User
+import com.campusnest1.groupq.model.User
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow

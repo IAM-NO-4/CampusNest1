@@ -26,20 +26,56 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.campusnest1.groupq.auth1.RegisterUiState
 import com.campusnest1.groupq.model.User
+import com.campusnest1.groupq.viewmodel.AuthViewModel
 import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 
 @Composable
-@Preview(showBackground = true)
 fun registerScreen(
     navController: NavController? = null,
-    viewModel: registerViewModel = viewModel()
+    viewModel: registerViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel()
 ) {
-   val state = viewModel.uiState
+    val state = viewModel.uiState
+    val isLoading by authViewModel.isLoading
+    val errorMessage by authViewModel.errorMessage
 
+    RegisterScreenContent(
+        state = state,
+        authIsLoading = isLoading,
+        authErrorMessage = errorMessage,
+        onNameChange = { viewModel.onNameChange(it) },
+        onEmailChange = { viewModel.onEmailChange(it) },
+        onPasswordChange = { viewModel.onPasswordChange(it) },
+        onPhoneChange = { viewModel.onPhoneChange(it) },
+        onPasswordVisibleToggle = { state.passwordVisible = !state.passwordVisible },
+        onRegisterClick = { viewModel.register() },
+        onLoginClick = { navController?.navigate("login") },
+        getPasswordStrength = { viewModel.getPasswordStrength(it) },
+        isFormValid = { viewModel.isFormValid() }
+    )
+}
+
+@Composable
+fun RegisterScreenContent(
+    state: RegisterUiState,
+    authIsLoading: Boolean,
+    authErrorMessage: String?,
+    onNameChange: (String) -> Unit,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onPhoneChange: (String) -> Unit,
+    onPasswordVisibleToggle: () -> Unit,
+    onRegisterClick: () -> Unit,
+    onLoginClick: () -> Unit,
+    getPasswordStrength: (String) -> String,
+    isFormValid: () -> Boolean
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -118,7 +154,7 @@ fun registerScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = state.name,
-                    onValueChange = { viewModel.onNameChange(it) },
+                    onValueChange = onNameChange,
                     placeholder = {
                         Text(
                             text = "Enter your name", color = Color.Gray,
@@ -153,9 +189,7 @@ fun registerScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = state.phone,
-                    onValueChange = {
-                        viewModel.onPhoneChange(it)
-                    },
+                    onValueChange = onPhoneChange,
                     placeholder = {
                         Text(
                             text = "Enter your phone number", color = Color.Gray,
@@ -181,7 +215,7 @@ fun registerScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = state.email,
-                    onValueChange = { viewModel.onEmailChange(it) },
+                    onValueChange = onEmailChange,
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("student@campus.edu", color = Color.Gray) },
                     leadingIcon = {
@@ -223,7 +257,7 @@ fun registerScreen(
                 )
                 OutlinedTextField(
                     value = state.password,
-                    onValueChange = { viewModel.onPasswordChange(it) },
+                    onValueChange = onPasswordChange,
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("••••••••", color = Color.Gray) },
                     isError = state.passwordError != null,
@@ -235,7 +269,7 @@ fun registerScreen(
                         )
                     },
                     trailingIcon = {
-                        IconButton(onClick = { state.passwordVisible = !state.passwordVisible }) {
+                        IconButton(onClick = onPasswordVisibleToggle) {
                             Icon(
                                 imageVector = if (state.passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                 contentDescription = null,
@@ -253,7 +287,7 @@ fun registerScreen(
                     ),
                     singleLine = true
                 )
-                val strength = viewModel.getPasswordStrength(state.password)
+                val strength = getPasswordStrength(state.password)
 
                 Text(
                     text = "Strength: $strength",
@@ -277,12 +311,21 @@ fun registerScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
 
+            // ── Error Message from AuthViewModel ──────────────────────────
+            if (authErrorMessage != null) {
+                Text(
+                    text = authErrorMessage,
+                    color = Color.Red,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
+
             // Main Action Button (Login)
             Button(
-                onClick = {
-                    viewModel.register()
-                },
-                enabled = viewModel.isFormValid() && !state.isLoading,
+                onClick = onRegisterClick,
+                enabled = isFormValid() && !state.isLoading && !authIsLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -290,16 +333,23 @@ fun registerScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A3A3))
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        if (state.isLoading) "Registering..."
-                        else "Register", fontSize = 18.sp, fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    if (state.isLoading || authIsLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Registering...", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    } else {
+                        Text("Register", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
 
@@ -310,9 +360,32 @@ fun registerScreen(
                 color = Color.Gray,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
-            TextButton(onClick = { navController?.navigate("login") }) {
+            TextButton(onClick = onLoginClick) {
                 Text(text = "Login", fontSize = 14.sp, color = Color(0xFF00A3A3))
             }
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun RegisterScreenPreview() {
+    RegisterScreenContent(
+        state = RegisterUiState(
+            name = "John Doe",
+            email = "john.doe@university.edu"
+        ),
+        authIsLoading = false,
+        authErrorMessage = null,
+        onNameChange = {},
+        onEmailChange = {},
+        onPasswordChange = {},
+        onPhoneChange = {},
+        onPasswordVisibleToggle = {},
+        onRegisterClick = {},
+        onLoginClick = {},
+        getPasswordStrength = { "Strong" },
+        isFormValid = { true }
+    )
+}
+

@@ -25,6 +25,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.campusnest1.groupq.viewmodel.AuthViewModel
 
 // ── Exact brand colors from screenshot ────────────────────────────────────────
 private val TealPrimary  = Color(0xFF1BAFA9)   // "Campus" text & Log In button
@@ -41,6 +43,7 @@ private val SocialBorder = Color(0xFFE5E5F0)
 
 @Composable
 fun LoginScreen(
+    authViewModel: AuthViewModel = viewModel(),
     onLoginClick: (email: String, password: String) -> Unit = { _, _ -> },
     onForgotPassword: () -> Unit = {},
     onGoogleSignIn: () -> Unit = {},
@@ -50,6 +53,9 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+
+    val isLoading by authViewModel.isLoading
+    val errorMessage by authViewModel.errorMessage
 
     Box(
         modifier = Modifier
@@ -230,9 +236,21 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
 
+            // ── Error Message ──────────────────────────────────────────────
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage!!,
+                    color = Color.Red,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
+
             // ── Log In button ──────────────────────────────────────────────
             Button(
                 onClick = { onLoginClick(email, password) },
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -243,12 +261,20 @@ fun LoginScreen(
                     pressedElevation = 1.dp
                 )
             ) {
-                Text(
-                    text = "Log In  →",
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Log In  →",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(28.dp))

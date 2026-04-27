@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.campusnest1.groupq.data.AuthRepository
 import com.campusnest1.groupq.data.AuthImplementationRepository
-import com.campusnest1.groupq.entities.User
+import com.campusnest1.groupq.model.User
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
