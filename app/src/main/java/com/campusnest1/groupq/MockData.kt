@@ -1,5 +1,6 @@
 package com.campusnest1.groupq.ui
 
+import com.campusnest1.groupq.model.Event
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.model.Room
 
@@ -47,6 +48,48 @@ object MockData{
     val mockRooms = listOf(
         Room(type = "Premium Single", price = 2000000.0, isAvailable = false, status = "Full", capacity = 1, beds = 1),
         Room(type = "Double", price = 850000.0, isAvailable = true, status = "Available", capacity = 2, beds = 2)
+    )
+
+    val mockEvents = listOf(
+        Event(
+            eventId = "1",
+            title = "Campus Tour",
+            description = "Explore the campus with us!",
+            date = "2026-05-15",
+            startTime = "10:00 AM",
+            endTime = "2:00 PM",
+            location = "Main Campus",
+            category = "Academic",
+            imageUrl = "https://example.com/image1.jpg",
+            registrationUrl = "https://example.com/register"
+        ),
+
+        Event(
+            eventId = "2",
+            title = "Tech Talk",
+            description = "Join us for a tech-related discussion!",
+            date = "2026-04-30",
+            startTime = "9:30 AM",
+            endTime = "11:30 AM",
+            location = "Tech Hub",
+            category = "Tech",
+            imageUrl = "https://example.com/image2.jpg",
+            registrationUrl = "https://example.com/register"
+
+        ),
+
+        Event(
+            eventId = "3",
+            title = "Art Exhibition",
+            description = "Discover the latest art pieces!",
+            date = "2026-04-25",
+            startTime = "10:00 AM",
+            endTime = "2:00 PM",
+            location = "Art Gallery",
+            category = "Art",
+            imageUrl = "https://example.com/image3.jpg",
+            registrationUrl = "https://example.com/register"
+        )
     )
 
 
