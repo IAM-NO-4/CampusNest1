@@ -23,24 +23,38 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 
 @Composable
 fun ProfileScreen(
-    navController: NavController? = null,
-    profileView: profileViewModel, regView: registerViewModel = viewModel()
+    navController: NavController,
+    profileView: profileViewModel,
 ){
-   // profileScreenContent()
+    val uiState = profileView.uiState
+
+    profileScreenContent(
+        fname = uiState.fname,
+        lname = uiState.lname,
+        course = uiState.course ?: "Not set",
+        studyYear = uiState.yearOfStudy ?: "Not set",
+        currentHostel = uiState.currentHostel ?: "Not set",
+        navController = navController
+    )
 }
+
 @Preview(showBackground = true, heightDp = 1100)
 @Composable
 fun profileScreenPreview(
     navController: NavController? = null,
 ){
     profileScreenContent(
-        fname = "Alex", course = "Software Eng", studyYear = "2",
+        fname = "Alex",
         lname = "Muhanji",
+        course = "Software Eng",
+        studyYear = "2",
+        currentHostel = "Lakeside Hostel",
         navController = navController
     )
 }
@@ -48,8 +62,11 @@ fun profileScreenPreview(
 
 @Composable
 fun profileScreenContent(
-    fname: String, course: String, studyYear: String,
+    fname: String,
     lname: String,
+    course: String,
+    studyYear: String,
+    currentHostel: String,
     navController: NavController?
 ){
     val scrollState = rememberScrollState()
@@ -104,6 +121,7 @@ fun profileScreenContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = fname,
                     fontSize = 28.sp,
@@ -116,6 +134,7 @@ fun profileScreenContent(
                     fontWeight = FontWeight.Bold,
                     color = Color.Gray
                 )
+            }
 
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -126,7 +145,7 @@ fun profileScreenContent(
                 
             ) {
                 Text(
-                    text = course + " Year: "+ studyYear,
+                    text = "$course | Year: $studyYear",
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                     fontSize = 13.sp,
                     color = Color.Gray
@@ -167,7 +186,7 @@ fun profileScreenContent(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(text = "Current Stay", fontSize = 12.sp, color = Color.Gray)
-                        Text(text = "Lakeside Hostel", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(text = currentHostel, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
@@ -175,28 +194,6 @@ fun profileScreenContent(
                         tint = Color.LightGray
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(modifier = Modifier.fillMaxWidth()) {
-                StatsCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Default.Route,
-                    value = "42",
-                    label = "Shuttle Rides",
-                    iconContainerColor = Color(0xFFFFF3E0),
-                    iconTint = Color(0xFFF2994A)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                StatsCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Default.ConfirmationNumber,
-                    value = "15",
-                    label = "Event Credits",
-                    iconContainerColor = Color(0xFFE0F2F1),
-                    iconTint = Color(0xFF00A3A3)
-                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -207,7 +204,7 @@ fun profileScreenContent(
             Spacer(modifier = Modifier.height(12.dp))
 
             SettingsItem(icon = Icons.Default.Person, label = "Personal Info",
-                onItemClick = { navController?.navigate("profile_settings") })
+                onItemClick = { navController?.navigate(Screen.PersonalInfo) })
 
             SettingsItem(icon = Icons.Default.History, label = "Booking History", badgeCount = 56,
                 onItemClick = { navController?.navigate("booking_history") })
@@ -275,42 +272,6 @@ fun SectionHeader(title: String) {
         fontWeight = FontWeight.Bold,
         color = Color(0xFF333333)
     )
-}
-
-@Composable
-fun StatsCard(
-    modifier: Modifier = Modifier,
-    icon: ImageVector,
-    value: String,
-    label: String,
-    iconContainerColor: Color,
-    iconTint: Color
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Surface(
-                modifier = Modifier.size(36.dp),
-                shape = RoundedCornerShape(10.dp),
-                color = iconContainerColor
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier.padding(8.dp),
-                    tint = iconTint
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = value, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
-            Text(text = label, fontSize = 12.sp, color = Color.Gray)
-        }
-    }
 }
 
 @Composable
@@ -383,9 +344,6 @@ fun SettingsItem(
                     tint = Color.LightGray
                 )
             }
-
-
-
         }
     }
 }
