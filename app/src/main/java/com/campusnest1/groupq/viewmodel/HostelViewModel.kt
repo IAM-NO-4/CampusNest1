@@ -34,6 +34,88 @@ class HostelViewModel(
     var isNotificationsEnabled = mutableStateOf(true)
         private set
 
+    // ========== FILTER ENGINE (Role 3) ==========
+    
+    // All available hostels (source data)
+    var allHostels = mutableStateOf<List<Hostel>>(emptyList())
+        private set
+    
+    // Filter state
+    var priceRange by mutableStateOf(200_000f..3_000_000f)
+        private set
+    
+    var selectedLocation by mutableStateOf("")
+        private set
+    
+    var selectedRoomTypes by mutableStateOf(setOf<String>())
+        private set
+    
+    // Active filter type (for bottom sheet)
+    var activeFilterType by mutableStateOf("")
+        private set
+    
+    var showFilterSheet by mutableStateOf(false)
+        private set
+
+    // Computed filtered hostels
+    val filteredHostels: List<Hostel>
+        get() = allHostels.value.filter { hostel ->
+            val price = hostel.highestPrice.toFloatOrNull() ?: 0f
+            val locationMatches = selectedLocation.isEmpty() || 
+                hostel.location.toString().contains(selectedLocation, ignoreCase = true)
+            val priceMatches = price in priceRange
+            val roomMatches = selectedRoomTypes.isEmpty() || 
+                selectedRoomTypes.any { roomType ->
+                    hostel.rooms.any { room -> 
+                        room.type.contains(roomType, ignoreCase = true) 
+                    }
+                }
+            locationMatches && priceMatches && roomMatches
+        }
+
+    // Filter actions
+    fun setPriceRange(range: ClosedFloatingPointRange<Float>) {
+        priceRange = range
+    }
+    
+    fun setLocation(location: String) {
+        selectedLocation = location
+    }
+    
+    fun setRoomTypes(roomTypes: Set<String>) {
+        selectedRoomTypes = roomTypes
+    }
+    
+    fun applyFilters(
+        priceRange: ClosedFloatingPointRange<Float>,
+        location: String,
+        roomTypes: Set<String>
+    ) {
+        this.priceRange = priceRange
+        this.selectedLocation = location
+        this.selectedRoomTypes = roomTypes
+        showFilterSheet = false
+    }
+    
+    fun openFilterSheet(filterType: String) {
+        activeFilterType = filterType
+        showFilterSheet = true
+    }
+    
+    fun closeFilterSheet() {
+        showFilterSheet = false
+    }
+    
+    fun clearFilters() {
+        priceRange = 200_000f..3_000_000f
+        selectedLocation = ""
+        selectedRoomTypes = emptySet()
+    }
+    
+    fun loadAllHostels(hostels: List<Hostel>) {
+        allHostels.value = hostels
+    }
+
     // 2. Function to fetch data when the screen opens
     fun loadStudentData() {
         val userId = authRepository.getCurrentUser()?.uid ?: ""

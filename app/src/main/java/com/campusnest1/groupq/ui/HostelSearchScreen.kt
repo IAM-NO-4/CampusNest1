@@ -44,10 +44,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.ui.theme.BackgroundLight
@@ -67,26 +66,16 @@ import com.campusnest1.groupq.ui.theme.RedAccentLight
 import com.campusnest1.groupq.ui.theme.TealPrimary
 import com.campusnest1.groupq.ui.theme.TealSecondary
 import com.campusnest1.groupq.ui.theme.TextGrey
+import com.campusnest1.groupq.viewmodel.HostelViewModel
 
 @Composable
-fun HostelSearchScreen(hostel: Hostel){
-    var showFilterSheet by remember {mutableStateOf(false)} //Remember if the drawer open
-    var activeFilterType by remember {mutableStateOf("")} // Remember which filter clicked
-
-    // Filter states
-    var priceRange by remember { mutableStateOf(200_000f..3_000_000f) }
-    var selectedLocation by remember { mutableStateOf("") }
-    var selectedRooms by remember { mutableStateOf(setOf<String>()) }
-
-    // Filter the hostels based on applied filters
-    val filteredHostels = MockData.mockHostels.filter { hostel ->
-        val price = hostel.highestPrice.toFloatOrNull() ?: 0f
-        val locationMatches = selectedLocation.isEmpty() || hostel.location.toString().contains(selectedLocation, ignoreCase = true)
-        val priceMatches = price in priceRange
-        val roomMatches = selectedRooms.isEmpty() || selectedRooms.any { roomType ->
-            hostel.rooms.any { room -> room.type.contains(roomType, ignoreCase = true) }
-        }
-        locationMatches && priceMatches && roomMatches
+fun HostelSearchScreen(
+    hostel: Hostel,
+    viewModel: HostelViewModel = viewModel()
+){
+    // Load hostels into ViewModel on first composition
+    LaunchedEffect(Unit) {
+        viewModel.loadAllHostels(MockData.mockHostels)
     }
 
     Scaffold(
@@ -95,10 +84,9 @@ fun HostelSearchScreen(hostel: Hostel){
     ){ padding ->
         Column(modifier = Modifier.padding(padding)){
             FilterChipsRow(
-                selectedFilter = activeFilterType,
+                selectedFilter = viewModel.activeFilterType,
                 onFilterClick = { filterName ->
-                    activeFilterType = filterName
-                    showFilterSheet = true
+                    viewModel.openFilterSheet(filterName)
                 }
             )
 
@@ -106,7 +94,7 @@ fun HostelSearchScreen(hostel: Hostel){
                 modifier = Modifier.fillMaxSize().weight(1f),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-                items(filteredHostels){hostel->
+                items(viewModel.filteredHostels){hostel ->
                     SearchHostelCard(hostel)
                 }
             }
@@ -114,19 +102,16 @@ fun HostelSearchScreen(hostel: Hostel){
 
     }
 
-    if (showFilterSheet){
+    if (viewModel.showFilterSheet){
         FilterBottomSheet(
-            filterType = activeFilterType,
-            initialPriceRange = priceRange,
-            initialLocation = selectedLocation,
-            initialRooms = selectedRooms,
+            filterType = viewModel.activeFilterType,
+            initialPriceRange = viewModel.priceRange,
+            initialLocation = viewModel.selectedLocation,
+            initialRooms = viewModel.selectedRoomTypes,
             onApply = { newPriceRange, newLocation, newRooms ->
-                priceRange = newPriceRange
-                selectedLocation = newLocation
-                selectedRooms = newRooms
-                showFilterSheet = false
+                viewModel.applyFilters(newPriceRange, newLocation, newRooms)
             },
-            onDismiss = { showFilterSheet = false}
+            onDismiss = { viewModel.closeFilterSheet() }
         )
     }
 }
