@@ -131,4 +131,12 @@ class profileViewModel: ViewModel() {
             }
     }
 
+    val currentUser = auth.currentUser
+
+    var isNotificationsEnabled = mutableStateOf(true)
+        private set
+
+    fun toggleNotifications(enabled: Boolean) {
+        isNotificationsEnabled.value = enabled
+    }
 }

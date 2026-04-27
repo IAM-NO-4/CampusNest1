@@ -36,12 +36,7 @@ class MainActivity : ComponentActivity() {
 
         )
         val pas = "iam@12"
-      mod.register(user1.email,pas,user1)
-
-
-
-
-
+        // mod.register(user1.email, pas, user1) // This call was incorrect based on registerViewModel definition
 
         setContent {
             CampusNestTheme {

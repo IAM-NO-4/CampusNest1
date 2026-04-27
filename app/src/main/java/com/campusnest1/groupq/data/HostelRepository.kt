@@ -1,8 +1,12 @@
 package com.campusnest1.groupq.data
 
-class HostelRepository {
+import com.campusnest1.groupq.model.Booking
+import com.campusnest1.groupq.model.Hostel
 
-    fun getHostels(): List<String> {
-        return listOf("Test Hostel")
-    }
+interface HostelRepository {
+    suspend fun getHostels(): List<Hostel>
+    suspend fun getSavedHostels(userId: String): List<Hostel>
+    suspend fun getBookingHistory(userId: String): List<Booking>
+    suspend fun toggleSavedHostel(userId: String, hostelId: String): Boolean
+    suspend fun isHostelSaved(userId: String, hostelId: String): Boolean
 }
