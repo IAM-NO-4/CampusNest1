@@ -73,6 +73,22 @@ fun HostelSearchScreen(hostel: Hostel){
     var showFilterSheet by remember {mutableStateOf(false)} //Remember if the drawer open
     var activeFilterType by remember {mutableStateOf("")} // Remember which filter clicked
 
+    // Filter states
+    var priceRange by remember { mutableStateOf(200_000f..3_000_000f) }
+    var selectedLocation by remember { mutableStateOf("") }
+    var selectedRooms by remember { mutableStateOf(setOf<String>()) }
+
+    // Filter the hostels based on applied filters
+    val filteredHostels = MockData.mockHostels.filter { hostel ->
+        val price = hostel.highestPrice.toFloatOrNull() ?: 0f
+        val locationMatches = selectedLocation.isEmpty() || hostel.location.toString().contains(selectedLocation, ignoreCase = true)
+        val priceMatches = price in priceRange
+        val roomMatches = selectedRooms.isEmpty() || selectedRooms.any { roomType ->
+            hostel.rooms.any { room -> room.type.contains(roomType, ignoreCase = true) }
+        }
+        locationMatches && priceMatches && roomMatches
+    }
+
     Scaffold(
         topBar = { SearchTopBar() },
         containerColor = BackgroundLight
@@ -90,7 +106,7 @@ fun HostelSearchScreen(hostel: Hostel){
                 modifier = Modifier.fillMaxSize().weight(1f),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-                items(MockData.mockHostels){hostel->
+                items(filteredHostels){hostel->
                     SearchHostelCard(hostel)
                 }
             }
@@ -101,6 +117,15 @@ fun HostelSearchScreen(hostel: Hostel){
     if (showFilterSheet){
         FilterBottomSheet(
             filterType = activeFilterType,
+            initialPriceRange = priceRange,
+            initialLocation = selectedLocation,
+            initialRooms = selectedRooms,
+            onApply = { newPriceRange, newLocation, newRooms ->
+                priceRange = newPriceRange
+                selectedLocation = newLocation
+                selectedRooms = newRooms
+                showFilterSheet = false
+            },
             onDismiss = { showFilterSheet = false}
         )
     }
@@ -256,14 +281,20 @@ fun SearchHostelCard(hostel: Hostel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FilterBottomSheet(filterType: String, onDismiss: () -> Unit) {
-    var priceRange by remember {mutableStateOf(200_000f..3_000_000f)}
+fun FilterBottomSheet(
+    filterType: String,
+    initialPriceRange: ClosedFloatingPointRange<Float>,
+    initialLocation: String,
+    initialRooms: Set<String>,
+    onApply: (ClosedFloatingPointRange<Float>, String, Set<String>) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var priceRange by remember { mutableStateOf(initialPriceRange) }
+    var selectedLocation by remember { mutableStateOf(initialLocation) }
+    var selectedRooms by remember { mutableStateOf(initialRooms) }
 
     val roomOptions = listOf("Single", "Double", "Triple")
-    var selectedRooms by remember { mutableStateOf(setOf<String>())}
-
     val locations = listOf("Kikoni", "Kikumi Kikumi", "Wandegeya", "Mulago", "Nakulabye")
-    var selectedLocation by remember { mutableStateOf("")}
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -352,7 +383,7 @@ fun FilterBottomSheet(filterType: String, onDismiss: () -> Unit) {
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = onDismiss,
+                onClick = { onApply(priceRange, selectedLocation, selectedRooms) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
             ){
