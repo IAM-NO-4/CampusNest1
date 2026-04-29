@@ -4,8 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,30 +16,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.campusnest1.groupq.auth1.RegisterUiState
+import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
-import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 
 @Composable
 fun PersonalInfoScreen(
-    navController: NavController? = null,
-    profileView: profileViewModel = viewModel(),
-    regView: registerViewModel = viewModel()
+    navController: NavController,
+    profileView: profileViewModel = viewModel()
 ) {
     val profileState = profileView.uiState
-    val userState = regView.uiState
 
     PersonalInfoContent(
         profileState = profileState,
-        userState = userState,
-        onEditClick = { navController?.navigate("profile_settings") }
+        onEditClick = { navController.navigate(Screen.ProfileSettings) }
     )
 }
 
 @Composable
 fun PersonalInfoContent(
     profileState: ProfileUiState,
-    userState: RegisterUiState,
     onEditClick: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
@@ -68,20 +61,15 @@ fun PersonalInfoContent(
             )
 
             Spacer(modifier = Modifier.height(20.dp))
-            IconButton(onClick = {}) {
-               Icon(
-                   Icons.AutoMirrored.Filled.ArrowForward,
-                   contentDescription = null,
-                   tint = Color.LightGray
-               )
-            }
 
-            // User Info (Non-editable)
-            ProfileInfoDisplay(label = "Full Name", value = userState.name)
-            ProfileInfoDisplay(label = "Email Address", value = userState.email)
-            ProfileInfoDisplay(label = "Phone Number", value = userState.phone)
+
+            // User Info
+            ProfileInfoDisplay(label = "First Name", value = profileState.fname)
+            ProfileInfoDisplay(label = "Last Name", value = profileState.lname)
+            ProfileInfoDisplay(label = "Email Address", value = profileState.email)
+            ProfileInfoDisplay(label = "Phone Number", value = profileState.phone)
             
-            // Academic Info (Non-editable)
+            // Academic Info
             ProfileInfoDisplay(label = "Course", value = profileState.course ?: "Not set")
             ProfileInfoDisplay(label = "Year of Study", value = profileState.yearOfStudy ?: "Not set")
             ProfileInfoDisplay(label = "Current Hostel", value = profileState.currentHostel ?: "Not set")
@@ -138,7 +126,14 @@ fun ProfileInfoDisplay(label: String, value: String) {
 @Composable
 fun PersonalInfoPreview() {
     PersonalInfoContent(
-        profileState = ProfileUiState(course = "Bsc. Computer Science", yearOfStudy = "Year 3", currentHostel = "Lakeside"),
-        userState = RegisterUiState(name = "Alex Johnson", email = "alex@campus.edu", phone = "+254 700 000 000")
+        profileState = ProfileUiState(
+            fname = "Alex",
+            lname = "Johnson",
+            email = "alex@campus.edu",
+            phone = "+254 700 000 000",
+            course = "Bsc. Computer Science",
+            yearOfStudy = "Year 3",
+            currentHostel = "Lakeside"
+        )
     )
 }

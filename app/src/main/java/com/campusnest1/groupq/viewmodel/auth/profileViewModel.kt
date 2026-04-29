@@ -22,23 +22,54 @@ class profileViewModel: ViewModel() {
         fetchProfileData()
     }
 
-    private fun fetchProfileData() {
+    fun fetchProfileData() {
         val uid = auth.currentUser?.uid
         if (uid != null) {
-            db.collection("profiles").document(uid).get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        val profile = document.toObject(ProfileUiState::class.java)
-                        if (profile != null) {
-                            uiState = profile.copy(userId = uid)
+            uiState = uiState.copy(isLoading = true, error = null)
+            
+            //Informn abt th user
+            db.collection("users").document(uid).get()
+                .addOnSuccessListener { userDoc ->
+                    val user = userDoc.toObject(User::class.java)
+                    
+                    // profile-specific information from "profiles" collection
+                    db.collection("profiles").document(uid).get()
+                        .addOnSuccessListener { profileDoc ->
+                            val profile = profileDoc.toObject(Profile::class.java)
+                            
+                            uiState = uiState.copy(
+                                userId = uid,
+                                fname = user?.fname ?: "",
+                                lname = user?.lname ?: "",
+                                email = user?.email ?: "",
+                                phone = user?.phone ?: "",
+                                course = profile?.course ?: "",
+                                yearOfStudy = profile?.yearOfStudy ?: "",
+                                currentHostel = profile?.currentHostel ?: "",
+                                currentRoomNo = profile?.currentRoomNo ?: "",
+                                favHostels = profile?.favHostels ?: "",
+                                isLoading = false
+                            )
                         }
-                    }
+                        .addOnFailureListener { e ->
+                            uiState = uiState.copy(isLoading = false, error = e.message)
+                        }
+                }
+                .addOnFailureListener { e ->
+                    uiState = uiState.copy(isLoading = false, error = e.message)
                 }
         }
     }
 
+
     fun onCourseChange(course:String){
         uiState = uiState.copy(course = course)
+    }
+    fun onFNameChange(fname:String){
+        uiState = uiState.copy(fname = fname)
+    }
+    fun onLNameChange(lname:String){
+        uiState = uiState.copy(lname = lname)
     }
     fun onYearChange(year:String){
         uiState = uiState.copy(yearOfStudy = year)
@@ -46,6 +77,13 @@ class profileViewModel: ViewModel() {
     fun onHostelChange(hostel:String){
         uiState = uiState.copy(currentHostel = hostel)
     }
+    fun onEmailChange(email:String){
+        uiState = uiState.copy(email = email)
+    }
+    fun onPhoneChange(phone:String){
+        uiState = uiState.copy(phone = phone)
+    }
+
     fun onRoomNoChange(roomNo:String){
         uiState = uiState.copy(currentRoomNo = roomNo)
     }
@@ -54,7 +92,7 @@ class profileViewModel: ViewModel() {
         uiState = uiState.copy(isSuccess = false)
     }
 
-    fun saveProfile(userName: String, userEmail: String, userPhone: String,
+    fun saveProfile(userFName: String,userLName: String, userEmail: String, userPhone: String,
                     onSuccess: () -> Unit) {
         val uid = auth.currentUser?.uid ?: return
         
@@ -65,16 +103,18 @@ class profileViewModel: ViewModel() {
             course = uiState.course ?: "",
             yearOfStudy = uiState.yearOfStudy ?: "",
             currentHostel = uiState.currentHostel ?: "",
+            currentRoomNo = uiState.currentRoomNo ?: "",
             favHostels = uiState.favHostels ?: ""
         )
         val updatedUser = User(
             userId = uid,
-            name = userName,
+            fname = userFName,
+            lname = userLName,
             email = userEmail,
             phone = userPhone
         )
 
-        val userRef = db.collection("User").document(uid)
+        val userRef = db.collection("users").document(uid)
         val profileRef = db.collection("profiles").document(uid)
 
         val batch = db.batch()

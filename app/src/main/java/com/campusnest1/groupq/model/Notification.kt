@@ -6,7 +6,8 @@ data class Notification(
     val title: String = "",
     val message: String = "",
     val createdAt: Long = System.currentTimeMillis(),
-    val status: String = ""
+    val status: String = "",
+    val isRead: Boolean = false
 ) {
 
 }

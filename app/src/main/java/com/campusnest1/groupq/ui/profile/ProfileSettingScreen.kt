@@ -16,49 +16,48 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.campusnest1.groupq.auth1.RegisterUiState
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
-import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 
 @Composable
 fun ProfileSettingsScreen(
     navController: NavController? = null,
-    profileView: profileViewModel = viewModel(),
-    regView: registerViewModel = viewModel()
+    profileView: profileViewModel = viewModel()
 ) {
     val profileState = profileView.uiState
-    val userState = regView.uiState
 
     ProfileSettingsContent(
         profileState = profileState,
-        userState = userState,
-        onNameChange = { regView.onNameChange(it) },
-        onPhoneChange = { regView.onPhoneChange(it) },
-        onEmailChange = { regView.onEmailChange(it) },
+        onFNameChange = { profileView.onFNameChange(it) },
+        onLNameChange = { profileView.onLNameChange(it) },
+        onPhoneChange = { profileView.onPhoneChange(it) },
+        onEmailChange = { profileView.onEmailChange(it) },
         onCourseChange = { profileView.onCourseChange(it) },
         onYearChange = { profileView.onYearChange(it) },
         onHostelChange = { profileView.onHostelChange(it) },
-        onSaveButton = { profileView.saveProfile(userState.name,
-            userState.email, userState.phone,
+        onRoomNoChange = { profileView.onRoomNoChange(it) },
+        onSaveButton = { profileView.saveProfile(
+            profileState.fname,
+            profileState.lname,
+            profileState.email,
+            profileState.phone,
             onSuccess = { navController?.navigate("profile"){
                 popUpTo("profile") { inclusive= true }
-            } }) },
-        onRoomNoChange = { profileView.onRoomNoChange(it) }
+            } }) }
     )
 }
 
 @Composable
 fun ProfileSettingsContent(
     profileState: ProfileUiState,
-    userState: RegisterUiState,
-    onNameChange: (String) -> Unit = {},
+    onFNameChange: (String) -> Unit = {},
+    onLNameChange: (String) -> Unit = {},
     onPhoneChange: (String) -> Unit = {},
     onEmailChange: (String) -> Unit = {},
     onCourseChange: (String) -> Unit = {},
     onYearChange: (String) -> Unit = {},
+    onHostelChange: (String) -> Unit = {},
     onRoomNoChange: (String) -> Unit = {},
-    onSaveButton: () -> Unit = {},
-    onHostelChange: (String) -> Unit = {}
+    onSaveButton: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
     Box(
@@ -85,9 +84,10 @@ fun ProfileSettingsContent(
             Spacer(modifier = Modifier.height(20.dp))
 
             // Personal Info
-            ProfileInputField(label = "Name", value = userState.name, onValueChange = onNameChange)
-            ProfileInputField(label = "Email", value = userState.email, onValueChange = onEmailChange)
-            ProfileInputField(label = "new Phone", value = userState.phone, onValueChange = onPhoneChange)
+            ProfileInputField(label = "First Name", value = profileState.fname, onValueChange = onFNameChange)
+            ProfileInputField(label = "Last Name", value = profileState.lname, onValueChange = onLNameChange)
+            ProfileInputField(label = "Email", value = profileState.email, onValueChange = onEmailChange)
+            ProfileInputField(label = "Phone", value = profileState.phone, onValueChange = onPhoneChange)
             
             // Academic Info
             ProfileInputField(label = "Course", value = profileState.course ?: "", onValueChange = onCourseChange)
@@ -98,10 +98,7 @@ fun ProfileSettingsContent(
             Spacer(modifier = Modifier.height(30.dp))
             
             Button(
-                onClick = {
-                    onSaveButton()
-                },
-                enabled = profileState.isSuccess,
+                onClick = onSaveButton,
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A3A3))
             ) {
@@ -111,6 +108,10 @@ fun ProfileSettingsContent(
                 } else {
                     Text("Save Changes", fontWeight = FontWeight.Bold)
                 }
+            }
+            
+            if (profileState.error != null) {
+                Text(text = profileState.error, color = Color.Red, modifier = Modifier.padding(top = 8.dp))
             }
             
             Spacer(modifier = Modifier.height(40.dp))
@@ -146,11 +147,16 @@ fun ProfileInputField(label: String, value: String, onValueChange: (String) -> U
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, heightDp = 1100)
 @Composable
 fun proSettingsPreview() {
     ProfileSettingsContent(
-        profileState = ProfileUiState(course = "Computer Science", yearOfStudy = "Year 3"),
-        userState = RegisterUiState(name = "Alex Johnson", email = "alex@campus.edu")
+        profileState = ProfileUiState(
+            fname = "Alex",
+            lname = "Muhanji",
+            email = "alex@campus.edu",
+            course = "Computer Science",
+            yearOfStudy = "Year 3"
+        )
     )
 }

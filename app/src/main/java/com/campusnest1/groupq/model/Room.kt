@@ -4,7 +4,7 @@ data class Room(
     //Added Beds, Status and Capacity
     val roomId: String = "",
     val hostelId: String = "",
-    val hostelName: String = "",
+    val hostelName: String = "",//Can be derived
     val price: Double = 0.0,
     val type: String = "",
     val isAvailable: Boolean = true,
