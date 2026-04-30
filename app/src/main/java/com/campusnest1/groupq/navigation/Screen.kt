@@ -11,5 +11,4 @@ sealed class Screen(val route: String) {
     object BookingHistory : Screen("booking_history")
     object ProfileSettings : Screen("profile_settings")
 
-
 }

@@ -449,15 +449,14 @@ fun HostelCard(
 }
 
 @Composable
-fun HostelRating(hostel: Hostel) {
-    Surface(
-        color = Color(0xFFFFF9E6),
-        shape = RoundedCornerShape(12.dp)
-    ) {
+
+fun HostelRating(hostel: Hostel, color: Color = OrangeAccentLight) {
+    Surface(color = color , shape = RoundedCornerShape(12.dp)){
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+            Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 imageVector = Icons.Default.Star,
                 contentDescription = null,
