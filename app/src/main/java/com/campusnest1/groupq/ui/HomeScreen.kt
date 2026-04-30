@@ -395,11 +395,12 @@ fun HostelCard(hostel: Hostel, viewModel: HostelViewModel) {
 
 @Composable
 fun HostelRating(hostel: Hostel, color: Color = OrangeAccentLight) {
-    Row(
+    Surface(color = color , shape = RoundedCornerShape(12.dp)){
+        Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        Surface(color = color , shape = RoundedCornerShape(12.dp)){
+
             Icon(
                 imageVector = Icons.Default.Star,
                 contentDescription = null,
