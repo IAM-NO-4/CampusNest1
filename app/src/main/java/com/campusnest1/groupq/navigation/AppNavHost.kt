@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.campusnest1.groupq.ui.registerScreen
 import com.example.campusnet.ui.LoginScreen
 import com.campusnest1.groupq.viewmodel.auth.loginViewModel
 
@@ -40,6 +41,12 @@ fun AppNavHost() {
         composable(Screen.Home.route) {
             MainScreen()
         }
+       composable(Screen.Register.route) {
+           registerScreen(
+               navController = navController
+           )
+       }
+
 
     }
 }

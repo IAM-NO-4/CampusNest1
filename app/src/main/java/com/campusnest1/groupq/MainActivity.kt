@@ -28,13 +28,6 @@ class MainActivity : ComponentActivity() {
         val db = Firebase.firestore
         val mod = registerViewModel()
 
-        val user1 = User(
-            userId = "wasaff",
-            name = "IAM NO four",
-            email = "maama7@gmail.com",
-            phone = "0757716179",
-
-        )
         val pas = "iam@12"
         // mod.register(user1.email, pas, user1) // This call was incorrect based on registerViewModel definition
 

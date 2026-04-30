@@ -1,7 +1,9 @@
 package com.campusnest1.groupq.viewmodel
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.campusnest1.groupq.auth1.Authrepo
@@ -9,6 +11,8 @@ import com.campusnest1.groupq.data.HostelImplementationRepository
 import com.campusnest1.groupq.data.HostelRepository
 import com.campusnest1.groupq.model.Booking
 import com.campusnest1.groupq.model.Hostel
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
@@ -17,7 +21,8 @@ class HostelViewModel(
     private val authRepository: Authrepo
 ) : ViewModel() {
 
-    var savedHostels = mutableStateOf<List<Hostel>>(emptyList())
+
+    var savedHostels by mutableStateOf<List<Hostel>>(emptyList())
         private set
     
     // Add state for tracking saved status of hostels by ID
@@ -34,6 +39,20 @@ class HostelViewModel(
     var isNotificationsEnabled = mutableStateOf(true)
         private set
 
+    val db = Firebase.firestore
+
+    //hostel results from firebase
+    fun fetchHostelsData(){
+        db.collection("hostels")
+            .get()
+            .addOnSuccessListener { result ->
+                savedHostels = result.map{it.toObject(Hostel::class.java)}
+            } .addOnFailureListener {
+
+            }
+
+
+    }
     // 2. Function to fetch data when the screen opens
     fun loadStudentData() {
         val userId = authRepository.getCurrentUser()?.uid ?: ""
@@ -46,7 +65,7 @@ class HostelViewModel(
             val savedTask = async { repository.getSavedHostels(userId) }
             val bookingTask = async { repository.getBookingHistory(userId) }
 
-            savedHostels.value = savedTask.await()
+            savedHostels = savedTask.await()
             bookingHistory.value = bookingTask.await()
 
             isLoading.value = false
@@ -64,7 +83,7 @@ class HostelViewModel(
             val isSaved = repository.toggleSavedHostel(userId, hostelId)
             savedStatus[hostelId] = isSaved
             // Refresh saved hostels list
-            savedHostels.value = repository.getSavedHostels(userId)
+            savedHostels = repository.getSavedHostels(userId)
         }
     }
 

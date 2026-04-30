@@ -4,7 +4,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.navigation.NavController
 import com.campusnest1.groupq.auth1.Authrepo
 import com.campusnest1.groupq.auth1.RegisterUiState
 import com.campusnest1.groupq.model.User
@@ -14,11 +13,17 @@ import com.google.firebase.firestore.firestore
 class registerViewModel : ViewModel() {
     var uiState by mutableStateOf(RegisterUiState())
         private set
-   // val navController = NavController
 
-    fun onNameChange(name:String){
-        uiState = uiState.copy(name = name,
+    fun onFNameChange(name:String){
+        uiState = uiState.copy(fname = name,
             nameError = if (name.isEmpty()) "Name cannot be empty" else null)
+    }
+    fun onLNameChange(name:String){
+        uiState = uiState.copy(lname = name,
+            nameError = if (name.isEmpty()) "Name cannot be empty" else null)
+    }
+    fun togglePasswordVisibility(){
+        uiState = uiState.copy(passwordVisible = !uiState.passwordVisible)
     }
     fun onEmailChange(email:String){
         val isValid = android.util.Patterns
@@ -39,11 +44,15 @@ class registerViewModel : ViewModel() {
     fun onPhoneChange(phone:String){
         uiState = uiState.copy(phone = phone)
     }
+
+    fun resetSuccess() {
+        uiState = uiState.copy(isSuccess = false)
+    }
+
     private val repository = Authrepo()
     val db = Firebase.firestore
 
     fun register() {
-
         val state = uiState
         if (state.email.isEmpty() || state.password.isEmpty()) {
             uiState = state.copy(error = "Email and password cannot be empty")
@@ -55,48 +64,44 @@ class registerViewModel : ViewModel() {
             return
         }
 
-        uiState = state.copy(isLoading = true,error = null)
+        uiState = state.copy(isLoading = true, error = null)
 
-        repository.register(state.email,state.password)
+        repository.register(state.email, state.password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val uid = task.result.user?.uid
                     if (uid != null) {
-
                         val newUser = User(
                             userId = uid,
-                            name = state.name,
+                            fname = state.fname,
+                            lname = state.lname,
                             email = state.email,
                             phone = state.phone
                         )
-                        db.collection("User")
+                        db.collection("users")
                             .document(uid)
                             .set(newUser)
                             .addOnSuccessListener {
-                                uiState.copy(
+                                uiState = uiState.copy(
                                     isLoading = false,
                                     error = null,
                                     isSuccess = true
                                 )
                             }
                             .addOnFailureListener {
-                                uiState.copy(
+                                uiState = uiState.copy(
                                     isLoading = false,
                                     error = it.message
-
                                 )
                             }
+                    }
+                } else {
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        error = task.exception?.message
+                    )
                 }
-
-            }else{
-                uiState.copy(
-                    isLoading = false,
-                    error = task.exception?.message
-                )
             }
-
-
-    }
     }
 
     fun isStrongPassword(password: String): Boolean {
@@ -116,7 +121,8 @@ class registerViewModel : ViewModel() {
     fun isFormValid(): Boolean {
         val s = uiState
 
-        return s.name.isNotBlank() &&
+        return s.fname.isNotBlank() &&
+                s.lname.isNotBlank() &&
                 s.email.isNotBlank() &&
                 s.password.isNotBlank() &&
                 s.phone.isNotBlank() &&
@@ -125,5 +131,4 @@ class registerViewModel : ViewModel() {
                 s.emailError == null &&
                 s.passwordError == null
     }
-
 }

@@ -32,7 +32,7 @@ class profileViewModel: ViewModel() {
                 .addOnSuccessListener { userDoc ->
                     val user = userDoc.toObject(User::class.java)
                     
-                    // profile-specific information from "profiles" collection
+                    // profile-specific information
                     db.collection("profiles").document(uid).get()
                         .addOnSuccessListener { profileDoc ->
                             val profile = profileDoc.toObject(Profile::class.java)

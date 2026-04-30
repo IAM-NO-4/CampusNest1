@@ -9,16 +9,15 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -27,11 +26,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.campusnest1.groupq.auth1.RegisterUiState
-import com.campusnest1.groupq.model.User
 import com.campusnest1.groupq.viewmodel.AuthViewModel
 import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 
@@ -45,15 +42,25 @@ fun registerScreen(
     val isLoading by authViewModel.isLoading
     val errorMessage by authViewModel.errorMessage
 
+    // Navigate to home if registration is successful
+    LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) {
+            navController?.navigate("home") {
+                popUpTo("register") { inclusive = true }
+            }
+        }
+    }
+
     RegisterScreenContent(
         state = state,
         authIsLoading = isLoading,
         authErrorMessage = errorMessage,
-        onNameChange = { viewModel.onNameChange(it) },
+        onFNameChange = { viewModel.onFNameChange(it) },
+        onLNameChange = { viewModel.onLNameChange(it) },
         onEmailChange = { viewModel.onEmailChange(it) },
         onPasswordChange = { viewModel.onPasswordChange(it) },
         onPhoneChange = { viewModel.onPhoneChange(it) },
-        onPasswordVisibleToggle = { state.passwordVisible = !state.passwordVisible },
+        onPasswordVisibleToggle = { viewModel.togglePasswordVisibility() },
         onRegisterClick = { viewModel.register() },
         onLoginClick = { navController?.navigate("login") },
         getPasswordStrength = { viewModel.getPasswordStrength(it) },
@@ -66,7 +73,8 @@ fun RegisterScreenContent(
     state: RegisterUiState,
     authIsLoading: Boolean,
     authErrorMessage: String?,
-    onNameChange: (String) -> Unit,
+    onFNameChange: (String) -> Unit,
+    onLNameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onPhoneChange: (String) -> Unit,
@@ -97,7 +105,7 @@ fun RegisterScreenContent(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 // CampusNest logo
                 Icon(
-                    imageVector = Icons.Default.Email, //place holder
+                    imageVector = Icons.Default.Apartment, //place holder
                     contentDescription = null,
                     modifier = Modifier.size(60.dp),
                     tint = Color(0xFF00A3A3)
@@ -147,17 +155,53 @@ fun RegisterScreenContent(
 
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Name",
+                    text = "First Name",
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
-                    value = state.name,
-                    onValueChange = onNameChange,
+                    value = state.fname,
+                    onValueChange = onFNameChange,
+                    modifier = Modifier.fillMaxWidth(),
                     placeholder = {
                         Text(
-                            text = "Enter your name", color = Color.Gray,
+                            text = "Enter your first name", color = Color.Gray,
+                            fontSize = 13.sp
+                        )
+                    },
+
+                    isError = state.nameError != null,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF00A3A3),
+                        errorBorderColor = Color.Red,
+                        unfocusedBorderColor = Color(0xFFE0E0E0),
+                        cursorColor = Color(0xFF00A3A3)
+                    )
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                state.nameError?.let {
+                    Text(
+                        text = it,
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Last Name",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = state.lname,
+                    onValueChange = onLNameChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {
+                        Text(
+                            text = "Enter your last name", color = Color.Gray,
                             fontSize = 13.sp
                         )
                     },
@@ -190,6 +234,7 @@ fun RegisterScreenContent(
                 OutlinedTextField(
                     value = state.phone,
                     onValueChange = onPhoneChange,
+                    modifier = Modifier.fillMaxWidth(),
                     placeholder = {
                         Text(
                             text = "Enter your phone number", color = Color.Gray,
@@ -311,7 +356,7 @@ fun RegisterScreenContent(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // ── Error Message from AuthViewModel ──────────────────────────
+            // ── Error Message from AuthViewModel ────────────────────────
             if (authErrorMessage != null) {
                 Text(
                     text = authErrorMessage,
@@ -322,7 +367,7 @@ fun RegisterScreenContent(
                 )
             }
 
-            // Main Action Button (Login)
+
             Button(
                 onClick = onRegisterClick,
                 enabled = isFormValid() && !state.isLoading && !authIsLoading,
@@ -372,12 +417,15 @@ fun RegisterScreenContent(
 fun RegisterScreenPreview() {
     RegisterScreenContent(
         state = RegisterUiState(
-            name = "John Doe",
+            fname = "John ",
+            lname = "Doe",
+            phone = "+254 700 000 000",
             email = "john.doe@university.edu"
         ),
         authIsLoading = false,
         authErrorMessage = null,
-        onNameChange = {},
+        onFNameChange = {},
+        onLNameChange = {},
         onEmailChange = {},
         onPasswordChange = {},
         onPhoneChange = {},
@@ -388,4 +436,3 @@ fun RegisterScreenPreview() {
         isFormValid = { true }
     )
 }
-

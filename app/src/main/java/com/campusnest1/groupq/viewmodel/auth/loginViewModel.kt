@@ -23,14 +23,15 @@ class loginViewModel : ViewModel() {
                     val uid = user?.uid
 
                     if (uid!= null){
-                        db.collection("User")
+                        db.collection("users")
                             .document(uid)
                             .get()
                             .addOnSuccessListener {doc ->
                                 if(doc.exists()){
                                     val user = doc.toObject(User::class.java)
                                     getdata(user)
-                                    val name = user?.name
+                                    val fname = user?.fname
+                                    val lname = user?.lname
                                     val email = user?.email
                                     val phone = user?.phone
                                     val userId = user?.userId

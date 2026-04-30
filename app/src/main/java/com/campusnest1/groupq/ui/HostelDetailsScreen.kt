@@ -1,20 +1,7 @@
 package com.campusnest1.groupq.ui
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -23,34 +10,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Bed
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -62,13 +25,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.model.Room
-import com.campusnest1.groupq.ui.theme.CampusNestTheme
-import com.campusnest1.groupq.ui.theme.GreySurface
-import com.campusnest1.groupq.ui.theme.OrangeAccent
-import com.campusnest1.groupq.ui.theme.TealPrimary
-import com.campusnest1.groupq.ui.theme.TealSecondary
-import com.campusnest1.groupq.ui.theme.TextDark
-import com.campusnest1.groupq.ui.theme.TextGrey
+import com.campusnest1.groupq.ui.theme.*
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -76,11 +33,34 @@ import org.koin.androidx.compose.koinViewModel
 fun HostelDetailsScreen(
     hostel: Hostel,
     rooms: List<Room> = emptyList(),
-    viewModel: HostelViewModel = koinViewModel()
+    viewModel: HostelViewModel = koinViewModel(),
+    onBackClick: () -> Unit = {}
+) {
+    val isSaved = viewModel.savedStatus[hostel.hostelId] ?: false
+
+    LaunchedEffect(hostel.hostelId) {
+        viewModel.checkIfSaved(hostel.hostelId)
+    }
+
+    HostelDetailsContent(
+        hostel = hostel,
+        rooms = rooms,
+        isSaved = isSaved,
+        onBackClick = onBackClick,
+        onToggleFavorite = { viewModel.toggleFavorite(hostel.hostelId) }
+    )
+}
+
+@Composable
+fun HostelDetailsContent(
+    hostel: Hostel,
+    rooms: List<Room>,
+    isSaved: Boolean,
+    onBackClick: () -> Unit,
+    onToggleFavorite: () -> Unit
 ) {
     Scaffold(
         bottomBar = {
-            //Bottom Bar
             BottomBookingBar(hostel.lowestPrice)
         }
     ) { padding ->
@@ -91,10 +71,15 @@ fun HostelDetailsScreen(
         ) {
             // Header Image Section
             item {
-                HostelHeaderImage(hostel, viewModel)
+                HostelHeaderImage(
+                    imageUrl = hostel.imageUrl,
+                    isSaved = isSaved,
+                    onBackClick = onBackClick,
+                    onToggleFavorite = onToggleFavorite
+                )
             }
 
-            // Details/ Content
+            // Details Content
             item {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Row(
@@ -102,13 +87,13 @@ fun HostelDetailsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        //Hostel name
                         Text(
                             text = hostel.name,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             color = TextDark
                         )
+                        // This component is defined in HomeScreen.kt but shared in the same package
                         HostelRating(hostel)
                     }
 
@@ -116,7 +101,6 @@ fun HostelDetailsScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    //About section
                     Text(
                         text = "About",
                         style = MaterialTheme.typography.titleMedium,
@@ -124,7 +108,6 @@ fun HostelDetailsScreen(
                         color = TextDark
                     )
 
-                    //Description
                     Text(
                         text = hostel.description,
                         style = MaterialTheme.typography.bodyMedium,
@@ -132,14 +115,12 @@ fun HostelDetailsScreen(
                         modifier = Modifier.padding(top = 8.dp)
                     )
 
-                    //Read More "button"
                     TextButton(onClick = { /* TODO */ }, contentPadding = PaddingValues(0.dp)) {
                         Text(text = "Read more", color = TealPrimary, fontWeight = FontWeight.Bold)
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
                     
-                    //Amenities card Section
                     Text(
                         text = "Amenities",
                         style = MaterialTheme.typography.titleMedium,
@@ -192,9 +173,7 @@ fun HostelAddress(hostel: Hostel) {
             tint = TealPrimary,
             modifier = Modifier.size(18.dp)
         )
-
         Spacer(modifier = Modifier.width(4.dp))
-
         Text(
             text = hostel.location.toString(),
             style = MaterialTheme.typography.bodyMedium,
@@ -204,22 +183,20 @@ fun HostelAddress(hostel: Hostel) {
 }
 
 @Composable
-fun HostelHeaderImage(hostel: Hostel, viewModel: HostelViewModel) {
-    val isSaved = viewModel.savedStatus[hostel.hostelId] ?: false
-
-    LaunchedEffect(hostel.hostelId) {
-        viewModel.checkIfSaved(hostel.hostelId)
-    }
-
+fun HostelHeaderImage(
+    imageUrl: String,
+    isSaved: Boolean,
+    onBackClick: () -> Unit,
+    onToggleFavorite: () -> Unit
+) {
     Box(modifier = Modifier.height(300.dp).fillMaxWidth()) {
         AsyncImage(
-            model = hostel.imageUrl,
+            model = imageUrl,
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
         
-        // Top Overlay Buttons
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -228,7 +205,7 @@ fun HostelHeaderImage(hostel: Hostel, viewModel: HostelViewModel) {
                 shape = CircleShape,
                 color = Color.Black.copy(alpha = 0.3f)
             ) {
-                IconButton(onClick = { /* TODO */ }) {
+                IconButton(onClick = onBackClick) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
                 }
             }
@@ -239,7 +216,7 @@ fun HostelHeaderImage(hostel: Hostel, viewModel: HostelViewModel) {
                     }
                 }
                 Surface(shape = CircleShape, color = Color.White) {
-                    IconButton(onClick = { viewModel.toggleFavorite(hostel.hostelId) }) {
+                    IconButton(onClick = onToggleFavorite) {
                         Icon(
                             imageVector = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Favorite",
@@ -250,7 +227,6 @@ fun HostelHeaderImage(hostel: Hostel, viewModel: HostelViewModel) {
             }
         }
 
-        // Image Index Badge
         Surface(
             modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
             color = Color.Black.copy(alpha = 0.5f),
@@ -281,7 +257,6 @@ fun RoomCard(room: Room, isSelected: Boolean = false) {
         border = BorderStroke(1.dp, borderColor)
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)){
-            //Vertical Accent Bar
             if(isSelected){
                 Surface(
                     modifier = Modifier.width(6.dp).fillMaxHeight(),
@@ -390,14 +365,14 @@ fun AmenitiesList(amenities: List<String>) {
 @Composable
 fun BottomBookingBar(lowestPrice: String) {
     var showBookingSheet by remember { mutableStateOf(false) }
+    
     if (showBookingSheet){
         BookingBottomSheet(
             hostel = MockData.mockHostels[0],
             room = MockData.mockRooms[0],
             onDismiss = { showBookingSheet = false },
-            onBook = { date, time ->
-                showBookingSheet = true
-                //  booking logic
+            onBook = { _, _ ->
+                showBookingSheet = false // Close after booking
             }
         )
     }
@@ -420,7 +395,7 @@ fun BottomBookingBar(lowestPrice: String) {
                 }
             }
             Button(
-                onClick = { /* TODO */ },
+                onClick = { showBookingSheet = true },
                 modifier = Modifier.height(56.dp).fillMaxWidth(0.7f),
                 colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
                 shape = RoundedCornerShape(16.dp)
@@ -439,9 +414,12 @@ fun BottomBookingBar(lowestPrice: String) {
 @Composable
 fun HostelDetailsScreenPreview() {
     CampusNestTheme {
-        HostelDetailsScreen(
+        HostelDetailsContent(
             hostel = MockData.mockHostels[0],
-            rooms = MockData.mockRooms
+            rooms = MockData.mockRooms,
+            isSaved = false,
+            onBackClick = {},
+            onToggleFavorite = {}
         )
     }
 }
