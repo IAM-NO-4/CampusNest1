@@ -1,6 +1,7 @@
 package com.campusnest1.groupq.auth1;
 
 data class RegisterUiState(
+    val name: String = "",
     val fname: String = "",
     val lname: String = "",
     val email: String = "",

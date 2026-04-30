@@ -224,6 +224,8 @@ fun HostelHeaderImage(hostel: Hostel, viewModel: HostelViewModel) {
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+
+            //Back Button
             Surface(
                 shape = CircleShape,
                 color = Color.Black.copy(alpha = 0.3f)
@@ -232,12 +234,16 @@ fun HostelHeaderImage(hostel: Hostel, viewModel: HostelViewModel) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
                 }
             }
+
+            //Share Button
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Surface(shape = CircleShape, color = Color.Black.copy(alpha = 0.3f)) {
-                    IconButton(onClick = { /* TODO */ }) {
+                    IconButton(onClick = { /* TODO Share button */ }) {
                         Icon(Icons.Default.Share, null, tint = Color.White)
                     }
                 }
+
+                //Favorites
                 Surface(shape = CircleShape, color = Color.White) {
                     IconButton(onClick = { viewModel.toggleFavorite(hostel.hostelId) }) {
                         Icon(

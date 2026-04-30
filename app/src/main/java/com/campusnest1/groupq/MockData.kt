@@ -2,6 +2,7 @@ package com.campusnest1.groupq.ui
 
 import com.campusnest1.groupq.model.Event
 import com.campusnest1.groupq.model.Hostel
+import com.campusnest1.groupq.model.Notification
 import com.campusnest1.groupq.model.Room
 
 object MockData{
@@ -61,7 +62,12 @@ object MockData{
             location = "Main Campus",
             category = "Academic",
             imageUrl = "https://example.com/image1.jpg",
-            registrationUrl = "https://example.com/register"
+            registrationUrl = "https://example.com/register",
+            highlights = listOf("Exciting Giveaways", "Internship Opportunities","Meet new people"),
+            fee = "20,000 per person",
+            attendees = "All Students",
+            eventOrganizer = "Campus Events",
+            eventOrganizerImageURL = "https://example.com/organizer.jpg"
         ),
 
         Event(
@@ -74,7 +80,11 @@ object MockData{
             location = "Tech Hub",
             category = "Tech",
             imageUrl = "https://example.com/image2.jpg",
-            registrationUrl = "https://example.com/register"
+            registrationUrl = "https://example.com/register",
+            highlights = listOf("Exciting Giveaways", "Live DJ sets"),
+            attendees = "General Public",
+            eventOrganizer = "Tech Events",
+            eventOrganizerImageURL = "https://example.com/organizer.jpg"
 
         ),
 
@@ -88,7 +98,33 @@ object MockData{
             location = "Art Gallery",
             category = "Art",
             imageUrl = "https://example.com/image3.jpg",
-            registrationUrl = "https://example.com/register"
+            registrationUrl = "https://example.com/register",
+            highlights = listOf("Exciting Giveaways", "Internship Opportunities"),
+            attendees = "All Students",
+            eventOrganizer = "Art Events",
+            eventOrganizerImageURL = "https://example.com/organizer.jpg"
+        )
+    )
+
+    val mockNotification = listOf(
+        Notification(
+            notificationId = "1",
+            userId = "2",
+            title = "New room Available",
+            message = "Sunrise Student Nest has a premium single available",
+            createdAt = 0,
+            category = "Room Availability",
+            isRead = false,
+        ),
+
+        Notification(
+            notificationId = "2",
+            userId = "4",
+            title = "New Viewing Booked",
+            message = "You recently booked a viewing for a Premium Single in Sunrise Student Nest",
+            createdAt = 3,
+            category = "Booking",
+            isRead = true
         )
     )
 
