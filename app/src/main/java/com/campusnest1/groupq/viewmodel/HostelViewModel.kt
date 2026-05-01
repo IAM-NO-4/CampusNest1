@@ -71,6 +71,12 @@ class HostelViewModel(
             isLoading.value = false
         }
     }
+    //for category button in homescreen real filtering
+    var selectedCategory = MutableStateFlow("All")
+
+    fun setCategory(category: String) {
+        selectedCategory.value = category
+    }
 
     //notification settings
     fun toggleNotifications(enabled: Boolean) {

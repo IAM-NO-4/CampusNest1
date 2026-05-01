@@ -39,6 +39,7 @@ import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 import org.koin.androidx.compose.koinViewModel
 import java.time.LocalTime
+import androidx.navigation.NavController
 
 @Composable
 fun CampusNestApp(navController: NavController,
@@ -81,7 +82,7 @@ fun HomeScreenContent(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             
-            HeaderSection(fName = fName)
+            HeaderSection(navController, fName = fName)
             
             Spacer(modifier = Modifier.height(20.dp))
             
@@ -97,7 +98,10 @@ fun HomeScreenContent(
                 items(categories) { category ->
                     val isSelected = selectedTab == category
                     Button(
-                        onClick = { selectedTab = category },
+                        onClick = {
+                            selectedTab = category
+                            viewModel.setCategory(category) //added by Arnest
+                                  },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isSelected) TealPrimary else Color.White,
                             contentColor = if (isSelected) Color.White else TextDark
@@ -133,7 +137,7 @@ fun HomeScreenContent(
                         color = TextDark
                     )
                 }
-                TextButton(onClick = {  }) {
+                TextButton(onClick = {  navController.navigate("hostels") }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "See all",
@@ -167,7 +171,9 @@ fun HomeScreenContent(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HeaderSection( fName: String = "Alex") {
+fun HeaderSection( navController: NavController,
+                   fName: String = "Alex"
+  ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -214,6 +220,11 @@ fun HeaderSection( fName: String = "Alex") {
             shadowElevation = 4.dp,
             modifier = Modifier.size(48.dp)
         ) {
+            IconButton(
+                onClick = {
+                    navController.navigate("notifications")
+                }
+            ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = Icons.Outlined.Notifications,
@@ -230,6 +241,7 @@ fun HeaderSection( fName: String = "Alex") {
             }
         }
     }
+  }
 }
 
 @Composable
