@@ -27,7 +27,7 @@ fun MainScreen() {
         ) {
 
             composable("home") {
-                CampusNestApp()
+                CampusNestApp(navController)
             }
 
            composable("hostels") {
