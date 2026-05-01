@@ -41,7 +41,8 @@ import org.koin.androidx.compose.koinViewModel
 import java.time.LocalTime
 
 @Composable
-fun CampusNestApp(viewModel: HostelViewModel = koinViewModel(),
+fun CampusNestApp(navController: NavController,
+                  viewModel: HostelViewModel = koinViewModel(),
                   profViewModel: profileViewModel = viewModel(),
                   ) {
     val uiState = profViewModel.uiState

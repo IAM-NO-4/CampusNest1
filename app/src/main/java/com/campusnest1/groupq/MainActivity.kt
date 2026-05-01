@@ -16,6 +16,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.firestore
 import com.campusnest1.groupq.navigation.AppNavHost
 import com.campusnest1.groupq.ui.CampusNestApp
+import com.campusnest1.groupq.navigation.MainScreen
 
 //@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -37,7 +38,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    CampusNestApp()
+                    // CampusNestApp()
+                    MainScreen()
                 }
             }
         }
