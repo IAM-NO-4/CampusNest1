@@ -50,8 +50,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Event
+import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.ui.theme.BackgroundLight
 import com.campusnest1.groupq.ui.theme.CampusNestTheme
 import com.campusnest1.groupq.ui.theme.OrangeAccent
@@ -66,16 +69,21 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun EventsScreen(
-    viewModel: EventViewModel = koinViewModel()
+    navController: NavController,
+    viewModel: EventViewModel
 ) {
     EventsScreenContent(
+        onEventClick = {eventId ->
+            navController.navigate(Screen.Eventdetails.route + "/$eventId")},
         events = viewModel.events,
         isLoading = viewModel.isLoading
+
     )
 }
 
 @Composable
 fun EventsScreenContent(
+    onEventClick: (eventId: String)-> Unit ={},
     events: List<Event>,
     isLoading: Boolean = false
 ) {
@@ -117,7 +125,7 @@ fun EventsScreenContent(
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(12.dp))
-                            HappeningNowList(events.take(5))
+                            HappeningNowList(events.take(5), onEventClick)
                         }
                     }
                 }
@@ -164,7 +172,7 @@ fun EventsScreenContent(
                 }
 
                 items(filteredEvents) { event ->
-                    UpcomingEventItem(event)
+                    UpcomingEventItem(event, { onEventClick(event.eventId) })
                 }
 
                 item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -175,13 +183,15 @@ fun EventsScreenContent(
 }
 
 @Composable
-fun HappeningNowList(events: List<Event>) {
+fun HappeningNowList(events: List<Event>, onEventClick:(String)-> Unit) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(bottom = 8.dp)
     ) {
         items(events) { event ->
-            EventCard(event)
+            EventCard(event = event,
+                onClick = { onEventClick(event.eventId) }
+            )
         }
     }
 }
@@ -236,7 +246,7 @@ fun EventHeaderSection() {
 }
 
 @Composable
-fun UpcomingEventItem(event: Event) {
+fun UpcomingEventItem(event: Event, onBtnClick: () -> Unit) {
     val dateParts = event.date.split("-")
     val day = dateParts.getOrNull(2) ?: "00"
     val monthNum = dateParts.getOrNull(1) ?: "01"
@@ -333,7 +343,7 @@ fun UpcomingEventItem(event: Event) {
             }
 
             Button(
-                onClick = {  },
+                onClick = { onBtnClick() },
                 colors = ButtonDefaults.buttonColors(containerColor = TealSecondary),
                 shape = RoundedCornerShape(12.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
@@ -350,7 +360,7 @@ fun UpcomingEventItem(event: Event) {
 }
 
 @Composable
-fun EventCard(event: Event) {
+fun EventCard(event: Event, onClick: ()-> Unit) {
     Card(
         modifier = Modifier.size(240.dp, 300.dp),
         shape = MaterialTheme.shapes.large,

@@ -1,19 +1,23 @@
 package com.campusnest1.groupq.navigation
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavHostController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.campusnest1.groupq.ui.EventDetailsScreen
+import com.campusnest1.groupq.ui.EventsScreen
 import com.campusnest1.groupq.ui.registerScreen
-import com.example.campusnet.ui.LoginScreen
+import com.campusnest1.groupq.viewmodel.EventViewModel
+//import com.campusnest1.groupq.ui.LoginScreen
 import com.campusnest1.groupq.viewmodel.auth.loginViewModel
+import com.example.campusnet.ui.LoginScreen
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
-    val loginVM = loginViewModel()
+    val loginVM: loginViewModel = viewModel()
+    val eventsviewModel: EventViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -41,14 +45,27 @@ fun AppNavHost() {
         composable(Screen.Home.route) {
             MainScreen()
         }
-       composable(Screen.Register.route) {
+        
+        composable(Screen.Register.route) {
            registerScreen(
                navController = navController
            )
-       }
-
-
+        }
+        
+        composable(Screen.Events.route) {
+            EventsScreen(
+                navController = navController, 
+                viewModel = eventsviewModel
+            )
+        }
+        
+        composable(Screen.Eventdetails.route) { backStackEntry ->
+            val eventId = backStackEntry.arguments?.getString("eventId")
+            EventDetailsScreen(
+                eventId = eventId, 
+                viewModel = eventsviewModel,
+                //onBackClick = { navController.popBackStack() }
+            )
+        }
     }
 }
-
-
