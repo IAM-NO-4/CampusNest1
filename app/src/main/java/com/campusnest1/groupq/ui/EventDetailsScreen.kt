@@ -35,6 +35,7 @@ import androidx.compose.material.icons.outlined.Money
 import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,9 +61,37 @@ import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.ui.theme.TextGrey
 import com.campusnest1.groupq.utils.formatEventDate
 import com.campusnest1.groupq.utils.formatEventTime
+import com.campusnest1.groupq.viewmodel.EventViewModel
 
 @Composable
-fun EventDetailsScreen(event: Event) {
+fun EventDetailsScreen(
+    eventId: String?,
+    viewModel: EventViewModel,
+    onBackClick: () -> Unit = {}
+) {
+    val event = viewModel.events.find { it.eventId == eventId }
+
+    if (event == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            if (viewModel.isLoading) {
+                CircularProgressIndicator(color = TealPrimary)
+            } else {
+                Text(text = "Event not found", color = TextGrey)
+            }
+        }
+    } else {
+        EventDetailsContent(
+            event = event,
+            onBackClick = onBackClick
+        )
+    }
+}
+
+@Composable
+fun EventDetailsContent(
+    event: Event,
+    onBackClick: () -> Unit
+) {
     Scaffold(
         bottomBar = {
             BottomEventBar(event.registrationUrl)
@@ -75,7 +104,7 @@ fun EventDetailsScreen(event: Event) {
         ) {
             // Header Image Section
             item {
-                EventHeaderImage(event)
+                EventHeaderImage(event, onBackClick)
             }
 
             // Details/ Content
@@ -420,7 +449,7 @@ fun HighlightsList(highlights: List<String>) {
 }
 
 @Composable
-fun EventHeaderImage(event: Event) {
+fun EventHeaderImage(event: Event, onBackClick: () -> Unit) {
     Box(modifier = Modifier
         .height(300.dp)
         .fillMaxWidth()) {
@@ -439,7 +468,7 @@ fun EventHeaderImage(event: Event) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Surface(shape = CircleShape, color = Color.Black.copy(alpha = 0.3f)) {
-                IconButton(onClick = { /* TODO back button */ }) {
+                IconButton(onClick = onBackClick) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
                 }
             }
@@ -506,6 +535,9 @@ fun BottomEventBar(registrationUrl: String) {
 @Composable
 fun EventDetailsScreenPreview() {
     CampusNestTheme {
-        EventDetailsScreen(MockData.mockEvents[0])
+        EventDetailsContent(
+            event = MockData.mockEvents[0],
+            onBackClick = {}
+        )
     }
 }
