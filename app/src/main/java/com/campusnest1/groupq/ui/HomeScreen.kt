@@ -53,7 +53,11 @@ fun CampusNestApp(navController: NavController,
         hostels = hostels,
         savedStatus = viewModel.savedStatus,
         onToggleFavorite = { viewModel.toggleFavorite(it) },
-        onCheckIfSaved = { viewModel.checkIfSaved(it) }
+        onCheckIfSaved = { viewModel.checkIfSaved(it) },
+        onTabSelected = { viewModel.setCategory(it) },
+        onNavigateToDetails = { hostelId ->
+            navController.navigate("hostel_details/$hostelId")
+        }
     )
 }
 
@@ -64,7 +68,9 @@ fun HomeScreenContent(
     hostels: List<Hostel>,
     savedStatus: Map<String, Boolean> = emptyMap(),
     onToggleFavorite: (String) -> Unit = {},
-    onCheckIfSaved: (String) -> Unit = {}
+    onCheckIfSaved: (String) -> Unit = {},
+    onNavigateToDetails: (String) -> Unit = {},
+    onTabSelected: (String) -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf("All") }
     val categories = listOf("All", "Hostels", "Events")
@@ -100,7 +106,7 @@ fun HomeScreenContent(
                     Button(
                         onClick = {
                             selectedTab = category
-                            viewModel.setCategory(category) //added by Arnest
+                            onTabSelected(category) //added by Arnest
                                   },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isSelected) TealPrimary else Color.White,
@@ -162,7 +168,8 @@ fun HomeScreenContent(
                     hostels = hostels,
                     savedStatus = savedStatus,
                     onToggleFavorite = onToggleFavorite,
-                    onCheckIfSaved = onCheckIfSaved
+                    onCheckIfSaved = onCheckIfSaved,
+                    onNavigateToDetails = onNavigateToDetails
                 )
             }
         }
@@ -288,7 +295,8 @@ fun HostelList(
     hostels: List<Hostel>,
     savedStatus: Map<String, Boolean>,
     onToggleFavorite: (String) -> Unit,
-    onCheckIfSaved: (String) -> Unit
+    onCheckIfSaved: (String) -> Unit,
+    onNavigateToDetails: (String) -> Unit //added by Arnest
 ) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -299,7 +307,8 @@ fun HostelList(
                 hostel = hostel,
                 isSaved = savedStatus[hostel.hostelId] ?: false,
                 onToggleFavorite = { onToggleFavorite(hostel.hostelId) },
-                onCheckIfSaved = { onCheckIfSaved(hostel.hostelId) }
+                onCheckIfSaved = { onCheckIfSaved(hostel.hostelId) },
+                onNavigateToDetails = { onNavigateToDetails(hostel.hostelId) } //added by arnest
             )
         }
     }
@@ -310,7 +319,8 @@ fun HostelCard(
     hostel: Hostel,
     isSaved: Boolean,
     onToggleFavorite: () -> Unit,
-    onCheckIfSaved: () -> Unit
+    onCheckIfSaved: () -> Unit,
+    onNavigateToDetails: () -> Unit
 ) {
     LaunchedEffect(hostel.hostelId) {
         onCheckIfSaved()
@@ -445,7 +455,7 @@ fun HostelCard(
                 }
                 
                 Button(
-                    onClick = { /* TODO */ },
+                    onClick = onNavigateToDetails,
                     colors = ButtonDefaults.buttonColors(containerColor = TealSecondary),
                     shape = RoundedCornerShape(20.dp),
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)

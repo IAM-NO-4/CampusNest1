@@ -9,6 +9,7 @@ import com.campusnest1.groupq.ui.HostelScreen
 import com.campusnest1.groupq.ui.profile.ProfileScreen
 import androidx.compose.foundation.layout.padding
 import com.campusnest1.groupq.ui.NotificationsSheet
+import com.campusnest1.groupq.ui.HostelDetailsScreen
 
 @Composable
 fun MainScreen() {
@@ -31,15 +32,31 @@ fun MainScreen() {
                 CampusNestApp(navController)
             }
 
-           composable("hostels") {
+            composable("hostels") {
                 HostelScreen(navController)
             }
 
-           composable("profile") {
+            composable("profile") {
                 ProfileScreen(navController)
             }
             composable("notifications") {
                 NotificationsSheet(navController)
+            }
+            composable(
+                route = "hostel_details/{hostelId}",
+                arguments = listOf(navArgument("hostelId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val hostelId = backStackEntry.arguments?.getString("hostelId")
+
+                val hostel = MockData.mockHostels.find { it.hostelId == hostelId }
+
+                if (hostel != null) {
+                    HostelDetailsScreen(
+                        hostel = hostel,
+                        rooms = MockData.mockRooms,
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }
