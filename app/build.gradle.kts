@@ -81,6 +81,7 @@ dependencies {
     
     // Material components
     implementation(libs.material)
+    implementation(libs.androidx.navigation.runtime.ktx)
 
     // Testing
     testImplementation(libs.junit)

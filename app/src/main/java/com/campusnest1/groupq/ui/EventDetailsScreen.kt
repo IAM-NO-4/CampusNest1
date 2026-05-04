@@ -216,10 +216,12 @@ fun RegistrationBanner(onRegisterClick: () -> Unit) {
             Text(text = "Registration", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall, color = TextDark)
             Text(text = "Register online to secure your spot!", style = MaterialTheme.typography.bodySmall, color = TextGrey)
         }
+        Spacer(modifier = Modifier.width(8.dp))
         Button(
             onClick = onRegisterClick,
             colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
-            shape = MaterialTheme.shapes.small
+            shape = MaterialTheme.shapes.small,
+            contentPadding = PaddingValues(12.dp)
         ) {
             Text(text = "Register Now", style = MaterialTheme.typography.labelSmall, color = Color.White)
             Spacer(modifier = Modifier.width(4.dp))
