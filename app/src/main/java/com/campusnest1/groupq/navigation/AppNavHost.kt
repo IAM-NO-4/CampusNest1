@@ -71,6 +71,7 @@ fun AppNavHost() {
                     onSignUp = { navController.navigate(Screen.Register.route) },
 
                 )
+
             }
             
             composable(Screen.Register.route) {
