@@ -54,6 +54,10 @@ class registerViewModel : ViewModel() {
         uiState = uiState.copy(phone = phone)
     }
 
+    fun togglePasswordVisibility() {
+        uiState = uiState.copy(passwordVisible = !uiState.passwordVisible)
+    }
+
     private val repository = Authrepo()
     val db = Firebase.firestore
 
