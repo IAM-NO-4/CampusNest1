@@ -46,8 +46,12 @@ fun CampusNestApp(navController: NavController,
                   viewModel: HostelViewModel = koinViewModel(),
                   profViewModel: profileViewModel = viewModel(),
                   ) {
+    LaunchedEffect(Unit) {
+        viewModel.fetchHostelsData()
+        viewModel.loadStudentData()
+    }
     val uiState = profViewModel.uiState
-    val hostels = viewModel.savedHostels
+    val hostels = viewModel.hostels
     HomeScreenContent(
         fName = uiState.fname,
         hostels = hostels,
