@@ -45,6 +45,11 @@ fun CampusNestApp(
     profViewModel: profileViewModel = viewModel(),
     notifViewModel: NotificationViewModel = viewModel()
     ) {
+    LaunchedEffect(Unit) {
+        viewModel.fetchHostelsData()
+        viewModel.loadStudentData()
+    }
+
     var showNotificationsSheet by remember { mutableStateOf(false) }
     val uiState = profViewModel.uiState
     val hostels = viewModel.savedHostels
@@ -55,16 +60,18 @@ fun CampusNestApp(
             notifications = MockData.mockNotification,
             onDismiss = { showNotificationsSheet = false },
             onDelete = { notification ->
-               notifViewModel.deleteNotification(notification.notificationId)
+                notifViewModel.deleteNotification(notification.notificationId)
             },
             onNotificationClick = { notification ->
                 notifViewModel.markAsRead(notification.notificationId)
-                notification.targetId?.let{id ->
+                notification.targetId?.let { id ->
                     navController.navigate("hostelDetails/$id")
                     showNotificationsSheet = false
                 }
             }
         )
+
+
     }
 
     HomeScreenContent(
@@ -81,6 +88,7 @@ fun CampusNestApp(
         }
     )
 }
+
 
 @Composable
 fun HomeScreenContent(

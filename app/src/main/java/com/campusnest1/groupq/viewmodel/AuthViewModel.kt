@@ -24,6 +24,16 @@ class AuthViewModel(
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
 
+    // Login Form State
+    private val _email = mutableStateOf("")
+    val email: State<String> = _email
+
+    private val _password = mutableStateOf("")
+    val password: State<String> = _password
+
+    private val _passwordVisible = mutableStateOf(false)
+    val passwordVisible: State<Boolean> = _passwordVisible
+
     // Holds error messages to show the student (Errors)
     private val _errorMessage = mutableStateOf<String?>(null)
     val errorMessage: State<String?> = _errorMessage
@@ -57,12 +67,31 @@ class AuthViewModel(
         }
     }
 
-    fun signUp(email: String, pass: String, fname: String, lname: String) {
+    fun forgotPassword(email: String) {
+        if (email.isBlank()) {
+            _errorMessage.value = "Please enter your email address."
+            return
+        }
+        viewModelScope.launch {
+            _isLoading.value = true
+            _errorMessage.value = null
+            val result = repository.resetPassword(email)
+            result.onSuccess {
+                _isLoading.value = false
+                _errorMessage.value = "Password reset email sent."
+            }.onFailure { exception ->
+                _isLoading.value = false
+                _errorMessage.value = exception.message ?: "Failed to send reset email."
+            }
+        }
+    }
+
+    fun signUp(email: String, pass: String, fname: String, lname: String, phone: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
 
-            val result = repository.signUp(email, pass, fname, lname)
+            val result = repository.signUp(email, pass, fname, lname, phone)
 
             result.onSuccess {
                 _isLoading.value = false
@@ -78,6 +107,18 @@ class AuthViewModel(
             repository.logout()
             // The authState listener in init{} will detect this and set _user to null
         }
+    }
+
+    fun onEmailChange(newValue: String) {
+        _email.value = newValue
+    }
+
+    fun onPasswordChange(newValue: String) {
+        _password.value = newValue
+    }
+
+    fun togglePasswordVisibility() {
+        _passwordVisible.value = !_passwordVisible.value
     }
 
     // Helper to clear errors when the user starts typing again

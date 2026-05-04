@@ -7,6 +7,7 @@ data class ProfileUiState(
     val lname: String = "",
     val email: String = "",
     val phone: String = "",
+    var profileImageUrl: String? = null,
     val course: String? = "",
     val yearOfStudy: String? = "",
     val currentHostel: String? = "",

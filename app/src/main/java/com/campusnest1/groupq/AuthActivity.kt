@@ -12,53 +12,24 @@ import androidx.navigation.compose.rememberNavController
 import androidx.compose.runtime.LaunchedEffect
 import com.example.campusnet.ui.LoginScreen
 import com.campusnest1.groupq.viewmodel.AuthViewModel
+import com.campusnest1.groupq.navigation.AppNavHost
 import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.ui.registerScreen
 import com.campusnest1.groupq.ui.theme.CampusNestTheme
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class AuthActivity : ComponentActivity() {
-    private val viewModel: AuthViewModel by viewModels()
+    // The AppNavHost uses its own injected viewModel, 
+    // but we can keep this if needed for other logic.
+    // However, AppNavHost is now the entry point.
+    // private val viewModel: AuthViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             CampusNestTheme {
-                val navController = rememberNavController()
-                
-                NavHost(navController = navController, startDestination = Screen.Login.route) {
-                    composable(Screen.Login.route) {
-                        LoginScreen(
-                            authViewModel = viewModel,
-                            onLoginClick = { email: String, password: String ->
-                                viewModel.login(email, password)
-                            },
-                            onSignUp = {
-                                navController.navigate(Screen.Register.route)
-                            },
-                            onForgotPassword = {},
-                            onGoogleSignIn = {},
-                            onAppleSignIn = {}
-                        )
-                    }
-                    composable(Screen.Register.route) {
-                        registerScreen(
-                            navController = navController,
-                            onRegisterSuccess = {
-                                startActivity(Intent(this@AuthActivity, MainActivity::class.java))
-                                finish()
-                            }
-                        )
-                    }
-                }
-
-                // Add observer for login success
-                LaunchedEffect(viewModel.user.value) {
-                    if (viewModel.user.value != null) {
-                        startActivity(Intent(this@AuthActivity, MainActivity::class.java))
-                        finish()
-                    }
-                }
+                AppNavHost()
             }
         }
     }

@@ -1,7 +1,11 @@
 package com.campusnest1.groupq.ui.profile
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -20,15 +24,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
@@ -42,7 +50,16 @@ fun ProfileScreen(
     val uiState = profileView.uiState
     val user = profileView.currentUser
     val nameParts = user?.displayName?.split(" ") ?: listOf("Student", "")
+    val context = LocalContext.current
 
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+
+        if (uri != null) {
+            profileView.changeProfileImage(context, uri, uiState.userId)
+        }
+    }
     // Fetch updated counts when screen opens
     LaunchedEffect(Unit) {
         hostelViewModel.loadStudentData()
@@ -51,6 +68,7 @@ fun ProfileScreen(
     ProfileScreenContent(
         fname = if (uiState.fname.isNotEmpty()) uiState.fname else (nameParts.getOrNull(0) ?: "Student"),
         lname = if (uiState.lname.isNotEmpty()) uiState.lname else (nameParts.getOrNull(1) ?: ""),
+        profileImageUrl = uiState.profileImageUrl,
         course = uiState.course ?: "Not Set",
         studyYear = uiState.yearOfStudy ?: "",
         currentHostel = uiState.currentHostel ?: "Not set",
@@ -58,6 +76,9 @@ fun ProfileScreen(
         bookingCount = hostelViewModel.bookingHistory.value.size,
         isNotificationsEnabled = profileView.isNotificationsEnabled.value,
         onToggleNotifications = { profileView.toggleNotifications(it) },
+        onProfileImageClick = {
+            launcher.launch("image/*")
+        },
         navController = navController
     )
 }
@@ -68,6 +89,7 @@ fun ProfileScreenPreview() {
     ProfileScreenContent(
         fname = "Alex",
         lname = "Muhanji",
+        profileImageUrl = null,
         course = "Software Eng",
         studyYear = "2",
         currentHostel = "Lakeside Hostel",
@@ -75,7 +97,8 @@ fun ProfileScreenPreview() {
         savedCount = 4,
         bookingCount = 56,
         isNotificationsEnabled = true,
-        onToggleNotifications = {}
+        onToggleNotifications = {},
+        onProfileImageClick = {}
     )
 }
 
@@ -83,6 +106,7 @@ fun ProfileScreenPreview() {
 fun ProfileScreenContent(
     fname: String,
     lname: String,
+    profileImageUrl: String?,
     course: String,
     studyYear: String,
     currentHostel: String,
@@ -90,6 +114,7 @@ fun ProfileScreenContent(
     bookingCount: Int,
     isNotificationsEnabled: Boolean,
     onToggleNotifications: (Boolean) -> Unit,
+    onProfileImageClick: () -> Unit,
     navController: NavController?
 ) {
     val scrollState = rememberScrollState()
@@ -120,19 +145,33 @@ fun ProfileScreenContent(
                     border = BorderStroke(4.dp, Color(0xFF00A3A3)),
                     color = Color.LightGray
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.padding(24.dp),
-                        tint = Color.Gray
-                    )
+                    if (!profileImageUrl.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = profileImageUrl,
+                            contentDescription = "Profile Picture",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.padding(24.dp),
+                            tint = Color.Gray
+                        )
+                    }
                 }
                 Surface(
-                    modifier = Modifier.size(36.dp),
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clickable { onProfileImageClick() },
                     shape = CircleShape,
                     color = Color(0xFF00A3A3),
                     border = BorderStroke(3.dp, Color.White)
                 ) {
+
                     Icon(
                         imageVector = Icons.Default.CameraAlt,
                         contentDescription = "Change photo",
@@ -226,7 +265,7 @@ fun ProfileScreenContent(
             Spacer(modifier = Modifier.height(12.dp))
 
             SettingsItem(icon = Icons.Default.Person, label = "Personal Info",
-                onItemClick = { navController?.navigate(Screen.PersonalInfo) })
+                onItemClick = { navController?.navigate(Screen.PersonalInfo.route) })
 
             SettingsItem(icon = Icons.Default.History, label = "Booking History", badgeCount = bookingCount,
                 onItemClick = { navController?.navigate("booking_history") })

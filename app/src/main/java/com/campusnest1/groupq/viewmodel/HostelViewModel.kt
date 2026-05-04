@@ -52,6 +52,16 @@ class HostelViewModel(
     var currentRooms by mutableStateOf<List<Room>>(emptyList())
         private set
 
+    // Hostel Details UI State
+    var isDescriptionExpanded by mutableStateOf(false)
+        private set
+
+    var selectedRoom by mutableStateOf<Room?>(null)
+        private set
+
+    var showBookingSheet by mutableStateOf(false)
+        private set
+
     //hostel results from firebase
     fun fetchHostelsData(){
         viewModelScope.launch {
@@ -65,10 +75,30 @@ class HostelViewModel(
         viewModelScope.launch {
             isLoading.value = true
             currentHostel = repository.getHostelById(hostelId)
-            currentRooms = repository.getRoomsForHostel(hostelId)
+            val rooms = repository.getRoomsForHostel(hostelId)
+            currentRooms = rooms
+            
+            // Set initial selected room
+            selectedRoom = rooms.firstOrNull { it.isAvailable && !it.status.contains("Full", ignoreCase = true) }
+            
             isLoading.value = false
         }
     }
+
+    fun toggleDescriptionExpanded() {
+        isDescriptionExpanded = !isDescriptionExpanded
+    }
+
+    fun selectRoom(room: Room) {
+        if (room.isAvailable) {
+            selectedRoom = room
+        }
+    }
+
+    fun updateShowBookingSheet(show: Boolean) {
+        showBookingSheet = show
+    }
+
     // 2. Function to fetch data when the screen opens
     fun loadStudentData() {
         val userId = authRepository.getCurrentUser()?.uid ?: ""

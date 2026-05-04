@@ -10,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -47,16 +48,11 @@ private val SocialBorder = Color(0xFFE5E5F0)
 fun LoginScreen(
     navController: NavController? = null,
     authViewModel: AuthViewModel = viewModel(),
-    onLoginClick: (email: String, password: String) -> Unit = { _, _ -> },
-    onForgotPassword: () -> Unit = {},
-    onGoogleSignIn: () -> Unit = {},
-    onAppleSignIn: () -> Unit = {},
     onSignUp: () -> Unit = {}
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-
+    val email by authViewModel.email
+    val password by authViewModel.password
+    val passwordVisible by authViewModel.passwordVisible
     val isLoading by authViewModel.isLoading
     val errorMessage by authViewModel.errorMessage
 
@@ -133,7 +129,7 @@ fun LoginScreen(
                 )
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = { authViewModel.onEmailChange(it) },
                     placeholder = {
                         Text("student@campus.edu", color = TextGray, fontSize = 15.sp)
                     },
@@ -179,7 +175,7 @@ fun LoginScreen(
                         color = TextDark
                     )
                     TextButton(
-                        onClick = onForgotPassword,
+                        onClick = { authViewModel.forgotPassword(email) },
                         contentPadding = PaddingValues(0.dp)
                     ) {
                         Text(
@@ -193,7 +189,7 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(6.dp))
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = { authViewModel.onPasswordChange(it) },
                     placeholder = {
                         Text("••••••••", color = TextGray, fontSize = 15.sp)
                     },
@@ -206,9 +202,9 @@ fun LoginScreen(
                         )
                     },
                     trailingIcon = {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        IconButton(onClick = { authViewModel.togglePasswordVisibility() }) {
                             Icon(
-                                imageVector = Icons.Default.VisibilityOff,
+                                imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                 contentDescription = if (passwordVisible) "Hide password" else "Show password",
                                 tint = TextGray,
                                 modifier = Modifier.size(20.dp)
@@ -252,7 +248,7 @@ fun LoginScreen(
 
             // ── Log In button ──────────────────────────────────────────────
             Button(
-                onClick = { onLoginClick(email, password) },
+                onClick = { authViewModel.login(email, password) },
                 enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -280,66 +276,6 @@ fun LoginScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // ── OR CONTINUE WITH ──────────────────────────────────────────
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = DividerColor)
-                Text(
-                    text = "  OR CONTINUE\n  WITH  ",
-                    fontSize = 10.sp,
-                    color = TextGray,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = 0.6.sp,
-                    lineHeight = 14.sp
-                )
-                HorizontalDivider(modifier = Modifier.weight(1f), color = DividerColor)
-            }
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            // ── Google & Apple ─────────────────────────────────────────────
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                OutlinedButton(
-                    onClick = onGoogleSignIn,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(54.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    border = BorderStroke(1.dp, SocialBorder),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = SocialBg)
-                ) {
-                    Text(
-                        text = "Google",
-                        fontWeight = FontWeight.Bold,
-                        color = TextDark,
-                        fontSize = 15.sp
-                    )
-                }
-                OutlinedButton(
-                    onClick = onAppleSignIn,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(54.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    border = BorderStroke(1.dp, SocialBorder),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = SocialBg)
-                ) {
-                    Text(
-                        text = "Apple",
-                        fontWeight = FontWeight.Bold,
-                        color = TextDark,
-                        fontSize = 15.sp
-                    )
-                }
-            }
 
             Spacer(modifier = Modifier.height(36.dp))
 

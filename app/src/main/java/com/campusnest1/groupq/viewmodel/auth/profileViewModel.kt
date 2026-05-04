@@ -1,8 +1,13 @@
 package com.campusnest1.groupq.viewmodel.auth
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.net.toFile
 import androidx.lifecycle.ViewModel
 import com.campusnest1.groupq.model.Profile
 import com.campusnest1.groupq.ui.profile.ProfileUiState
@@ -10,6 +15,16 @@ import com.campusnest1.groupq.model.User
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import okhttp3.Call
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import org.json.JSONObject
+import java.io.IOException
 
 class profileViewModel: ViewModel() {
     var uiState by mutableStateOf(ProfileUiState())
@@ -27,7 +42,7 @@ class profileViewModel: ViewModel() {
         if (uid != null) {
             uiState = uiState.copy(isLoading = true, error = null)
             
-            //Informn abt th user
+            //Information about the user
             db.collection("users").document(uid).get()
                 .addOnSuccessListener { userDoc ->
                     val user = userDoc.toObject(User::class.java)
@@ -43,6 +58,7 @@ class profileViewModel: ViewModel() {
                                 lname = user?.lname ?: "",
                                 email = user?.email ?: "",
                                 phone = user?.phone ?: "",
+                                profileImageUrl = user?.profileImageUrl, // Assume User model has this or add to Profile
                                 course = profile?.course ?: "",
                                 yearOfStudy = profile?.yearOfStudy ?: "",
                                 currentHostel = profile?.currentHostel ?: "",
@@ -87,6 +103,10 @@ class profileViewModel: ViewModel() {
     fun onRoomNoChange(roomNo:String){
         uiState = uiState.copy(currentRoomNo = roomNo)
     }
+    
+    fun onProfileImageChange(url: String) {
+        uiState = uiState.copy(profileImageUrl = url)
+    }
 
     fun resetSuccess() {
         uiState = uiState.copy(isSuccess = false)
@@ -111,7 +131,8 @@ class profileViewModel: ViewModel() {
             fname = userFName,
             lname = userLName,
             email = userEmail,
-            phone = userPhone
+            phone = userPhone,
+            profileImageUrl = uiState.profileImageUrl
         )
 
         val userRef = db.collection("users").document(uid)
@@ -139,4 +160,89 @@ class profileViewModel: ViewModel() {
     fun toggleNotifications(enabled: Boolean) {
         isNotificationsEnabled.value = enabled
     }
+
+    fun changeProfileImage(context: Context, uri: Uri, userId: String) {
+        uploadImage(context, uri, userId)
+    }
+
+    fun uploadImage(context: Context, uri: Uri, userId: String) {
+
+        uiState = uiState.copy(isLoading = true)
+
+        uploadToCloudinary( context = context, imageUri = uri) { url ->
+
+            if (url != null) {
+
+                uiState = uiState.copy(
+                    profileImageUrl = url,
+                    isLoading = false
+                )
+
+                saveImageUrl(userId, url)
+
+            } else {
+                uiState = uiState.copy(
+                    isLoading = false,
+                    error = "Image upload failed"
+                )
+            }
+        }
+    }
+
+    private fun saveImageUrl(userId: String, url: String) {
+        db.collection("users")
+            .document(userId)
+            .update("profileImageUrl", url)
+    }
+
+    fun uploadToCloudinary(
+        context: Context,
+        imageUri: Uri,
+        onResult: (String?) -> Unit
+    ) {
+        try {
+            val inputStream = context.contentResolver.openInputStream(imageUri)
+            val bytes = inputStream?.readBytes()
+
+            if (bytes == null) {
+                onResult(null)
+                return
+            }
+
+            val requestBody = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart(
+                    "file",
+                    "image.jpg",
+                    bytes.toRequestBody("image/*".toMediaType())
+                )
+                .addFormDataPart("upload_preset", "campusupload")
+                .build()
+
+            val request = Request.Builder()
+                .url("https://api.cloudinary.com/v1_1/df1sj7zza/image/upload")
+                .post(requestBody)
+                .build()
+
+            OkHttpClient().newCall(request).enqueue(object : okhttp3.Callback {
+
+                override fun onResponse(call: Call, response: Response) {
+                    val json = JSONObject(response.body!!.string())
+                    val url = json.getString("secure_url")
+                    onResult(url)
+                }
+
+                override fun onFailure(call: Call, e: IOException) {
+                    onResult(null)
+                }
+            })
+
+        } catch (e: Exception) {
+            onResult(null)
+        }
+    }
+
+
+
+
 }

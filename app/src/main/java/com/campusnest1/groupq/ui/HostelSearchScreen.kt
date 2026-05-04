@@ -58,7 +58,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
@@ -70,6 +69,7 @@ import com.campusnest1.groupq.ui.theme.RedAccentLight
 import com.campusnest1.groupq.ui.theme.TealPrimary
 import com.campusnest1.groupq.ui.theme.TealSecondary
 import com.campusnest1.groupq.ui.theme.TextGrey
+import androidx.navigation.NavHostController
 
 @Composable
 fun HostelSearchScreen(

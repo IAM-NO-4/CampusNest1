@@ -60,6 +60,7 @@ fun HostelDetailsScreen(
             hostel = hostel,
             rooms = rooms,
             isSaved = isSaved,
+            viewModel = viewModel,
             onBackClick = onBackClick,
             onToggleFavorite = { viewModel.toggleFavorite(hostel.hostelId) },
             onShareClick = {
@@ -80,20 +81,18 @@ fun HostelDetailsContent(
     hostel: Hostel,
     rooms: List<Room>,
     isSaved: Boolean,
+    viewModel: HostelViewModel,
     onBackClick: () -> Unit,
     onToggleFavorite: () -> Unit,
     onShareClick: () -> Unit
 ) {
-    var isDescriptionExpanded by remember { mutableStateOf(false) }
-
-    var selectedRoom by remember { 
-        mutableStateOf<Room?>(rooms.firstOrNull { it.isAvailable && !it.status.contains("Full", ignoreCase = true) }) 
-    }
+    val isDescriptionExpanded = viewModel.isDescriptionExpanded
+    val selectedRoom = viewModel.selectedRoom
 
     Scaffold(
         containerColor = Color.White,
         bottomBar = {
-            BottomBookingBar(hostel = hostel, selectedRoom = selectedRoom)
+            BottomBookingBar(hostel = hostel, selectedRoom = selectedRoom, viewModel = viewModel)
         }
     ) { padding ->
         LazyColumn(
@@ -151,7 +150,7 @@ fun HostelDetailsContent(
                     )
 
                     TextButton(
-                        onClick = { isDescriptionExpanded = !isDescriptionExpanded },
+                        onClick = { viewModel.toggleDescriptionExpanded() },
                         contentPadding = PaddingValues(0.dp)
                     ) {
                         Text(
@@ -198,7 +197,7 @@ fun HostelDetailsContent(
                 RoomCard(
                     room = room,
                     isSelected = selectedRoom?.roomId == room.roomId,
-                    onSelect = { if (room.isAvailable) selectedRoom = room }
+                    onSelect = { viewModel.selectRoom(room) }
                 )
             }
             
@@ -430,16 +429,16 @@ fun AmenitiesList(amenities: List<String>) {
 }
 
 @Composable
-fun BottomBookingBar(hostel: Hostel, selectedRoom: Room?) {
-    var showBookingSheet by remember { mutableStateOf(false) }
+fun BottomBookingBar(hostel: Hostel, selectedRoom: Room?, viewModel: HostelViewModel) {
+    val showBookingSheet = viewModel.showBookingSheet
 
     if (showBookingSheet && selectedRoom != null){
         BookingBottomSheet(
             hostel = hostel,
             room = selectedRoom,
-            onDismiss = { showBookingSheet = false },
+            onDismiss = { viewModel.updateShowBookingSheet(false) },
             onBook = { _, _ ->
-                showBookingSheet = false // Close after booking
+                viewModel.updateShowBookingSheet(false) // Close after booking
             }
         )
     }
@@ -468,7 +467,7 @@ fun BottomBookingBar(hostel: Hostel, selectedRoom: Room?) {
                 }
             }
             Button(
-                onClick = { showBookingSheet = true },
+                onClick = { viewModel.updateShowBookingSheet(true) },
                 enabled = selectedRoom != null,
                 modifier = Modifier.height(60.dp).fillMaxWidth(0.75f),
                 colors = ButtonDefaults.buttonColors(
@@ -503,13 +502,5 @@ fun BottomBookingBar(hostel: Hostel, selectedRoom: Room?) {
 @Composable
 fun HostelDetailsScreenPreview() {
     CampusNestTheme {
-        HostelDetailsContent(
-            hostel = MockData.mockHostels[0],
-            rooms = MockData.mockRooms,
-            isSaved = false,
-            onBackClick = {},
-            onToggleFavorite = {},
-            onShareClick = {}
-        )
     }
 }

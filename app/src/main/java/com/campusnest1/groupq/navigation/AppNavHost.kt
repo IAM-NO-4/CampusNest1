@@ -68,13 +68,8 @@ fun AppNavHost() {
                 LoginScreen(
                     navController = navController,
                     authViewModel = authViewModel,
-                    onLoginClick = { email, password ->
-                        authViewModel.login(email, password)
-                    },
                     onSignUp = { navController.navigate(Screen.Register.route) },
-                    onForgotPassword = {},
-                    onGoogleSignIn = {},
-                    onAppleSignIn = {}
+
                 )
             }
             

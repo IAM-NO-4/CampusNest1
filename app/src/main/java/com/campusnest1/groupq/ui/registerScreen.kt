@@ -41,28 +41,28 @@ fun registerScreen(
     onRegisterSuccess: () -> Unit = {}
 ) {
     val state = viewModel.uiState
-    val isLoading by authViewModel.isLoading
-    val errorMessage by authViewModel.errorMessage
+    val authIsLoading by authViewModel.isLoading
+    val authErrorMessage by authViewModel.errorMessage
+    val authUser by authViewModel.user
 
-    LaunchedEffect(state.isSuccess) {
-        if (state.isSuccess) {
+    LaunchedEffect(authUser) {
+        if (authUser != null) {
             onRegisterSuccess()
         }
     }
 
     RegisterScreenContent(
         state = state,
-        authIsLoading = isLoading,
-        authErrorMessage = errorMessage,
+        authIsLoading = authIsLoading,
+        authErrorMessage = authErrorMessage,
         onFNameChange = { viewModel.onFNameChange(it) },
         onLNameChange = { viewModel.onLNameChange(it) },
         onEmailChange = { viewModel.onEmailChange(it) },
         onPasswordChange = { viewModel.onPasswordChange(it) },
         onPhoneChange = { viewModel.onPhoneChange(it) },
-        onPasswordVisibleToggle = { state.passwordVisible = !state.passwordVisible },
+        onPasswordVisibleToggle = { viewModel.togglePasswordVisibility() },
         onRegisterClick = { 
-            authViewModel.signUp(state.email, state.password, state.fname, state.lname)
-            viewModel.register() 
+            authViewModel.signUp(state.email, state.password, state.fname, state.lname, state.phone)
         },
         onLoginClick = { navController?.navigate("login") },
         getPasswordStrength = { viewModel.getPasswordStrength(it) },
