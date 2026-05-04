@@ -58,6 +58,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.ui.theme.BackgroundLight
@@ -70,12 +72,14 @@ import com.campusnest1.groupq.ui.theme.TealSecondary
 import com.campusnest1.groupq.ui.theme.TextGrey
 
 @Composable
-fun HostelSearchScreen(hostel: Hostel){
+fun HostelSearchScreen(
+    navController: NavHostController
+){
     var showFilterSheet by remember {mutableStateOf(false)} //Remember if the drawer open
     var activeFilterType by remember {mutableStateOf("")} // Remember which filter clicked
 
     Scaffold(
-        topBar = { SearchTopBar() },
+        topBar = { SearchTopBar(navController) },
         containerColor = BackgroundLight
     ){ padding ->
         Column(modifier = Modifier.padding(padding)){
@@ -417,7 +421,7 @@ fun FilterChipItem(isSelected: Boolean, label: String, onClick: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchTopBar() {
+fun SearchTopBar(navController: NavHostController) {
     CenterAlignedTopAppBar(
         title = {
             Text(
@@ -433,7 +437,7 @@ fun SearchTopBar() {
                 shadowElevation = 2.dp,
                 modifier = Modifier.padding(start = 8.dp).size(40.dp)
             ){
-                IconButton(onClick = { /* TODO navController popBackStack()*/}){
+                IconButton(onClick = { navController.popBackStack() }){
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                 }
             }
@@ -465,7 +469,7 @@ fun SearchTopBar() {
 fun HostelSearchScreenPreview() {
     CampusNestTheme {
         HostelSearchScreen(
-            hostel = MockData.mockHostels[0]
+            navController = rememberNavController()
         )
     }
 }

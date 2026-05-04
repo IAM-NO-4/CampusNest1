@@ -26,6 +26,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.campusnest1.groupq.viewmodel.AuthViewModel
 
 // ── Exact brand colors from screenshot ────────────────────────────────────────
@@ -43,6 +45,7 @@ private val SocialBorder = Color(0xFFE5E5F0)
 
 @Composable
 fun LoginScreen(
+    navController: NavController? = null,
     authViewModel: AuthViewModel = viewModel(),
     onLoginClick: (email: String, password: String) -> Unit = { _, _ -> },
     onForgotPassword: () -> Unit = {},
@@ -306,7 +309,9 @@ fun LoginScreen(
             ) {
                 OutlinedButton(
                     onClick = onGoogleSignIn,
-                    modifier = Modifier.weight(1f).height(54.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(54.dp),
                     shape = RoundedCornerShape(14.dp),
                     border = BorderStroke(1.dp, SocialBorder),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = SocialBg)
@@ -320,7 +325,9 @@ fun LoginScreen(
                 }
                 OutlinedButton(
                     onClick = onAppleSignIn,
-                    modifier = Modifier.weight(1f).height(54.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(54.dp),
                     shape = RoundedCornerShape(14.dp),
                     border = BorderStroke(1.dp, SocialBorder),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = SocialBg)
@@ -358,7 +365,7 @@ fun LoginScreen(
     }
 }
 
-// ── Logo: hand-drawn building icon matching the screenshot ────────────────────
+//Logo
 @Composable
 fun CampusNestLogo() {
     androidx.compose.foundation.Canvas(
@@ -445,6 +452,6 @@ fun CampusNestLogo() {
 @Composable
 fun LoginScreenPreview() {
     MaterialTheme {
-        LoginScreen()
+        LoginScreen(navController = rememberNavController())
     }
 }

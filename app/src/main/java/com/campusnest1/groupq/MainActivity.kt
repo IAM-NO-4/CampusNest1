@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
 import com.campusnest1.groupq.ui.theme.CampusNestTheme
 import com.campusnest1.groupq.model.*
 import com.campusnest1.groupq.viewmodel.auth.registerViewModel
@@ -16,7 +17,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.firestore
 import com.campusnest1.groupq.navigation.AppNavHost
 import com.campusnest1.groupq.ui.CampusNestApp
-import com.campusnest1.groupq.navigation.MainScreen
+import org.koin.androidx.compose.koinViewModel
 
 //@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -38,8 +39,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // CampusNestApp()
-                    MainScreen()
+
+                    val navController = rememberNavController()
+                    CampusNestApp(navController = navController)
+
                 }
             }
         }
