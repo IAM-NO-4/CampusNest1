@@ -1,6 +1,8 @@
 package com.campusnest1.groupq.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -9,15 +11,24 @@ import com.campusnest1.groupq.ui.EventDetailsScreen
 import com.campusnest1.groupq.ui.EventsScreen
 import com.campusnest1.groupq.ui.registerScreen
 import com.campusnest1.groupq.viewmodel.EventViewModel
-//import com.campusnest1.groupq.ui.LoginScreen
-import com.campusnest1.groupq.viewmodel.auth.loginViewModel
+import com.campusnest1.groupq.viewmodel.AuthViewModel
 import com.example.campusnet.ui.LoginScreen
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
-    val loginVM: loginViewModel = viewModel()
+    val authViewModel: AuthViewModel = viewModel()
     val eventsviewModel: EventViewModel = viewModel()
+
+    val user by authViewModel.user
+
+    LaunchedEffect(user) {
+        if (user != null) {
+            navController.navigate(Screen.Home.route) {
+                popUpTo(Screen.Login.route) { inclusive = true }
+            }
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -26,14 +37,9 @@ fun AppNavHost() {
 
         composable(Screen.Login.route) {
             LoginScreen(
+                authViewModel = authViewModel,
                 onLoginClick = { email, password ->
-                    loginVM.login(email, password) { user ->
-                        if (user != null) {
-                            navController.navigate(Screen.Home.route) {
-                                popUpTo(Screen.Login.route) { inclusive = true }
-                            }
-                        }
-                    }
+                    authViewModel.login(email, password)
                 },
                 onSignUp = { navController.navigate(Screen.Register.route) },
                 onForgotPassword = {},

@@ -2,6 +2,7 @@ package com.campusnest1.groupq.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -9,7 +10,6 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.campusnest1.groupq.auth1.RegisterUiState
+import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.viewmodel.AuthViewModel
 import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 
@@ -36,18 +37,16 @@ import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 fun registerScreen(
     navController: NavController? = null,
     viewModel: registerViewModel = viewModel(),
-    authViewModel: AuthViewModel = viewModel()
+    authViewModel: AuthViewModel = viewModel(),
+    onRegisterSuccess: () -> Unit = {}
 ) {
     val state = viewModel.uiState
     val isLoading by authViewModel.isLoading
     val errorMessage by authViewModel.errorMessage
 
-    // Navigate to home if registration is successful
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
-            navController?.navigate("home") {
-                popUpTo("register") { inclusive = true }
-            }
+            onRegisterSuccess()
         }
     }
 
@@ -60,8 +59,11 @@ fun registerScreen(
         onEmailChange = { viewModel.onEmailChange(it) },
         onPasswordChange = { viewModel.onPasswordChange(it) },
         onPhoneChange = { viewModel.onPhoneChange(it) },
-        onPasswordVisibleToggle = { viewModel.togglePasswordVisibility() },
-        onRegisterClick = { viewModel.register() },
+        onPasswordVisibleToggle = { state.passwordVisible = !state.passwordVisible },
+        onRegisterClick = { 
+            authViewModel.signUp(state.email, state.password, state.fname, state.lname)
+            viewModel.register() 
+        },
         onLoginClick = { navController?.navigate("login") },
         getPasswordStrength = { viewModel.getPasswordStrength(it) },
         isFormValid = { viewModel.isFormValid() }
@@ -89,7 +91,7 @@ fun RegisterScreenContent(
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFFE0F7FA), Color.White)
+                    colors = listOf(Color(0xFFDEEEEE), Color(0xFFF3EDE4))
                 )
             )
     ) {
@@ -105,7 +107,7 @@ fun RegisterScreenContent(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 // CampusNest logo
                 Icon(
-                    imageVector = Icons.Default.Apartment, //place holder
+                    imageVector = Icons.Default.Email, //place holder
                     contentDescription = null,
                     modifier = Modifier.size(60.dp),
                     tint = Color(0xFF00A3A3)
@@ -153,74 +155,75 @@ fun RegisterScreenContent(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "First Name",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = state.fname,
-                    onValueChange = onFNameChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = {
-                        Text(
-                            text = "Enter your first name", color = Color.Gray,
-                            fontSize = 13.sp
-                        )
-                    },
-
-                    isError = state.nameError != null,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF00A3A3),
-                        errorBorderColor = Color.Red,
-                        unfocusedBorderColor = Color(0xFFE0E0E0),
-                        cursorColor = Color(0xFF00A3A3)
-                    )
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                state.nameError?.let {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = it,
-                        color = Color.Red,
-                        fontSize = 12.sp
+                        text = "First Name",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = state.fname,
+                        onValueChange = onFNameChange,
+                        placeholder = {
+                            Text(
+                                text = "First Name", color = Color.Gray,
+                                fontSize = 13.sp
+                            )
+                        },
+                        isError = state.fnameError != null,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = TextDark,
+                            unfocusedTextColor = TextDark,
+                            focusedBorderColor = Color(0xFF00A3A3),
+                            errorBorderColor = Color.Red,
+                            unfocusedBorderColor = Color(0xFFE0E0E0),
+                            cursorColor = Color(0xFF00A3A3)
+                        )
+                    )
+                    state.fnameError?.let {
+                        Text(
+                            text = it,
+                            color = Color.Red,
+                            fontSize = 12.sp
+                        )
+                    }
                 }
-            }
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "Last Name",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = state.lname,
-                    onValueChange = onLNameChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = {
-                        Text(
-                            text = "Enter your last name", color = Color.Gray,
-                            fontSize = 13.sp
-                        )
-                    },
-
-                    isError = state.nameError != null,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF00A3A3),
-                        errorBorderColor = Color.Red,
-                        unfocusedBorderColor = Color(0xFFE0E0E0),
-                        cursorColor = Color(0xFF00A3A3)
-                    )
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                state.nameError?.let {
+                Spacer(modifier = Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = it,
-                        color = Color.Red,
-                        fontSize = 12.sp
+                        text = "Last Name",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = state.lname,
+                        onValueChange = onLNameChange,
+                        placeholder = {
+                            Text(
+                                text = "Last Name", color = Color.Gray,
+                                fontSize = 13.sp
+                            )
+                        },
+                        isError = state.lnameError != null,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = TextDark,
+                            unfocusedTextColor = TextDark,
+                            focusedBorderColor = Color(0xFF00A3A3),
+                            errorBorderColor = Color.Red,
+                            unfocusedBorderColor = Color(0xFFE0E0E0),
+                            cursorColor = Color(0xFF00A3A3)
+                        )
+                    )
+                    state.lnameError?.let {
+                        Text(
+                            text = it,
+                            color = Color.Red,
+                            fontSize = 12.sp
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -242,6 +245,8 @@ fun RegisterScreenContent(
                         )
                     },
                     colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextDark,
+                        unfocusedTextColor = TextDark,
                         focusedBorderColor = Color(0xFF00A3A3),
                         unfocusedBorderColor = Color(0xFFE0E0E0),
                         cursorColor = Color(0xFF00A3A3)
@@ -255,7 +260,7 @@ fun RegisterScreenContent(
                     text = "Student Email",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333)
+                    color = TextDark
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
@@ -273,6 +278,8 @@ fun RegisterScreenContent(
                     isError = state.emailError != null,
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextDark,
+                        unfocusedTextColor = TextDark,
                         focusedBorderColor = Color(0xFF00A3A3),
                         errorBorderColor = Color.Red,
                         unfocusedBorderColor = Color(0xFFE0E0E0),
@@ -325,6 +332,8 @@ fun RegisterScreenContent(
                     visualTransformation = if (state.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextDark,
+                        unfocusedTextColor = TextDark,
                         focusedBorderColor = Color(0xFF00A3A3),
                         errorBorderColor = Color.Red,
                         unfocusedBorderColor = Color(0xFFE0E0E0),
@@ -356,7 +365,7 @@ fun RegisterScreenContent(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // ── Error Message from AuthViewModel ────────────────────────
+            // ── Error Message from AuthViewModel ──────────────────────────
             if (authErrorMessage != null) {
                 Text(
                     text = authErrorMessage,
@@ -367,7 +376,7 @@ fun RegisterScreenContent(
                 )
             }
 
-
+            // Main Action Button (Login)
             Button(
                 onClick = onRegisterClick,
                 enabled = isFormValid() && !state.isLoading && !authIsLoading,
@@ -417,9 +426,8 @@ fun RegisterScreenContent(
 fun RegisterScreenPreview() {
     RegisterScreenContent(
         state = RegisterUiState(
-            fname = "John ",
+            fname = "John",
             lname = "Doe",
-            phone = "+254 700 000 000",
             email = "john.doe@university.edu"
         ),
         authIsLoading = false,

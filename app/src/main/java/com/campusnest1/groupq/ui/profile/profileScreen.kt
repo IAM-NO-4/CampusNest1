@@ -9,7 +9,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Apartment
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Nightlight
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +40,8 @@ fun ProfileScreen(
     hostelViewModel: HostelViewModel = viewModel()
 ) {
     val uiState = profileView.uiState
+    val user = profileView.currentUser
+    val nameParts = user?.displayName?.split(" ") ?: listOf("Student", "")
 
     // Fetch updated counts when screen opens
     LaunchedEffect(Unit) {
@@ -41,16 +49,33 @@ fun ProfileScreen(
     }
 
     ProfileScreenContent(
-        fname = uiState.fname,
-        lname = uiState.lname,
-        course = uiState.course ?: "Not set",
-        studyYear = uiState.yearOfStudy ?: "Not set",
+        fname = if (uiState.fname.isNotEmpty()) uiState.fname else (nameParts.getOrNull(0) ?: "Student"),
+        lname = if (uiState.lname.isNotEmpty()) uiState.lname else (nameParts.getOrNull(1) ?: ""),
+        course = uiState.course ?: "Not Set",
+        studyYear = uiState.yearOfStudy ?: "",
         currentHostel = uiState.currentHostel ?: "Not set",
         savedCount = hostelViewModel.savedHostels.size,
         bookingCount = hostelViewModel.bookingHistory.value.size,
         isNotificationsEnabled = profileView.isNotificationsEnabled.value,
         onToggleNotifications = { profileView.toggleNotifications(it) },
         navController = navController
+    )
+}
+
+@Preview(showBackground = true, heightDp = 1100)
+@Composable
+fun ProfileScreenPreview() {
+    ProfileScreenContent(
+        fname = "Alex",
+        lname = "Muhanji",
+        course = "Software Eng",
+        studyYear = "2",
+        currentHostel = "Lakeside Hostel",
+        navController = null,
+        savedCount = 4,
+        bookingCount = 56,
+        isNotificationsEnabled = true,
+        onToggleNotifications = {}
     )
 }
 
@@ -119,13 +144,14 @@ fun ProfileScreenContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(horizontalArrangement = Arrangement.Center) {
                 Text(
                     text = fname,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF333333)
                 )
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = lname,
                     fontSize = 28.sp,
@@ -150,10 +176,12 @@ fun ProfileScreenContent(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // Student Stats Section
             SectionHeader(title = "Student Stats")
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Current Stay Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -192,12 +220,13 @@ fun ProfileScreenContent(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // Account Settings Section
             SectionHeader(title = "Account Settings")
 
             Spacer(modifier = Modifier.height(12.dp))
 
             SettingsItem(icon = Icons.Default.Person, label = "Personal Info",
-                onItemClick = { navController?.navigate(Screen.PersonalInfo.route) })
+                onItemClick = { navController?.navigate(Screen.PersonalInfo) })
 
             SettingsItem(icon = Icons.Default.History, label = "Booking History", badgeCount = bookingCount,
                 onItemClick = { navController?.navigate("booking_history") })
@@ -354,7 +383,7 @@ fun SettingsItem(
                 color = Color(0xFF333333)
             )
 
-            if (badgeCount != null && badgeCount > 0) {
+            if (badgeCount != null) {
                 Surface(
                     modifier = Modifier.padding(end = 12.dp),
                     shape = RoundedCornerShape(12.dp),
@@ -382,21 +411,4 @@ fun SettingsItem(
             }
         }
     }
-}
-
-@Preview(showBackground = true, heightDp = 1100)
-@Composable
-fun ProfileScreenPreview(){
-    ProfileScreenContent(
-        fname = "Alex",
-        lname = "Muhanji",
-        course = "Software Eng",
-        studyYear = "2",
-        currentHostel = "Lakeside Hostel",
-        savedCount = 4,
-        bookingCount = 56,
-        isNotificationsEnabled = true,
-        onToggleNotifications = {},
-        navController = null
-    )
 }
