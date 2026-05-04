@@ -17,7 +17,8 @@ object MockData{
             rating = 4.8,
             distance = "0.5 km from Main Gate",
             amenities = listOf("Free Wi-Fi", "Security"),
-            availableRooms = 3
+            availableRooms = 3,
+            roomTypes = listOf("Single", "Double")
 
         ),
         Hostel(
@@ -30,7 +31,8 @@ object MockData{
             rating = 4.5,
             distance = "1.2 km from Main Gate",
             amenities = listOf("Spa", "Security"),
-            availableRooms = 10
+            availableRooms = 10,
+            roomTypes = listOf("Single", "Double", "Triple")
 
         ),
         Hostel(
@@ -42,9 +44,12 @@ object MockData{
             imageUrl = "https://example.com/image3.jpg",
             rating = 4.1,
             distance = "2.5 km from Main Gate",
-            amenities = listOf("Free Wi-Fi", "Gym", "Security")
+            amenities = listOf("Free Wi-Fi", "Gym", "Security"),
+            roomTypes = listOf("Double", "Triple")
         )
     )
+
+    // Albert: Added roomTypes to mock hostels for testing filter functionality.
 
     val mockRooms = listOf(
         Room(type = "Premium Single", price = 2000000.0, isAvailable = false, status = "Full", capacity = 1, beds = 1),
