@@ -68,9 +68,10 @@ import com.campusnest1.groupq.ui.theme.RedAccentLight
 import com.campusnest1.groupq.ui.theme.TealPrimary
 import com.campusnest1.groupq.ui.theme.TealSecondary
 import com.campusnest1.groupq.ui.theme.TextGrey
+import androidx.navigation.NavHostController
 
 @Composable
-fun HostelSearchScreen(hostel: Hostel){
+fun HostelSearchScreen(navController: NavHostController, hostel: Hostel){
     var showFilterSheet by remember {mutableStateOf(false)} //Remember if the drawer open
     var activeFilterType by remember {mutableStateOf("")} // Remember which filter clicked
 

@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.*
 import com.campusnest1.groupq.ui.CampusNestApp
-import com.campusnest1.groupq.ui.HostelScreen
+import com.campusnest1.groupq.ui.HostelSearchScreen
 import com.campusnest1.groupq.ui.profile.ProfileScreen
 import androidx.compose.foundation.layout.padding
 import com.campusnest1.groupq.ui.NotificationsSheet
@@ -33,7 +33,7 @@ fun MainScreen() {
             }
 
             composable("hostels") {
-                HostelScreen(navController)
+                HostelSearchScreen(navController)
             }
 
             composable("profile") {
@@ -42,10 +42,11 @@ fun MainScreen() {
             composable("notifications") {
                 NotificationsSheet(navController)
             }
+            //for the view deatils button
             composable(
                 route = "hostel_details/{hostelId}",
                 arguments = listOf(navArgument("hostelId") { type = NavType.StringType })
-            ) { backStackEntry ->
+               )   { backStackEntry ->
                 val hostelId = backStackEntry.arguments?.getString("hostelId")
 
                 val hostel = MockData.mockHostels.find { it.hostelId == hostelId }
