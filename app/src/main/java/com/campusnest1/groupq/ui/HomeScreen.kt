@@ -41,6 +41,7 @@ import org.koin.androidx.compose.koinViewModel
 import java.time.LocalTime
 import androidx.navigation.NavController
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CampusNestApp(navController: NavController,
                   viewModel: HostelViewModel = koinViewModel(),
@@ -51,6 +52,8 @@ fun CampusNestApp(navController: NavController,
     HomeScreenContent(
         fName = uiState.fname,
         hostels = hostels,
+        onNotificationClick = { navController.navigate("notifications") },
+        onSeeAllClick = { navController.navigate("hostels") },
         savedStatus = viewModel.savedStatus,
         onToggleFavorite = { viewModel.toggleFavorite(it) },
         onCheckIfSaved = { viewModel.checkIfSaved(it) },
@@ -66,6 +69,8 @@ fun CampusNestApp(navController: NavController,
 fun HomeScreenContent(
     fName: String,
     hostels: List<Hostel>,
+    onNotificationClick: () -> Unit = {},
+    onSeeAllClick: () -> Unit = {},
     savedStatus: Map<String, Boolean> = emptyMap(),
     onToggleFavorite: (String) -> Unit = {},
     onCheckIfSaved: (String) -> Unit = {},
@@ -88,7 +93,7 @@ fun HomeScreenContent(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             
-            HeaderSection(navController, fName = fName)
+            HeaderSection(onNotificationClick = onNotificationClick, fName = fName)
             
             Spacer(modifier = Modifier.height(20.dp))
             
@@ -143,7 +148,7 @@ fun HomeScreenContent(
                         color = TextDark
                     )
                 }
-                TextButton(onClick = {  navController.navigate("hostels") }) {
+                TextButton(onClick = onSeeAllClick) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "See all",
@@ -178,7 +183,7 @@ fun HomeScreenContent(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HeaderSection( navController: NavController,
+fun HeaderSection( onNotificationClick: () -> Unit,
                    fName: String = "Alex"
   ) {
     Row(
@@ -228,9 +233,7 @@ fun HeaderSection( navController: NavController,
             modifier = Modifier.size(48.dp)
         ) {
             IconButton(
-                onClick = {
-                    navController.navigate("notifications")
-                }
+                onClick = onNotificationClick
             ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
