@@ -37,6 +37,11 @@ fun MainScreen() {
            composable("profile") {
                 ProfileScreen(navController)
             }
+
+            composable("notifications") {
+                navController
+            }
+
         }
     }
 }

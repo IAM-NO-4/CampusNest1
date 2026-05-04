@@ -1,6 +1,7 @@
 package com.campusnest1.groupq.utils
 
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 
 /**
@@ -29,5 +30,15 @@ fun formatEventTime(timeString: String): String {
         time?.let {outputFormat.format(it)} ?: timeString
     } catch (e: Exception) {
         timeString
+    }
+}
+
+/*Greeting function for Home Screen*/
+fun getTime(): String {
+    val currentTime = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    return when (currentTime) {
+        in 0..11 -> "Good morning"
+        in 12..16 -> "Good afternoon"
+        else -> "Good evening"
     }
 }

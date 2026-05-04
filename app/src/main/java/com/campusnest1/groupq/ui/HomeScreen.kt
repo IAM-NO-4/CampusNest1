@@ -1,10 +1,7 @@
 package com.campusnest1.groupq.ui
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -27,21 +24,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
-import com.campusnest1.groupq.model.Profile
 import com.campusnest1.groupq.ui.MockData.mockHostels
 import com.campusnest1.groupq.ui.theme.*
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
-import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 import org.koin.androidx.compose.koinViewModel
-import java.time.LocalTime
 import androidx.navigation.NavController
+import com.campusnest1.groupq.utils.getTime
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CampusNestApp(navController: NavController,
                   viewModel: HostelViewModel = koinViewModel(),
@@ -50,6 +43,7 @@ fun CampusNestApp(navController: NavController,
     val uiState = profViewModel.uiState
     val hostels = viewModel.savedHostels
     HomeScreenContent(
+        navController = navController,
         fName = uiState.fname,
         hostels = hostels,
         onNotificationClick = { navController.navigate("notifications") },
@@ -64,9 +58,9 @@ fun CampusNestApp(navController: NavController,
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreenContent(
+    navController: NavController,
     fName: String,
     hostels: List<Hostel>,
     onNotificationClick: () -> Unit = {},
@@ -168,7 +162,7 @@ fun HomeScreenContent(
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            Box(modifier = Modifier.weight(1f)) {
+            Box(modifier = Modifier.heightIn(max = 2000.dp)) {
                 HostelList(
                     hostels = hostels,
                     savedStatus = savedStatus,
@@ -181,7 +175,6 @@ fun HomeScreenContent(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HeaderSection( onNotificationClick: () -> Unit,
                    fName: String = "Alex"
@@ -301,11 +294,11 @@ fun HostelList(
     onCheckIfSaved: (String) -> Unit,
     onNavigateToDetails: (String) -> Unit //added by Arnest
 ) {
-    LazyColumn(
+    Column(
         verticalArrangement = Arrangement.spacedBy(20.dp),
-        contentPadding = PaddingValues(bottom = 16.dp)
+        modifier = Modifier.padding(bottom = 16.dp)
     ) {
-        items(hostels) { hostel ->
+        hostels.forEach { hostel ->
             HostelCard(
                 hostel = hostel,
                 isSaved = savedStatus[hostel.hostelId] ?: false,
@@ -475,7 +468,6 @@ fun HostelCard(
 }
 
 @Composable
-
 fun HostelRating(hostel: Hostel, color: Color = OrangeAccentLight) {
     Surface(color = color , shape = RoundedCornerShape(12.dp)){
         Row(
@@ -505,19 +497,8 @@ fun HostelRating(hostel: Hostel, color: Color = OrangeAccentLight) {
 fun HomeScreenPreview() {
     CampusNestTheme {
         HomeScreenContent(
+            navController = NavController(androidx.compose.ui.platform.LocalContext.current),
             fName = "Amir",
             hostels = mockHostels)
     }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun getTime(): String{
-    val currentTime = LocalTime.now().hour
-    val greeting = when (currentTime) {
-        in 0..11 -> "Good morning"
-        in 12..16 -> "Good afternoon"
-        else -> "Good evening"
-    }
-    return greeting
 }

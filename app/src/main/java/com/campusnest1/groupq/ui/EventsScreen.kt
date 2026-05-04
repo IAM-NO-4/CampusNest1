@@ -51,7 +51,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Event
 import com.campusnest1.groupq.navigation.Screen
@@ -65,7 +64,6 @@ import com.campusnest1.groupq.ui.theme.TealSecondary
 import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.ui.theme.TextGrey
 import com.campusnest1.groupq.viewmodel.EventViewModel
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun EventsScreen(
@@ -73,17 +71,17 @@ fun EventsScreen(
     viewModel: EventViewModel
 ) {
     EventsScreenContent(
-        onEventClick = {eventId ->
-            navController.navigate(Screen.Eventdetails.route + "/$eventId")},
-        events = viewModel.events,
-        isLoading = viewModel.isLoading
-
+        onEventClick = { eventId ->
+            navController.navigate("eventDetails/$eventId")
+        },
+        events = viewModel.events.value,
+        isLoading = viewModel.isLoading.value
     )
 }
 
 @Composable
 fun EventsScreenContent(
-    onEventClick: (eventId: String)-> Unit ={},
+    onEventClick: (eventId: String) -> Unit = {},
     events: List<Event>,
     isLoading: Boolean = false
 ) {
@@ -183,7 +181,7 @@ fun EventsScreenContent(
 }
 
 @Composable
-fun HappeningNowList(events: List<Event>, onEventClick:(String)-> Unit) {
+fun HappeningNowList(events: List<Event>, onEventClick: (String) -> Unit) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(bottom = 8.dp)
@@ -360,7 +358,7 @@ fun UpcomingEventItem(event: Event, onBtnClick: () -> Unit) {
 }
 
 @Composable
-fun EventCard(event: Event, onClick: ()-> Unit) {
+fun EventCard(event: Event, onClick: () -> Unit) {
     Card(
         modifier = Modifier.size(240.dp, 300.dp),
         shape = MaterialTheme.shapes.large,
