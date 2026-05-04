@@ -72,7 +72,9 @@ dependencies {
     implementation(libs.androidx.ui.text)
 
     // Images & Icons
-    implementation(libs.coil.compose)
+    //implementation(libs.coil.compose)
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    //implementation("com.squareup.okhttp3:okhttp:3.7.0")
     implementation(libs.androidx.compose.material.icons.extended)
 
     // Koin DI
@@ -81,6 +83,7 @@ dependencies {
     
     // Material components
     implementation(libs.material)
+    implementation(libs.androidx.navigation.runtime.ktx)
 
     // Testing
     testImplementation(libs.junit)

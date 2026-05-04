@@ -1,7 +1,11 @@
 package com.campusnest1.groupq.ui.profile
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -9,20 +13,30 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Apartment
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Nightlight
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
@@ -34,23 +48,57 @@ fun ProfileScreen(
     hostelViewModel: HostelViewModel = viewModel()
 ) {
     val uiState = profileView.uiState
+    val user = profileView.currentUser
+    val nameParts = user?.displayName?.split(" ") ?: listOf("Student", "")
+    val context = LocalContext.current
 
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+
+        if (uri != null) {
+            profileView.changeProfileImage(context, uri, uiState.userId)
+        }
+    }
     // Fetch updated counts when screen opens
     LaunchedEffect(Unit) {
         hostelViewModel.loadStudentData()
     }
 
     ProfileScreenContent(
-        fname = uiState.fname,
-        lname = uiState.lname,
-        course = uiState.course ?: "Not set",
-        studyYear = uiState.yearOfStudy ?: "Not set",
+        fname = if (uiState.fname.isNotEmpty()) uiState.fname else (nameParts.getOrNull(0) ?: "Student"),
+        lname = if (uiState.lname.isNotEmpty()) uiState.lname else (nameParts.getOrNull(1) ?: ""),
+        profileImageUrl = uiState.profileImageUrl,
+        course = uiState.course ?: "Not Set",
+        studyYear = uiState.yearOfStudy ?: "",
         currentHostel = uiState.currentHostel ?: "Not set",
         savedCount = hostelViewModel.savedHostels.size,
         bookingCount = hostelViewModel.bookingHistory.value.size,
         isNotificationsEnabled = profileView.isNotificationsEnabled.value,
         onToggleNotifications = { profileView.toggleNotifications(it) },
+        onProfileImageClick = {
+            launcher.launch("image/*")
+        },
         navController = navController
+    )
+}
+
+@Preview(showBackground = true, heightDp = 1100)
+@Composable
+fun ProfileScreenPreview() {
+    ProfileScreenContent(
+        fname = "Alex",
+        lname = "Muhanji",
+        profileImageUrl = null,
+        course = "Software Eng",
+        studyYear = "2",
+        currentHostel = "Lakeside Hostel",
+        navController = null,
+        savedCount = 4,
+        bookingCount = 56,
+        isNotificationsEnabled = true,
+        onToggleNotifications = {},
+        onProfileImageClick = {}
     )
 }
 
@@ -58,6 +106,7 @@ fun ProfileScreen(
 fun ProfileScreenContent(
     fname: String,
     lname: String,
+    profileImageUrl: String?,
     course: String,
     studyYear: String,
     currentHostel: String,
@@ -65,6 +114,7 @@ fun ProfileScreenContent(
     bookingCount: Int,
     isNotificationsEnabled: Boolean,
     onToggleNotifications: (Boolean) -> Unit,
+    onProfileImageClick: () -> Unit,
     navController: NavController?
 ) {
     val scrollState = rememberScrollState()
@@ -95,19 +145,33 @@ fun ProfileScreenContent(
                     border = BorderStroke(4.dp, Color(0xFF00A3A3)),
                     color = Color.LightGray
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.padding(24.dp),
-                        tint = Color.Gray
-                    )
+                    if (!profileImageUrl.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = profileImageUrl,
+                            contentDescription = "Profile Picture",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.padding(24.dp),
+                            tint = Color.Gray
+                        )
+                    }
                 }
                 Surface(
-                    modifier = Modifier.size(36.dp),
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clickable { onProfileImageClick() },
                     shape = CircleShape,
                     color = Color(0xFF00A3A3),
                     border = BorderStroke(3.dp, Color.White)
                 ) {
+
                     Icon(
                         imageVector = Icons.Default.CameraAlt,
                         contentDescription = "Change photo",
@@ -119,13 +183,14 @@ fun ProfileScreenContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(horizontalArrangement = Arrangement.Center) {
                 Text(
                     text = fname,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF333333)
                 )
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = lname,
                     fontSize = 28.sp,
@@ -150,10 +215,12 @@ fun ProfileScreenContent(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // Student Stats Section
             SectionHeader(title = "Student Stats")
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Current Stay Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -192,6 +259,7 @@ fun ProfileScreenContent(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // Account Settings Section
             SectionHeader(title = "Account Settings")
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -354,7 +422,7 @@ fun SettingsItem(
                 color = Color(0xFF333333)
             )
 
-            if (badgeCount != null && badgeCount > 0) {
+            if (badgeCount != null) {
                 Surface(
                     modifier = Modifier.padding(end = 12.dp),
                     shape = RoundedCornerShape(12.dp),
@@ -382,21 +450,4 @@ fun SettingsItem(
             }
         }
     }
-}
-
-@Preview(showBackground = true, heightDp = 1100)
-@Composable
-fun ProfileScreenPreview(){
-    ProfileScreenContent(
-        fname = "Alex",
-        lname = "Muhanji",
-        course = "Software Eng",
-        studyYear = "2",
-        currentHostel = "Lakeside Hostel",
-        savedCount = 4,
-        bookingCount = 56,
-        isNotificationsEnabled = true,
-        onToggleNotifications = {},
-        navController = null
-    )
 }

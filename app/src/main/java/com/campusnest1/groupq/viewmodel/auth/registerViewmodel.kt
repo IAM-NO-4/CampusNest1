@@ -14,39 +14,48 @@ class registerViewModel : ViewModel() {
     var uiState by mutableStateOf(RegisterUiState())
         private set
 
-    fun onFNameChange(name:String){
-        uiState = uiState.copy(fname = name,
-            nameError = if (name.isEmpty()) "Name cannot be empty" else null)
+    fun onFNameChange(fname: String) {
+        uiState = uiState.copy(
+            fname = fname,
+            fnameError = if (fname.isEmpty()) "First name cannot be empty" else null
+        )
     }
-    fun onLNameChange(name:String){
-        uiState = uiState.copy(lname = name,
-            nameError = if (name.isEmpty()) "Name cannot be empty" else null)
+
+    fun onLNameChange(lname: String) {
+        uiState = uiState.copy(
+            lname = lname,
+            lnameError = if (lname.isEmpty()) "Last name cannot be empty" else null
+        )
     }
-    fun togglePasswordVisibility(){
-        uiState = uiState.copy(passwordVisible = !uiState.passwordVisible)
-    }
-    fun onEmailChange(email:String){
+
+    fun onEmailChange(email: String) {
         val isValid = android.util.Patterns
             .EMAIL_ADDRESS.matcher(email).matches()
-        uiState = uiState.copy(email = email,
-            emailError = if (!isValid) "Invalid email" else null)
+        uiState = uiState.copy(
+            email = email,
+            emailError = if (!isValid) "Invalid email" else null
+        )
     }
-    fun onPasswordChange(pass:String){
+
+    fun onPasswordChange(pass: String) {
         val error = when {
             pass.length < 6 -> "At least 6 characters"
             pass.all { it.isDigit() } -> "Cannot be only digits"
             !pass.any { it.isLetter() } -> "Must include a letter"
             else -> null
         }
-        uiState = uiState.copy(password = pass,
-            passwordError = error)
+        uiState = uiState.copy(
+            password = pass,
+            passwordError = error
+        )
     }
-    fun onPhoneChange(phone:String){
+
+    fun onPhoneChange(phone: String) {
         uiState = uiState.copy(phone = phone)
     }
 
-    fun resetSuccess() {
-        uiState = uiState.copy(isSuccess = false)
+    fun togglePasswordVisibility() {
+        uiState = uiState.copy(passwordVisible = !uiState.passwordVisible)
     }
 
     private val repository = Authrepo()
@@ -78,7 +87,7 @@ class registerViewModel : ViewModel() {
                             email = state.email,
                             phone = state.phone
                         )
-                        db.collection("users")
+                        db.collection("User")
                             .document(uid)
                             .set(newUser)
                             .addOnSuccessListener {
@@ -110,6 +119,7 @@ class registerViewModel : ViewModel() {
                 password.any { it.isLetter() } &&
                 !password.all { it.isDigit() }
     }
+
     fun getPasswordStrength(password: String): String {
         return when {
             password.length < 6 -> "Weak"
@@ -118,16 +128,16 @@ class registerViewModel : ViewModel() {
             else -> "Medium"
         }
     }
+
     fun isFormValid(): Boolean {
         val s = uiState
-
         return s.fname.isNotBlank() &&
                 s.lname.isNotBlank() &&
                 s.email.isNotBlank() &&
                 s.password.isNotBlank() &&
                 s.phone.isNotBlank() &&
-
-                s.nameError == null &&
+                s.fnameError == null &&
+                s.lnameError == null &&
                 s.emailError == null &&
                 s.passwordError == null
     }

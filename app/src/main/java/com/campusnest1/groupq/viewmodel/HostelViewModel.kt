@@ -11,9 +11,11 @@ import com.campusnest1.groupq.data.HostelImplementationRepository
 import com.campusnest1.groupq.data.HostelRepository
 import com.campusnest1.groupq.model.Booking
 import com.campusnest1.groupq.model.Hostel
+import com.campusnest1.groupq.model.Room
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class HostelViewModel(
@@ -21,6 +23,9 @@ class HostelViewModel(
     private val authRepository: Authrepo
 ) : ViewModel() {
 
+
+    var hostels by mutableStateOf<List<Hostel>>(emptyList())
+        private set
 
     var savedHostels by mutableStateOf<List<Hostel>>(emptyList())
         private set
@@ -41,18 +46,59 @@ class HostelViewModel(
 
     val db = Firebase.firestore
 
+    var currentHostel by mutableStateOf<Hostel?>(null)
+        private set
+
+    var currentRooms by mutableStateOf<List<Room>>(emptyList())
+        private set
+
+    // Hostel Details UI State
+    var isDescriptionExpanded by mutableStateOf(false)
+        private set
+
+    var selectedRoom by mutableStateOf<Room?>(null)
+        private set
+
+    var showBookingSheet by mutableStateOf(false)
+        private set
+
     //hostel results from firebase
     fun fetchHostelsData(){
-        db.collection("hostels")
-            .get()
-            .addOnSuccessListener { result ->
-                savedHostels = result.map{it.toObject(Hostel::class.java)}
-            } .addOnFailureListener {
-
-            }
-
-
+        viewModelScope.launch {
+            isLoading.value = true
+            hostels = repository.getHostels()
+            isLoading.value = false
+        }
     }
+
+    fun fetchHostelDetails(hostelId: String) {
+        viewModelScope.launch {
+            isLoading.value = true
+            currentHostel = repository.getHostelById(hostelId)
+            val rooms = repository.getRoomsForHostel(hostelId)
+            currentRooms = rooms
+            
+            // Set initial selected room
+            selectedRoom = rooms.firstOrNull { it.isAvailable && !it.status.contains("Full", ignoreCase = true) }
+            
+            isLoading.value = false
+        }
+    }
+
+    fun toggleDescriptionExpanded() {
+        isDescriptionExpanded = !isDescriptionExpanded
+    }
+
+    fun selectRoom(room: Room) {
+        if (room.isAvailable) {
+            selectedRoom = room
+        }
+    }
+
+    fun updateShowBookingSheet(show: Boolean) {
+        showBookingSheet = show
+    }
+
     // 2. Function to fetch data when the screen opens
     fun loadStudentData() {
         val userId = authRepository.getCurrentUser()?.uid ?: ""

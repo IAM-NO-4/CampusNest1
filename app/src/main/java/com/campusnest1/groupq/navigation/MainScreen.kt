@@ -8,8 +8,6 @@ import com.campusnest1.groupq.ui.CampusNestApp
 import com.campusnest1.groupq.ui.HostelSearchScreen
 import com.campusnest1.groupq.ui.profile.ProfileScreen
 import androidx.compose.foundation.layout.padding
-import com.campusnest1.groupq.ui.NotificationsSheet
-import com.campusnest1.groupq.ui.HostelDetailsScreen
 
 @Composable
 fun MainScreen() {
@@ -36,9 +34,10 @@ fun MainScreen() {
                 HostelSearchScreen(navController)
             }
 
-            composable("profile") {
+           composable("profile") {
                 ProfileScreen(navController)
             }
+
             composable("notifications") {
                 NotificationsSheet(navController)
             }
@@ -59,6 +58,7 @@ fun MainScreen() {
                     )
                 }
             }
+
         }
     }
 }

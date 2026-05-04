@@ -2,6 +2,7 @@ package com.campusnest1.groupq.data
 
 import com.campusnest1.groupq.model.Booking
 import com.campusnest1.groupq.model.Hostel
+import com.campusnest1.groupq.model.Room
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -12,8 +13,31 @@ class HostelImplementationRepository(
     // Fetches all available hostels for the main list
     override suspend fun getHostels(): List<Hostel> {
         return try {
-            val snapshot = db.collection("Hostels").get().await()
-            snapshot.documents.mapNotNull { it.toObject(Hostel::class.java) }
+            val snapshot = db.collection("hostels").get().await()
+            snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Hostel::class.java)?.copy(hostelId = doc.id)
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    override suspend fun getHostelById(hostelId: String): Hostel? {
+        return try {
+            val doc = db.collection("hostels").document(hostelId).get().await()
+            doc.toObject(Hostel::class.java)?.copy(hostelId = doc.id)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    override suspend fun getRoomsForHostel(hostelId: String): List<Room> {
+        return try {
+            val snapshot = db.collection("hostels").document(hostelId)
+                .collection("rooms").get().await()
+            snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Room::class.java)?.copy(roomId = doc.id, hostelId = hostelId)
+            }
         } catch (e: Exception) {
             emptyList()
         }
@@ -24,7 +48,9 @@ class HostelImplementationRepository(
         return try {
             val snapshot = db.collection("users").document(userId)
                 .collection("savedHostels").get().await()
-            snapshot.documents.mapNotNull { it.toObject(Hostel::class.java) }
+            snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Hostel::class.java)?.copy(hostelId = doc.id)
+            }
         } catch (e: Exception) {
             emptyList()
         }
@@ -42,6 +68,7 @@ class HostelImplementationRepository(
     }
 
     override suspend fun toggleSavedHostel(userId: String, hostelId: String): Boolean {
+        if (hostelId.isEmpty()) return false
         return try {
             val docRef = db.collection("users").document(userId)
                 .collection("savedHostels").document(hostelId)
@@ -51,13 +78,15 @@ class HostelImplementationRepository(
                 docRef.delete().await()
                 false // Removed from favorites
             } else {
-                // Fetch hostel data to save it (or just save the ID if preferred, 
-                // but the current getSavedHostels expects full objects)
-                val hostelDoc = db.collection("Hostels").document(hostelId).get().await()
+                val hostelDoc = db.collection("hostels").document(hostelId).get().await()
                 if (hostelDoc.exists()) {
-                    docRef.set(hostelDoc.data!!).await()
+                    val data = hostelDoc.data?.toMutableMap() ?: mutableMapOf()
+                    data["hostelId"] = hostelId
+                    docRef.set(data).await()
+                    true // Successfully added
+                } else {
+                    false // Hostel not found in master list
                 }
-                true // Added to favorites
             }
         } catch (e: Exception) {
             false

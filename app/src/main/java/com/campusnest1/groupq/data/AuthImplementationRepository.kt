@@ -38,10 +38,25 @@ class AuthImplementationRepository (
         return fbUser?.let { User(userId = it.uid, email = it.email?: "")}
     }
 
-    override suspend fun signUp(email: String, pass: String, name: String): Result<Unit> {
+    override suspend fun signUp(email: String, pass: String, fname: String, lname: String, phone: String): Result<Unit> {
         return try {
             val result = firebaseAuth.createUserWithEmailAndPassword(email, pass).await()
-            val user = User(userId = result.user?.uid?: "", email = email)
+            val userId = result.user?.uid ?: throw Exception("User ID not found")
+            
+            // Save user profile to Firestore
+            val user = User(
+                userId = userId,
+                fname = fname,
+                lname = lname,
+                email = email,
+                phone = phone
+            )
+            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(userId)
+                .set(user)
+                .await()
+
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -50,5 +65,14 @@ class AuthImplementationRepository (
 
     override suspend fun logout() {
         firebaseAuth.signOut()
+    }
+
+    override suspend fun resetPassword(email: String): Result<Unit> {
+        return try {
+            firebaseAuth.sendPasswordResetEmail(email).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

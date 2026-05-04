@@ -54,7 +54,7 @@ object MockData{
     val mockEvents = listOf(
         Event(
             eventId = "1",
-            title = "Campus Tour",
+            title = "mother wo",
             description = "Explore the campus with us!",
             date = "2026-05-15",
             startTime = "10:00 AM",
