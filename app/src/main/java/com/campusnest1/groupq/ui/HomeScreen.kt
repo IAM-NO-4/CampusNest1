@@ -58,7 +58,8 @@ fun CampusNestApp(navController: NavController,
         onTabSelected = { viewModel.setCategory(it) },
         onNavigateToDetails = { hostelId ->
             navController.navigate("hostel_details/$hostelId")
-        }
+        },
+        onSearchClick = { navController.navigate("hostels") }
     )
 }
 
@@ -73,7 +74,8 @@ fun HomeScreenContent(
     onToggleFavorite: (String) -> Unit = {},
     onCheckIfSaved: (String) -> Unit = {},
     onNavigateToDetails: (String) -> Unit = {},
-    onTabSelected: (String) -> Unit = {}
+    onTabSelected: (String) -> Unit = {},
+    onSearchClick: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf("All") }
     val categories = listOf("All", "Hostels", "Events")
@@ -95,7 +97,7 @@ fun HomeScreenContent(
             
             Spacer(modifier = Modifier.height(20.dp))
             
-            SearchBar(onSearchClick = { /* TODO */ })
+            SearchBar(onSearchClick = onSearchClick)
             
             Spacer(modifier = Modifier.height(20.dp))
             
@@ -506,3 +508,5 @@ fun HomeScreenPreview() {
             hostels = mockHostels)
     }
 }
+
+// Albert: Implemented search bar navigation to Hostel Search Screen in Home Screen.
