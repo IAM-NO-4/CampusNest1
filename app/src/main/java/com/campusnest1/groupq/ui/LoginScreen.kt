@@ -27,6 +27,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.campusnest1.groupq.viewmodel.AuthViewModel
 
 // ── Exact brand colors from screenshot ────────────────────────────────────────
@@ -44,6 +46,7 @@ private val SocialBorder = Color(0xFFE5E5F0)
 
 @Composable
 fun LoginScreen(
+    navController: NavController? = null,
     authViewModel: AuthViewModel = viewModel(),
     onSignUp: () -> Unit = {}
 ) {
@@ -273,7 +276,6 @@ fun LoginScreen(
                 }
             }
 
-//            Spacer(modifier = Modifier.height(28.dp))
 
             Spacer(modifier = Modifier.height(36.dp))
 
@@ -299,7 +301,7 @@ fun LoginScreen(
     }
 }
 
-// ── Logo: hand-drawn building icon matching the screenshot ────────────────────
+//Logo
 @Composable
 fun CampusNestLogo() {
     androidx.compose.foundation.Canvas(
@@ -386,6 +388,6 @@ fun CampusNestLogo() {
 @Composable
 fun LoginScreenPreview() {
     MaterialTheme {
-        LoginScreen()
+        LoginScreen(navController = rememberNavController())
     }
 }

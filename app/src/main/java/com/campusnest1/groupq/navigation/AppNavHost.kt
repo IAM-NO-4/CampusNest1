@@ -1,14 +1,22 @@
 package com.campusnest1.groupq.navigation
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.campusnest1.groupq.ui.CampusNestApp
 import com.campusnest1.groupq.ui.EventDetailsScreen
 import com.campusnest1.groupq.ui.EventsScreen
+import com.campusnest1.groupq.ui.HostelDetailsScreen
+import com.campusnest1.groupq.ui.HostelSearchScreen
+import com.campusnest1.groupq.ui.profile.ProfileScreen
 import com.campusnest1.groupq.ui.registerScreen
 import com.campusnest1.groupq.viewmodel.EventViewModel
 import com.campusnest1.groupq.viewmodel.AuthViewModel
@@ -18,12 +26,22 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
-    // Use koinViewModel to get the injected instances
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    //Which screens should show the bottom bar
+    val bottomBarScreens = listOf(
+        Screen.Home.route,
+        Screen.Hostels.route,
+        Screen.Profile.route
+    )
+
     val authViewModel: AuthViewModel = koinViewModel()
     val eventsviewModel: EventViewModel = koinViewModel()
 
     val user by authViewModel.user
 
+    // Preserving the auto-login logic
     LaunchedEffect(user) {
         if (user != null) {
             navController.navigate(Screen.Home.route) {
@@ -32,49 +50,81 @@ fun AppNavHost() {
         }
     }
 
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Login.route
-    ) {
+    Scaffold(
+        bottomBar = {
+            if (currentRoute in bottomBarScreens) {
+                BottomNavBar(navController)
+            }
+        }
+    ) { padding ->
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Login.route,
+            modifier = Modifier.padding(padding)
+        ) {
 
-        composable(Screen.Login.route) {
-            LoginScreen(
-                authViewModel = authViewModel,
-                onSignUp = { navController.navigate(Screen.Register.route) }
-            )
-        }
+            //Auth
+            composable(Screen.Login.route) {
+                LoginScreen(
+                    navController = navController,
+                    authViewModel = authViewModel,
+                    onSignUp = { navController.navigate(Screen.Register.route) },
 
-        composable(Screen.Home.route) {
-            MainScreen()
-        }
-        
-        composable(Screen.Register.route) {
-           registerScreen(
-               navController = navController
-           )
-        }
-        
-        composable(Screen.Events.route) {
-            EventsScreen(
-                navController = navController, 
-                viewModel = eventsviewModel
-            )
-        }
-        
-        composable(Screen.Eventdetails.route) { backStackEntry ->
-            val eventId = backStackEntry.arguments?.getString("eventId")
-            // Find the event in the list held by the ViewModel
-            val event = eventsviewModel.events.value.find { it.eventId == eventId }
+                )
+
+            }
             
-            if (event != null) {
-                EventDetailsScreen(
-                    event = event,
-                    viewModel = eventsviewModel,
+            composable(Screen.Register.route) {
+                registerScreen(navController = navController)
+            }
+
+            //Main Tabs
+            composable(Screen.Home.route) {
+                CampusNestApp(navController)
+            }
+
+            composable(Screen.Hostels.route) {
+                HostelSearchScreen(navController)
+            }
+
+            composable(Screen.Profile.route) {
+                ProfileScreen(navController)
+            }
+
+            //Top Tabs
+            composable(Screen.Events.route) {
+                EventsScreen(
+                    navController = navController,
+                    viewModel = eventsviewModel
+                )
+            }
+
+            //Hidden NavBar
+            composable(Screen.HostelDetails.route) { navBackStackEntry ->
+                val hostelId = navBackStackEntry.arguments?.getString("hostelId") ?: ""
+                HostelDetailsScreen(
+                    hostelId = hostelId,
                     onBackClick = { navController.popBackStack() }
                 )
-            } else {
-                // If event is not found, you could show an error or navigate back
-                Text("Event details not available")
+            }
+
+            composable(Screen.EventDetails.route) { backStackEntry ->
+                val eventId = backStackEntry.arguments?.getString("eventId")
+                val event = eventsviewModel.events.value.find { it.eventId == eventId }
+
+                if (event != null) {
+                    EventDetailsScreen(
+                        event = event,
+                        viewModel = eventsviewModel,
+                        onBackClick = { navController.popBackStack() }
+                    )
+                } else {
+                    Text("Event details not available")
+                }
+            }
+            
+            composable("notifications") {
+                Text("Notifications Screen")
             }
         }
     }

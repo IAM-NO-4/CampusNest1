@@ -33,38 +33,66 @@ import com.campusnest1.groupq.viewmodel.HostelViewModel
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 import org.koin.androidx.compose.koinViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.utils.getTime
+import com.campusnest1.groupq.viewmodel.NotificationViewModel
 
 @Composable
-fun CampusNestApp(navController: NavController,
-                  viewModel: HostelViewModel = koinViewModel(),
-                  profViewModel: profileViewModel = viewModel(),
-                  ) {
+fun CampusNestApp(
+    navController: NavController,
+    viewModel: HostelViewModel = koinViewModel(),
+    profViewModel: profileViewModel = viewModel(),
+    notifViewModel: NotificationViewModel = viewModel()
+    ) {
     LaunchedEffect(Unit) {
         viewModel.fetchHostelsData()
         viewModel.loadStudentData()
     }
+
+    var showNotificationsSheet by remember { mutableStateOf(false) }
     val uiState = profViewModel.uiState
-    val hostels = viewModel.hostels
+    val hostels = viewModel.savedHostels
+
+    if (showNotificationsSheet) {
+        NotificationsSheet(
+            navController = navController,
+            notifications = MockData.mockNotification,
+            onDismiss = { showNotificationsSheet = false },
+            onDelete = { notification ->
+                notifViewModel.deleteNotification(notification.notificationId)
+            },
+            onNotificationClick = { notification ->
+                notifViewModel.markAsRead(notification.notificationId)
+                notification.targetId?.let { id ->
+                    navController.navigate("hostelDetails/$id")
+                    showNotificationsSheet = false
+                }
+            }
+        )
+
+
+    }
+
     HomeScreenContent(
-        navController = navController,
         fName = uiState.fname,
         hostels = hostels,
-        onNotificationClick = { navController.navigate("notifications") },
-        onSeeAllClick = { navController.navigate("hostels") },
+        onNotificationClick = { showNotificationsSheet = true },
+        onSeeAllClick = { navController.navigate(Screen.Hostels.route) },
         savedStatus = viewModel.savedStatus,
         onToggleFavorite = { viewModel.toggleFavorite(it) },
         onCheckIfSaved = { viewModel.checkIfSaved(it) },
         onTabSelected = { viewModel.setCategory(it) },
         onNavigateToDetails = { hostelId ->
-            navController.navigate("hostel_details/$hostelId")
-        }
+            navController.navigate("hostelDetails/$hostelId")
+        },
+        onSearchClick = { navController.navigate("hostels") }
     )
 }
 
+
 @Composable
 fun HomeScreenContent(
-    navController: NavController,
     fName: String,
     hostels: List<Hostel>,
     onNotificationClick: () -> Unit = {},
@@ -73,7 +101,8 @@ fun HomeScreenContent(
     onToggleFavorite: (String) -> Unit = {},
     onCheckIfSaved: (String) -> Unit = {},
     onNavigateToDetails: (String) -> Unit = {},
-    onTabSelected: (String) -> Unit = {}
+    onTabSelected: (String) -> Unit = {},
+    onSearchClick: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf("All") }
     val categories = listOf("All", "Hostels", "Events")
@@ -95,7 +124,7 @@ fun HomeScreenContent(
             
             Spacer(modifier = Modifier.height(20.dp))
             
-            SearchBar(onSearchClick = { /* TODO */ })
+            SearchBar(onSearchClick = onSearchClick)
             
             Spacer(modifier = Modifier.height(20.dp))
             
@@ -109,7 +138,7 @@ fun HomeScreenContent(
                     Button(
                         onClick = {
                             selectedTab = category
-                            onTabSelected(category) //added by Arnest
+                            onTabSelected(category)
                                   },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isSelected) TealPrimary else Color.White,
@@ -296,7 +325,7 @@ fun HostelList(
     savedStatus: Map<String, Boolean>,
     onToggleFavorite: (String) -> Unit,
     onCheckIfSaved: (String) -> Unit,
-    onNavigateToDetails: (String) -> Unit //added by Arnest
+    onNavigateToDetails: (String) -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -308,7 +337,7 @@ fun HostelList(
                 isSaved = savedStatus[hostel.hostelId] ?: false,
                 onToggleFavorite = { onToggleFavorite(hostel.hostelId) },
                 onCheckIfSaved = { onCheckIfSaved(hostel.hostelId) },
-                onNavigateToDetails = { onNavigateToDetails(hostel.hostelId) } //added by arnest
+                onNavigateToDetails = { onNavigateToDetails(hostel.hostelId) }
             )
         }
     }
@@ -501,8 +530,10 @@ fun HostelRating(hostel: Hostel, color: Color = OrangeAccentLight) {
 fun HomeScreenPreview() {
     CampusNestTheme {
         HomeScreenContent(
-            navController = NavController(androidx.compose.ui.platform.LocalContext.current),
             fName = "Amir",
-            hostels = mockHostels)
+            hostels = mockHostels,
+        )
     }
 }
+
+// Albert: Implemented search bar navigation to Hostel Search Screen in Home Screen.
