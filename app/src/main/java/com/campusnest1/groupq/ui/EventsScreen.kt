@@ -69,8 +69,8 @@ fun EventsScreen(
     viewModel: EventViewModel = koinViewModel()
 ) {
     EventsScreenContent(
-        events = viewModel.events,
-        isLoading = viewModel.isLoading
+        events = viewModel.events.value,
+        isLoading = viewModel.isLoading.value
     )
 }
 

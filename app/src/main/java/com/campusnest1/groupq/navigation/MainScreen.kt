@@ -39,7 +39,7 @@ fun MainScreen() {
                 ProfileScreen(navController)
             }
             composable("notifications") {
-                NotificationsSheet(navController)
+                navController
             }
         }
     }

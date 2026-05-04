@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.campusnest1.groupq.model.Notification
 import com.campusnest1.groupq.ui.theme.BackgroundLight
 import com.campusnest1.groupq.ui.theme.CampusNestTheme
@@ -54,6 +55,7 @@ import com.campusnest1.groupq.utils.getNotificationIcons
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsSheet(
+    navController: NavController?,
     notifications: List<Notification>,
     onDismiss: () -> Unit,
     onDelete: (Notification) -> Unit,
@@ -258,6 +260,7 @@ fun NotificationItem(
 fun NotificationSheetPreview(){
     CampusNestTheme {
         NotificationsSheet(
+            navController = null,
             notifications = MockData.mockNotification,
             onDismiss = {},
             onDelete = {},
