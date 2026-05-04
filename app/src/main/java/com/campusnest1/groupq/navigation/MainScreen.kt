@@ -10,6 +10,11 @@ import com.campusnest1.groupq.ui.profile.ProfileScreen
 import androidx.compose.foundation.layout.padding
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import org.koin.androidx.compose.koinViewModel
+import com.campusnest1.groupq.ui.NotificationsSheet
+import com.campusnest1.groupq.ui.HostelDetailsScreen
+import com.campusnest1.groupq.ui.MockData
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 
 @Composable
 fun MainScreen() {
