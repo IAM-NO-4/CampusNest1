@@ -35,7 +35,6 @@ import org.koin.androidx.compose.koinViewModel
 import androidx.navigation.NavController
 import com.campusnest1.groupq.utils.getTime
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CampusNestApp(navController: NavController,
                   viewModel: HostelViewModel = koinViewModel(),
@@ -45,7 +44,6 @@ fun CampusNestApp(navController: NavController,
     val hostels = viewModel.savedHostels
     HomeScreenContent(
         navController = navController,
-        viewModel = viewModel,
         fName = uiState.fname,
         hostels = hostels,
         onNotificationClick = { navController.navigate("notifications") },
@@ -63,7 +61,6 @@ fun CampusNestApp(navController: NavController,
 @Composable
 fun HomeScreenContent(
     navController: NavController,
-    viewModel: HostelViewModel,
     fName: String,
     hostels: List<Hostel>,
     onNotificationClick: () -> Unit = {},
@@ -165,8 +162,6 @@ fun HomeScreenContent(
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            // To avoid nested scrolling issues, we can use a Column instead of LazyColumn inside a scrollable Column
-            // Or use a fixed height Box
             Box(modifier = Modifier.heightIn(max = 2000.dp)) {
                 HostelList(
                     hostels = hostels,
@@ -299,7 +294,6 @@ fun HostelList(
     onCheckIfSaved: (String) -> Unit,
     onNavigateToDetails: (String) -> Unit //added by Arnest
 ) {
-    // If nested inside a scrollable column, consider using a Column or properly managing the height
     Column(
         verticalArrangement = Arrangement.spacedBy(20.dp),
         modifier = Modifier.padding(bottom = 16.dp)
@@ -504,9 +498,7 @@ fun HomeScreenPreview() {
     CampusNestTheme {
         HomeScreenContent(
             navController = NavController(androidx.compose.ui.platform.LocalContext.current),
-            viewModel = koinViewModel(),
             fName = "Amir",
             hostels = mockHostels)
     }
 }
-
