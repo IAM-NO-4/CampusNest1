@@ -1,7 +1,6 @@
-package com.campusnest1.groupq.auth1;
+package com.campusnest1.groupq.auth1
 
 data class RegisterUiState(
-    val name: String = "",
     val fname: String = "",
     val lname: String = "",
     val email: String = "",
@@ -12,7 +11,8 @@ data class RegisterUiState(
     val isSuccess: Boolean = false,
     var passwordVisible: Boolean = false,
 
-    val nameError: String? = null,
+    val fnameError: String? = null,
+    val lnameError: String? = null,
     val emailError: String? = null,
     val passwordError: String? = null,
 )
