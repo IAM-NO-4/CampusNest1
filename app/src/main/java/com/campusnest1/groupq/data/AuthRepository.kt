@@ -7,7 +7,7 @@ interface AuthRepository {
     val authState: Flow<User?>
 
     suspend fun login(email: String, pass: String): Result<User>
-    suspend fun signUp(email: String, pass: String, name: String): Result<Unit>
+    suspend fun signUp(email: String, pass: String, fname: String, lname: String): Result<Unit>
     suspend fun logout()
     fun getCurrentUser(): User?
 }

@@ -57,12 +57,12 @@ class AuthViewModel(
         }
     }
 
-    fun signUp(email: String, pass: String, name: String) {
+    fun signUp(email: String, pass: String, fname: String, lname: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
 
-            val result = repository.signUp(email, pass, name)
+            val result = repository.signUp(email, pass, fname, lname)
 
             result.onSuccess {
                 _isLoading.value = false
