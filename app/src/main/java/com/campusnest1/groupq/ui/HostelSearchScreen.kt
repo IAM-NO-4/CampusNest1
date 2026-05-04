@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Search
@@ -50,7 +51,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -82,7 +83,7 @@ fun HostelSearchScreen(navController: NavHostController, viewModel: HostelViewMo
     var activeFilterType by remember {mutableStateOf("")} // Remember which filter clicked
 
     var searchQuery by remember { mutableStateOf("") }
-    var appliedPriceRange by remember { mutableStateOf(200_000f..3_000_000f) }
+    var appliedPriceRange by remember { mutableStateOf<ClosedFloatingPointRange<Float>>(200_000f..3_000_000f) }
     var appliedSelectedRooms by remember { mutableStateOf(setOf<String>()) }
     var appliedSelectedLocation by remember { mutableStateOf("") }
 
@@ -91,7 +92,9 @@ fun HostelSearchScreen(navController: NavHostController, viewModel: HostelViewMo
     }
 
     val filteredHostels = viewModel.hostels.filter { hostel ->
-        val matchesSearch = searchQuery.isEmpty() || hostel.name.contains(searchQuery, ignoreCase = true) //|| hostel.location.contains(searchQuery, ignoreCase = true)
+        val matchesSearch = searchQuery.isEmpty()
+                || hostel.name.contains(searchQuery, ignoreCase = true)
+                || hostel.location.toString().contains(searchQuery, ignoreCase = true)
         val matchesPrice = hostel.highestPrice.toFloat() in appliedPriceRange
         val matchesRooms = appliedSelectedRooms.isEmpty() || appliedSelectedRooms.any { roomType -> hostel.roomTypes.contains(roomType) }
         val matchesLocation = appliedSelectedLocation.isEmpty() || hostel.location == appliedSelectedLocation
@@ -304,8 +307,8 @@ fun SearchHostelCard(hostel: Hostel, navController: NavHostController, viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FilterBottomSheet(filterType: String, onDismiss: () -> Unit, onApply: (ClosedRange<Float>, Set<String>, String) -> Unit) {
-    var priceRange by remember {mutableStateOf(200_000f..3_000_000f)}
+fun FilterBottomSheet(filterType: String, onDismiss: () -> Unit, onApply: (ClosedFloatingPointRange<Float>, Set<String>, String) -> Unit) {
+    var priceRange by remember {mutableStateOf<ClosedFloatingPointRange<Float>>(200_000f..3_000_000f)}
 
     val roomOptions = listOf("Single", "Double", "Triple")
     var selectedRooms by remember { mutableStateOf(setOf<String>())}
@@ -516,3 +519,4 @@ fun HostelSearchScreenPreview() {
     }
 }
 
+// Albert: Implemented search bar, filters (price, location, roomTypes), navigation to details, favorite toggle, and integrated with ViewModel for Hostel Search Screen.
