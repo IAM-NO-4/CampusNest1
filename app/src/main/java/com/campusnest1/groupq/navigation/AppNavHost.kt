@@ -40,13 +40,7 @@ fun AppNavHost() {
         composable(Screen.Login.route) {
             LoginScreen(
                 authViewModel = authViewModel,
-                onLoginClick = { email, password ->
-                    authViewModel.login(email, password)
-                },
-                onSignUp = { navController.navigate(Screen.Register.route) },
-                onForgotPassword = {},
-                onGoogleSignIn = {},
-                onAppleSignIn = {}
+                onSignUp = { navController.navigate(Screen.Register.route) }
             )
         }
 

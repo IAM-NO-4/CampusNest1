@@ -26,11 +26,10 @@ class MainActivity : ComponentActivity() {
 
         FirebaseApp.initializeApp(this)
 
-        val db = Firebase.firestore
-        val mod = registerViewModel()
-
-        val pas = "iam@12"
-        // mod.register(user1.email, pas, user1) // This call was incorrect based on registerViewModel definition
+//        val db = Firebase.firestore
+//        val mod = registerViewModel()
+//
+//        val pas = "iam@12"
 
         setContent {
             CampusNestTheme {
@@ -38,8 +37,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // CampusNestApp()
-                    MainScreen()
+                    AppNavHost()
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.campusnest1.groupq.di
 
 import com.campusnest1.groupq.auth1.Authrepo
 import com.campusnest1.groupq.data.*
+import com.campusnest1.groupq.viewmodel.AuthViewModel
 import com.campusnest1.groupq.viewmodel.EventViewModel
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import com.campusnest1.groupq.viewmodel.auth.registerViewModel
@@ -20,6 +21,7 @@ val appModule = module {
     single<HostelRepository> { HostelImplementationRepository(get()) }
     single<EventRepository> { EventImplementationRepository(get()) }
 
+    viewModel { AuthViewModel(get()) }
     viewModel { registerViewModel() }
     viewModel { HostelViewModel(get(), get()) }
     viewModel{ EventViewModel(get(), get()) }
