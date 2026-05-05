@@ -19,8 +19,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Search
@@ -31,11 +34,14 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Scaffold
@@ -44,9 +50,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,32 +62,80 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.ui.theme.BackgroundLight
-import com.campusnest1.groupq.ui.theme.CampusNestTheme
 import com.campusnest1.groupq.ui.theme.OrangeAccentLight
 import com.campusnest1.groupq.ui.theme.RedAccent
 import com.campusnest1.groupq.ui.theme.RedAccentLight
 import com.campusnest1.groupq.ui.theme.TealPrimary
 import com.campusnest1.groupq.ui.theme.TealSecondary
+import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.ui.theme.TextGrey
-import androidx.navigation.NavHostController
+import com.campusnest1.groupq.viewmodel.HostelViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun HostelSearchScreen(navController: NavHostController, hostel: Hostel){
-    var showFilterSheet by remember {mutableStateOf(false)} //Remember if the drawer open
-    var activeFilterType by remember {mutableStateOf("")} // Remember which filter clicked
+fun HostelSearchScreen(
+    navController: NavHostController,
+    viewModel: HostelViewModel = koinViewModel()
+) {
+    var showFilterSheet by rememberSaveable { mutableStateOf(false) }
+    var activeFilterType by rememberSaveable { mutableStateOf("") }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var showSearchField by rememberSaveable { mutableStateOf(false) }
+    var priceRange by remember { mutableStateOf(200_000f..3_000_000f) }
+    var selectedLocation by rememberSaveable { mutableStateOf("") }
+    var selectedRoomTypes by remember { mutableStateOf(setOf<String>()) }
+
+    // Only fetch once — never re-fetch on recomposition
+    val hasFetched = rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (!hasFetched.value) {
+            viewModel.fetchHostelsData()
+            hasFetched.value = true
+        }
+    }
+
+    val allHostels = viewModel.hostels
+    val isLoading = viewModel.isLoading.value
+
+    val filteredHostels = allHostels.filter { hostel ->
+        val matchesSearch = searchQuery.isBlank() ||
+            hostel.name.contains(searchQuery, ignoreCase = true) ||
+            hostel.location.toString().contains(searchQuery, ignoreCase = true)
+
+        val price = hostel.highestPrice.toFloatOrNull() ?: 0f
+        val matchesPrice = price >= priceRange.start && price <= priceRange.endInclusive
+
+        val matchesLocation = selectedLocation.isBlank() ||
+            hostel.location.toString().contains(selectedLocation, ignoreCase = true)
+
+        matchesSearch && matchesPrice && matchesLocation
+    }
 
     Scaffold(
-        topBar = { SearchTopBar() },
+        topBar = {
+            SearchTopBar(
+                showSearchField = showSearchField,
+                searchQuery = searchQuery,
+                onSearchQueryChange = { searchQuery = it },
+                onSearchToggle = {
+                    showSearchField = !showSearchField
+                    if (!showSearchField) searchQuery = ""
+                },
+                onBackClick = { navController.navigate("home") }
+            )
+        },
         containerColor = BackgroundLight
-    ){ padding ->
-        Column(modifier = Modifier.padding(padding)){
+    ) { padding ->
+        Column(modifier = Modifier.padding(padding)) {
             FilterChipsRow(
                 selectedFilter = activeFilterType,
                 onFilterClick = { filterName ->
@@ -88,28 +144,64 @@ fun HostelSearchScreen(navController: NavHostController, hostel: Hostel){
                 }
             )
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().weight(1f),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                items(MockData.mockHostels){hostel->
-                    SearchHostelCard(hostel)
+            when {
+                isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = TealPrimary)
+                    }
+                }
+                filteredHostels.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = if (allHostels.isEmpty()) "No hostels available" else "No hostels found",
+                            color = TextGrey,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        items(filteredHostels) { hostel ->
+                            SearchHostelCard(
+                                hostel = hostel,
+                                isSaved = viewModel.savedStatus[hostel.hostelId] ?: false,
+                                onFavoriteClick = { viewModel.toggleFavorite(hostel.hostelId) },
+                                onCardClick = {
+                                    navController.navigate("hostel_details/${hostel.hostelId}")
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
-
     }
 
-    if (showFilterSheet){
+    if (showFilterSheet) {
         FilterBottomSheet(
             filterType = activeFilterType,
-            onDismiss = { showFilterSheet = false}
+            priceRange = priceRange,
+            selectedLocation = selectedLocation,
+            selectedRoomTypes = selectedRoomTypes,
+            onPriceRangeChange = { priceRange = it },
+            onLocationChange = { selectedLocation = it },
+            onRoomTypesChange = { selectedRoomTypes = it },
+            onDismiss = { showFilterSheet = false },
+            onApply = { showFilterSheet = false }
         )
     }
 }
 
 @Composable
-fun SearchHostelCard(hostel: Hostel) {
+fun SearchHostelCard(
+    hostel: Hostel,
+    isSaved: Boolean = false,
+    onFavoriteClick: () -> Unit = {},
+    onCardClick: () -> Unit = {}
+) {
     val statusText = when (hostel.availableRooms) {
         0 -> { "Sold Out" }
         in 1..5 -> { "${hostel.availableRooms} left" }
@@ -132,7 +224,8 @@ fun SearchHostelCard(hostel: Hostel) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp),
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .clickable { onCardClick() },
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -165,11 +258,11 @@ fun SearchHostelCard(hostel: Hostel) {
                     color = Color.White.copy(alpha = 0.8f),
                     shape = CircleShape
                 ) {
-                    IconButton(onClick = { /* TODO */ }) {
+                    IconButton(onClick = onFavoriteClick) {
                         Icon(
-                            imageVector = Icons.Default.FavoriteBorder,
+                            imageVector = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Favorite",
-                            tint = TextGrey,
+                            tint = if (isSaved) Color.Red else TextGrey,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -260,14 +353,28 @@ fun SearchHostelCard(hostel: Hostel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FilterBottomSheet(filterType: String, onDismiss: () -> Unit) {
-    var priceRange by remember {mutableStateOf(200_000f..3_000_000f)}
-
+fun FilterBottomSheet(
+    filterType: String,
+    priceRange: ClosedFloatingPointRange<Float>,
+    selectedLocation: String,
+    selectedRoomTypes: Set<String>,
+    onPriceRangeChange: (ClosedFloatingPointRange<Float>) -> Unit,
+    onLocationChange: (String) -> Unit,
+    onRoomTypesChange: (Set<String>) -> Unit,
+    onDismiss: () -> Unit,
+    onApply: () -> Unit
+) {
     val roomOptions = listOf("Single", "Double", "Triple")
-    var selectedRooms by remember { mutableStateOf(setOf<String>())}
-
     val locations = listOf("Kikoni", "Kikumi Kikumi", "Wandegeya", "Mulago", "Nakulabye")
-    var selectedLocation by remember { mutableStateOf("")}
+
+    // Helper function to format price
+    fun formatPrice(price: Float): String {
+        val priceInt = price.toInt()
+        return when {
+            priceInt >= 1_000_000 -> "${priceInt / 1_000_000}M"
+            else -> "${priceInt / 1000}k"
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -278,32 +385,30 @@ fun FilterBottomSheet(filterType: String, onDismiss: () -> Unit) {
                 .fillMaxWidth()
                 .padding(24.dp)
                 .padding(bottom = 32.dp)
-        ){
+        ) {
             Text(
                 text = "Filter by $filterType",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = TextDark
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            //Changes based on the filter type
-            when(filterType){
-                "Price Range"->{
-                    Column{
+            when (filterType) {
+                "Price Range" -> {
+                    Column {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
-                        ){
-                            Text("Min: UGX ${priceRange.start.toInt() / 1000}k", fontWeight = FontWeight.Bold)
-                            Text("Max: UGX ${priceRange.endInclusive.toInt() / 1000}k", fontWeight = FontWeight.Bold)
+                        ) {
+                            Text("Min: UGX ${formatPrice(priceRange.start)}", fontWeight = FontWeight.Bold, color = TextDark)
+                            Text("Max: UGX ${formatPrice(priceRange.endInclusive)}", fontWeight = FontWeight.Bold, color = TextDark)
                         }
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         RangeSlider(
                             value = priceRange,
-                            onValueChange = { priceRange = it },
+                            onValueChange = onPriceRangeChange,
                             valueRange = 200_000f..3_000_000f,
                             colors = SliderDefaults.colors(
                                 thumbColor = TealPrimary,
@@ -318,19 +423,16 @@ fun FilterBottomSheet(filterType: String, onDismiss: () -> Unit) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth().clickable {
-                                //Toggle Logic
-                                selectedRooms = if (selectedRooms.contains(option)) {
-                                    selectedRooms - option
-                                } else {
-                                    selectedRooms + option
-                                }
+                                onRoomTypesChange(
+                                    if (selectedRoomTypes.contains(option))
+                                        selectedRoomTypes - option
+                                    else
+                                        selectedRoomTypes + option
+                                )
                             }
                         ) {
-                            Checkbox(
-                                checked = selectedRooms.contains(option),
-                                onCheckedChange = null
-                            )
-                            Text(text = option, modifier = Modifier.padding(start = 8.dp))
+                            Checkbox(checked = selectedRoomTypes.contains(option), onCheckedChange = null)
+                            Text(text = option, modifier = Modifier.padding(start = 8.dp), color = TextDark)
                         }
                     }
                 }
@@ -339,14 +441,10 @@ fun FilterBottomSheet(filterType: String, onDismiss: () -> Unit) {
                         locations.forEach { location ->
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
-                                    .clickable { selectedLocation = location }
+                                modifier = Modifier.fillMaxWidth().clickable { onLocationChange(location) }
                             ) {
-                                RadioButton(
-                                    selected = (location == selectedLocation),
-                                    onClick = null
-                                )
-                                Text(text = location, modifier = Modifier.padding(start = 8.dp))
+                                RadioButton(selected = (location == selectedLocation), onClick = null)
+                                Text(text = location, modifier = Modifier.padding(start = 8.dp), color = TextDark)
                             }
                         }
                     }
@@ -356,10 +454,10 @@ fun FilterBottomSheet(filterType: String, onDismiss: () -> Unit) {
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = onDismiss,
+                onClick = onApply,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
-            ){
+            ) {
                 Text("Apply Filter", fontWeight = FontWeight.Bold)
             }
         }
@@ -418,14 +516,41 @@ fun FilterChipItem(isSelected: Boolean, label: String, onClick: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchTopBar() {
+fun SearchTopBar(
+    showSearchField: Boolean,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    onSearchToggle: () -> Unit,
+    onBackClick: () -> Unit
+) {
     CenterAlignedTopAppBar(
         title = {
-            Text(
-                text = "Search Hostels",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+            if (showSearchField) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = onSearchQueryChange,
+                    placeholder = { Text("Search hostels...", color = TextGrey) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = TealPrimary,
+                        unfocusedBorderColor = Color.LightGray,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedTextColor = TextDark,
+                        unfocusedTextColor = TextDark,
+                        cursorColor = TealPrimary
+                    ),
+                    modifier = Modifier.fillMaxWidth().height(52.dp)
+                )
+            } else {
+                Text(
+                    text = "Search Hostels",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         },
         navigationIcon = {
             Surface(
@@ -433,9 +558,13 @@ fun SearchTopBar() {
                 color = Color.White,
                 shadowElevation = 2.dp,
                 modifier = Modifier.padding(start = 8.dp).size(40.dp)
-            ){
-                IconButton(onClick = { /* TODO navController popBackStack()*/}){
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+            ) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = TextDark
+                    )
                 }
             }
         },
@@ -446,17 +575,20 @@ fun SearchTopBar() {
                 shadowElevation = 2.dp,
                 modifier = Modifier.padding(end = 8.dp).size(40.dp)
             ) {
-                IconButton(onClick = {/* TODO */}) {
-                    Icon(Icons.Default.Search, "Search")
+                IconButton(onClick = onSearchToggle) {
+                    Icon(
+                        imageVector = if (showSearchField) Icons.Default.Close else Icons.Default.Search,
+                        contentDescription = if (showSearchField) "Close Search" else "Search",
+                        tint = TextDark
+                    )
                 }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.Transparent,
-            scrolledContainerColor = Color.Unspecified,
-            navigationIconContentColor = Color.Unspecified,
-            titleContentColor = Color.Unspecified,
-            actionIconContentColor = Color.Unspecified
+            containerColor = BackgroundLight,
+            titleContentColor = TextDark,
+            navigationIconContentColor = TextDark,
+            actionIconContentColor = TextDark
         )
     )
 }
@@ -464,9 +596,15 @@ fun SearchTopBar() {
 @Preview(showBackground = true)
 @Composable
 fun HostelSearchScreenPreview() {
-    CampusNestTheme {
-        HostelSearchScreen(
-            hostel = MockData.mockHostels[0]
+    SearchHostelCard(
+        hostel = Hostel(
+            hostelId = "1",
+            name = "Sunrise Student Nest",
+            location = "North Campus",
+            highestPrice = "500000",
+            rating = 4.8,
+            distance = "0.5 km",
+            availableRooms = 3
         )
-    }
+    )
 }

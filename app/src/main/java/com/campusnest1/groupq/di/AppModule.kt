@@ -5,6 +5,7 @@ import com.campusnest1.groupq.data.*
 import com.campusnest1.groupq.viewmodel.AuthViewModel
 import com.campusnest1.groupq.viewmodel.EventViewModel
 import com.campusnest1.groupq.viewmodel.HostelViewModel
+import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -24,5 +25,6 @@ val appModule = module {
     viewModel { AuthViewModel(get()) }
     viewModel { registerViewModel() }
     viewModel { HostelViewModel(get(), get()) }
-    viewModel{ EventViewModel(get(), get()) }
+    viewModel { EventViewModel(get(), get()) }
+    viewModel { profileViewModel() }
 }

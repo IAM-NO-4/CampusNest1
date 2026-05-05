@@ -2,6 +2,7 @@ package com.campusnest1.groupq.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -24,10 +25,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
-import com.campusnest1.groupq.ui.MockData.mockHostels
 import com.campusnest1.groupq.ui.theme.*
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
@@ -36,22 +35,36 @@ import androidx.navigation.NavController
 import com.campusnest1.groupq.utils.getTime
 
 @Composable
-fun CampusNestApp(navController: NavController,
-                  viewModel: HostelViewModel = koinViewModel(),
-                  profViewModel: profileViewModel = viewModel(),
-                  ) {
+fun CampusNestApp(
+    navController: NavController,
+    viewModel: HostelViewModel = koinViewModel(),
+    profViewModel: profileViewModel = koinViewModel()
+) {
     LaunchedEffect(Unit) {
         viewModel.fetchHostelsData()
         viewModel.loadStudentData()
+        profViewModel.fetchProfileData()
     }
+
     val uiState = profViewModel.uiState
-    val hostels = viewModel.hostels
+    val allHostels = viewModel.hostels
+    val selectedCategory by viewModel.selectedCategory.collectAsState()
+
+    // Filter hostels based on selected category tab
+    val filteredHostels = when (selectedCategory) {
+        "Hostels" -> allHostels
+        "Events"  -> emptyList() // Events are on a separate screen
+        else      -> allHostels  // "All" shows everything
+    }
+
     HomeScreenContent(
         navController = navController,
-        fName = uiState.fname,
-        hostels = hostels,
+        fName = uiState.fname.ifEmpty { "Student" },
+        hostels = filteredHostels,
+        selectedCategory = selectedCategory,
         onNotificationClick = { navController.navigate("notifications") },
         onSeeAllClick = { navController.navigate("hostels") },
+        onSearchClick = { navController.navigate("hostels") },
         savedStatus = viewModel.savedStatus,
         onToggleFavorite = { viewModel.toggleFavorite(it) },
         onCheckIfSaved = { viewModel.checkIfSaved(it) },
@@ -67,15 +80,16 @@ fun HomeScreenContent(
     navController: NavController,
     fName: String,
     hostels: List<Hostel>,
+    selectedCategory: String = "All",
     onNotificationClick: () -> Unit = {},
     onSeeAllClick: () -> Unit = {},
+    onSearchClick: () -> Unit = {},
     savedStatus: Map<String, Boolean> = emptyMap(),
     onToggleFavorite: (String) -> Unit = {},
     onCheckIfSaved: (String) -> Unit = {},
     onNavigateToDetails: (String) -> Unit = {},
     onTabSelected: (String) -> Unit = {}
 ) {
-    var selectedTab by remember { mutableStateOf("All") }
     val categories = listOf("All", "Hostels", "Events")
     val scrollState = rememberScrollState()
 
@@ -95,7 +109,7 @@ fun HomeScreenContent(
             
             Spacer(modifier = Modifier.height(20.dp))
             
-            SearchBar(onSearchClick = { /* TODO */ })
+            SearchBar(onSearchClick = onSearchClick)
             
             Spacer(modifier = Modifier.height(20.dp))
             
@@ -105,12 +119,12 @@ fun HomeScreenContent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 items(categories) { category ->
-                    val isSelected = selectedTab == category
+                    val isSelected = selectedCategory == category
                     Button(
                         onClick = {
-                            selectedTab = category
-                            onTabSelected(category) //added by Arnest
-                                  },
+                            onTabSelected(category)
+                            if (category == "Events") navController.navigate("events")
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isSelected) TealPrimary else Color.White,
                             contentColor = if (isSelected) Color.White else TextDark
@@ -166,14 +180,25 @@ fun HomeScreenContent(
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            Box(modifier = Modifier.heightIn(max = 2000.dp)) {
-                HostelList(
-                    hostels = hostels,
-                    savedStatus = savedStatus,
-                    onToggleFavorite = onToggleFavorite,
-                    onCheckIfSaved = onCheckIfSaved,
-                    onNavigateToDetails = onNavigateToDetails
-                )
+            if (hostels.isEmpty() && selectedCategory != "Events") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 40.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No hostels available", color = TextGrey)
+                }
+            } else {
+                Box(modifier = Modifier.heightIn(max = 2000.dp)) {
+                    HostelList(
+                        hostels = hostels,
+                        savedStatus = savedStatus,
+                        onToggleFavorite = onToggleFavorite,
+                        onCheckIfSaved = onCheckIfSaved,
+                        onNavigateToDetails = onNavigateToDetails
+                    )
+                }
             }
         }
     }
@@ -503,6 +528,7 @@ fun HomeScreenPreview() {
         HomeScreenContent(
             navController = NavController(androidx.compose.ui.platform.LocalContext.current),
             fName = "Amir",
-            hostels = mockHostels)
+            hostels = MockData.mockHostels
+        )
     }
 }

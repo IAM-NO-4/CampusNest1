@@ -34,51 +34,55 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ProfileScreen(
     navController: NavController,
-    profileView: profileViewModel = viewModel(),
-    hostelViewModel: HostelViewModel = viewModel()
+    profileView: profileViewModel = koinViewModel(),
+    hostelViewModel: HostelViewModel = koinViewModel()
 ) {
     val uiState = profileView.uiState
-    val user = profileView.currentUser
-    val nameParts = user?.displayName?.split(" ") ?: listOf("Student", "")
     val context = LocalContext.current
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-
         if (uri != null) {
             profileView.changeProfileImage(context, uri, uiState.userId)
         }
     }
-    // Fetch updated counts when screen opens
+
     LaunchedEffect(Unit) {
+        profileView.fetchProfileData()
         hostelViewModel.loadStudentData()
     }
 
+    // Show loading spinner while data is being fetched
+    if (uiState.isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color(0xFF00A3A3))
+        }
+        return
+    }
+
     ProfileScreenContent(
-        fname = if (uiState.fname.isNotEmpty()) uiState.fname else (nameParts.getOrNull(0) ?: "Student"),
-        lname = if (uiState.lname.isNotEmpty()) uiState.lname else (nameParts.getOrNull(1) ?: ""),
+        fname = uiState.fname.ifEmpty { "Student" },
+        lname = uiState.lname,
         profileImageUrl = uiState.profileImageUrl,
-        course = uiState.course ?: "Not Set",
-        studyYear = uiState.yearOfStudy ?: "",
-        currentHostel = uiState.currentHostel ?: "Not set",
+        course = uiState.course?.ifEmpty { "Not set" } ?: "Not set",
+        studyYear = uiState.yearOfStudy?.ifEmpty { "Not set" } ?: "Not set",
+        currentHostel = uiState.currentHostel?.ifEmpty { "Not set" } ?: "Not set",
         savedCount = hostelViewModel.savedHostels.size,
         bookingCount = hostelViewModel.bookingHistory.value.size,
         isNotificationsEnabled = profileView.isNotificationsEnabled.value,
         onToggleNotifications = { profileView.toggleNotifications(it) },
-        onProfileImageClick = {
-            launcher.launch("image/*")
-        },
+        onProfileImageClick = { launcher.launch("image/*") },
         navController = navController
     )
 }

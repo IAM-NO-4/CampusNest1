@@ -67,7 +67,16 @@ class HostelViewModel(
         viewModelScope.launch {
             isLoading.value = true
             hostels = repository.getHostels()
+            loadSavedStatus()
             isLoading.value = false
+        }
+    }
+
+    // Load saved status for all fetched hostels at once
+    private suspend fun loadSavedStatus() {
+        val userId = authRepository.getCurrentUser()?.uid ?: return
+        hostels.forEach { hostel ->
+            savedStatus[hostel.hostelId] = repository.isHostelSaved(userId, hostel.hostelId)
         }
     }
 
@@ -131,11 +140,19 @@ class HostelViewModel(
 
     fun toggleFavorite(hostelId: String) {
         val userId = authRepository.getCurrentUser()?.uid ?: return
+        val current = savedStatus[hostelId] ?: false
+        val newState = !current
+        savedStatus[hostelId] = newState // Update UI immediately
         viewModelScope.launch {
-            val isSaved = repository.toggleSavedHostel(userId, hostelId)
-            savedStatus[hostelId] = isSaved
-            // Refresh saved hostels list
-            savedHostels = repository.getSavedHostels(userId)
+            try {
+                repository.toggleSavedHostel(userId, hostelId)
+                // Do NOT overwrite savedStatus here — keep the optimistic state
+                // Only refresh the savedHostels list silently in background
+                savedHostels = repository.getSavedHostels(userId)
+            } catch (e: Exception) {
+                // If Firestore fails, revert back to original state
+                savedStatus[hostelId] = current
+            }
         }
     }
 
