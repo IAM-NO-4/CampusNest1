@@ -6,6 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -18,13 +19,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.campusnest1.groupq.ui.profile.ProfileSettingsContent
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ProfileSettingsScreen(
     navController: NavController? = null,
-    profileView: profileViewModel = viewModel()
+    profileView: profileViewModel = koinViewModel()
 ) {
     val profileState = profileView.uiState
+
+    LaunchedEffect(Unit) {
+        profileView.fetchProfileData()
+    }
 
     ProfileSettingsContent(
         profileState = profileState,

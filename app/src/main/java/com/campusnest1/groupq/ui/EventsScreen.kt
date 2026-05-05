@@ -120,7 +120,8 @@ fun EventsScreenContent(
                             Text(
                                 text = "Happening Now",
                                 style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = TextDark
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             HappeningNowList(events.take(5), onEventClick)
@@ -220,7 +221,8 @@ fun EventHeaderSection() {
             Text(
                 text = "Campus Events",
                 fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium,
+                color = TextDark
             )
 
             //Filter
@@ -318,7 +320,8 @@ fun UpcomingEventItem(event: Event, onBtnClick: () -> Unit) {
                 Text(
                     text = event.title,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark
                 )
                 Spacer(modifier = Modifier.height(4.dp))
 

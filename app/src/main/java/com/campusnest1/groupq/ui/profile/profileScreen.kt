@@ -48,8 +48,6 @@ fun ProfileScreen(
     hostelViewModel: HostelViewModel = koinViewModel()
 ) {
     val uiState = profileView.uiState
-    val user = profileView.currentUser
-    val nameParts = user?.displayName?.split(" ") ?: listOf("Student", "")
     val context = LocalContext.current
 
     val launcher = rememberLauncherForActivityResult(
@@ -61,23 +59,30 @@ fun ProfileScreen(
     }
 
     LaunchedEffect(Unit) {
+        profileView.fetchProfileData()
         hostelViewModel.loadStudentData()
     }
 
+    // Show loading spinner while data is being fetched
+    if (uiState.isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color(0xFF00A3A3))
+        }
+        return
+    }
+
     ProfileScreenContent(
-        fname = if (uiState.fname.isNotEmpty()) uiState.fname else (nameParts.getOrNull(0) ?: "Student"),
-        lname = if (uiState.lname.isNotEmpty()) uiState.lname else (nameParts.getOrNull(1) ?: ""),
+        fname = uiState.fname.ifEmpty { "Student" },
+        lname = uiState.lname,
         profileImageUrl = uiState.profileImageUrl,
-        course = uiState.course ?: "Not Set",
-        studyYear = uiState.yearOfStudy ?: "",
-        currentHostel = uiState.currentHostel ?: "Not set",
+        course = uiState.course?.ifEmpty { "Not set" } ?: "Not set",
+        studyYear = uiState.yearOfStudy?.ifEmpty { "Not set" } ?: "Not set",
+        currentHostel = uiState.currentHostel?.ifEmpty { "Not set" } ?: "Not set",
         savedCount = hostelViewModel.savedHostels.size,
         bookingCount = hostelViewModel.bookingHistory.value.size,
         isNotificationsEnabled = profileView.isNotificationsEnabled.value,
         onToggleNotifications = { profileView.toggleNotifications(it) },
-        onProfileImageClick = {
-            launcher.launch("image/*")
-        },
+        onProfileImageClick = { launcher.launch("image/*") },
         navController = navController
     )
 }
