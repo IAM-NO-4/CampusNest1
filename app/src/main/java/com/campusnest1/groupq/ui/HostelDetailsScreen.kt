@@ -125,7 +125,7 @@ fun HostelDetailsContent(
                             fontWeight = FontWeight.Bold,
                             color = TextDark
                         )
-                        // This component is defined in HomeScreen.kt but shared in the same package
+
                         HostelRating(hostel, color = OrangeAccentLight)
                     }
 
@@ -365,7 +365,7 @@ fun RoomCard(
                     Column {
                         Text("Monthly Rent", color = TextGrey, fontSize = 12.sp)
                         Text(
-                            text = "UGX ${room.price.toInt()}",
+                            text = "UGX ${room.price}",
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
                             color = if (isAvailable) TextDark else TextGrey

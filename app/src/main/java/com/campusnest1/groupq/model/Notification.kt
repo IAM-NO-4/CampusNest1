@@ -8,5 +8,5 @@ data class Notification(
     val createdAt: Long = System.currentTimeMillis(),
     val category: String = "",
     val isRead: Boolean = false,
-    val targetId: String ?= null
+    val targetId: String? = null
 )
