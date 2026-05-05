@@ -104,8 +104,7 @@ fun HomeScreenContent(
     onToggleFavorite: (String) -> Unit = {},
     onCheckIfSaved: (String) -> Unit = {},
     onNavigateToDetails: (String) -> Unit = {},
-    onTabSelected: (String) -> Unit = {},
-    onSearchClick: () -> Unit = {}
+    onTabSelected: (String) -> Unit = {}
 ) {
     val categories = listOf("All", "Hostels", "Events")
     val scrollState = rememberScrollState()
@@ -139,9 +138,8 @@ fun HomeScreenContent(
                     val isSelected = selectedCategory == category
                     Button(
                         onClick = {
-                            selectedTab = category
                             onTabSelected(category)
-                                  },
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isSelected) TealPrimary else Color.White,
                             contentColor = if (isSelected) Color.White else TextDark
@@ -544,7 +542,7 @@ fun HomeScreenPreview() {
     CampusNestTheme {
         HomeScreenContent(
             fName = "Amir",
-            hostels = mockHostels
+            hostels = MockData.mockHostels
         )
     }
 }
