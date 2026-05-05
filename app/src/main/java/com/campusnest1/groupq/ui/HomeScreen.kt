@@ -32,52 +32,68 @@ import com.campusnest1.groupq.viewmodel.HostelViewModel
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 import org.koin.androidx.compose.koinViewModel
 import androidx.navigation.NavController
+import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.utils.getTime
+import com.campusnest1.groupq.viewmodel.NotificationViewModel
 
 @Composable
 fun CampusNestApp(
     navController: NavController,
     viewModel: HostelViewModel = koinViewModel(),
-    profViewModel: profileViewModel = koinViewModel()
-) {
+    profViewModel: profileViewModel = koinViewModel(),
+    notifViewModel: NotificationViewModel = koinViewModel()
+    ) {
     LaunchedEffect(Unit) {
         viewModel.fetchHostelsData()
         viewModel.loadStudentData()
         profViewModel.fetchProfileData()
     }
 
+    var showNotificationsSheet by remember { mutableStateOf(false) }
     val uiState = profViewModel.uiState
-    val allHostels = viewModel.hostels
-    val selectedCategory by viewModel.selectedCategory.collectAsState()
 
-    // Filter hostels based on selected category tab
-    val filteredHostels = when (selectedCategory) {
-        "Hostels" -> allHostels
-        "Events"  -> emptyList() // Events are on a separate screen
-        else      -> allHostels  // "All" shows everything
+    val hostels = viewModel.hostels
+
+    if (showNotificationsSheet) {
+        NotificationsSheet(
+            navController = navController,
+            notifications = notifViewModel.notifications,
+            onDismiss = { showNotificationsSheet = false },
+            onDelete = { notification ->
+                notifViewModel.deleteNotification(notification.notificationId)
+            },
+            onNotificationClick = { notification ->
+                notifViewModel.markAsRead(notification.notificationId)
+                notification.targetId?.let { id ->
+                    when (notification.category.lowercase()) {
+                        "event" -> navController.navigate("eventDetails/$id")
+                        "hostel", "room availability", "booking" -> navController.navigate("hostelDetails/$id")
+                    }
+                    showNotificationsSheet = false
+                }
+            }
+        )
     }
 
     HomeScreenContent(
-        navController = navController,
-        fName = uiState.fname.ifEmpty { "Student" },
-        hostels = filteredHostels,
-        selectedCategory = selectedCategory,
-        onNotificationClick = { navController.navigate("notifications") },
-        onSeeAllClick = { navController.navigate("hostels") },
-        onSearchClick = { navController.navigate("hostels") },
+        fName = uiState.fname,
+        hostels = hostels,
+        onNotificationClick = { showNotificationsSheet = true },
+        onSeeAllClick = { navController.navigate(Screen.Hostels.route) },
         savedStatus = viewModel.savedStatus,
         onToggleFavorite = { viewModel.toggleFavorite(it) },
         onCheckIfSaved = { viewModel.checkIfSaved(it) },
         onTabSelected = { viewModel.setCategory(it) },
         onNavigateToDetails = { hostelId ->
-            navController.navigate("hostel_details/$hostelId")
-        }
+            navController.navigate("hostelDetails/$hostelId")
+        },
+        onSearchClick = { navController.navigate("hostels") }
     )
 }
 
+
 @Composable
 fun HomeScreenContent(
-    navController: NavController,
     fName: String,
     hostels: List<Hostel>,
     selectedCategory: String = "All",
@@ -88,7 +104,8 @@ fun HomeScreenContent(
     onToggleFavorite: (String) -> Unit = {},
     onCheckIfSaved: (String) -> Unit = {},
     onNavigateToDetails: (String) -> Unit = {},
-    onTabSelected: (String) -> Unit = {}
+    onTabSelected: (String) -> Unit = {},
+    onSearchClick: () -> Unit = {}
 ) {
     val categories = listOf("All", "Hostels", "Events")
     val scrollState = rememberScrollState()
@@ -122,9 +139,9 @@ fun HomeScreenContent(
                     val isSelected = selectedCategory == category
                     Button(
                         onClick = {
+                            selectedTab = category
                             onTabSelected(category)
-                            if (category == "Events") navController.navigate("events")
-                        },
+                                  },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isSelected) TealPrimary else Color.White,
                             contentColor = if (isSelected) Color.White else TextDark
@@ -321,7 +338,7 @@ fun HostelList(
     savedStatus: Map<String, Boolean>,
     onToggleFavorite: (String) -> Unit,
     onCheckIfSaved: (String) -> Unit,
-    onNavigateToDetails: (String) -> Unit //added by Arnest
+    onNavigateToDetails: (String) -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -333,7 +350,7 @@ fun HostelList(
                 isSaved = savedStatus[hostel.hostelId] ?: false,
                 onToggleFavorite = { onToggleFavorite(hostel.hostelId) },
                 onCheckIfSaved = { onCheckIfSaved(hostel.hostelId) },
-                onNavigateToDetails = { onNavigateToDetails(hostel.hostelId) } //added by arnest
+                onNavigateToDetails = { onNavigateToDetails(hostel.hostelId) }
             )
         }
     }
@@ -472,7 +489,7 @@ fun HostelCard(
                         color = OrangeAccent
                     )
                     Text(
-                        text = " /semister",
+                        text = " /semester",
                         style = MaterialTheme.typography.bodyMedium,
                         color = TextGrey,
                         modifier = Modifier.padding(bottom = 2.dp)
@@ -512,7 +529,7 @@ fun HostelRating(hostel: Hostel, color: Color = OrangeAccentLight) {
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = hostel.rating.toString(),
+                text = hostel.avgRating.toString(),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = TextDark
@@ -526,9 +543,8 @@ fun HostelRating(hostel: Hostel, color: Color = OrangeAccentLight) {
 fun HomeScreenPreview() {
     CampusNestTheme {
         HomeScreenContent(
-            navController = NavController(androidx.compose.ui.platform.LocalContext.current),
             fName = "Amir",
-            hostels = MockData.mockHostels
+            hostels = mockHostels
         )
     }
 }

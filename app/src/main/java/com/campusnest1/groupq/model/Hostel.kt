@@ -7,11 +7,14 @@ data class Hostel(
     val location: Any = "",
     val lowestPrice: String = "",
     val highestPrice: String = "",
-    val ownerId: String = "",
+    val managerId: String = "",
     val distance: String = "",
     val imageUrl: String = "",
-    val rating: Double = 0.0, // Duplicate entry in review entity
+    val avgRating: Double = 0.0, // Duplicate entry in review entity
     val description: String = "",
     val amenities: List<String> = emptyList(),
-    val availableRooms: Int = 0
+    val availableRooms: Int = 0,
+    val roomTypes: List<String> = emptyList()
 )
+
+// Albert: Added roomTypes field to Hostel model for filtering functionality.

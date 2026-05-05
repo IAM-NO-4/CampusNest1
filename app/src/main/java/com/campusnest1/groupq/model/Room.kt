@@ -5,7 +5,7 @@ data class Room(
     val roomId: String = "",
     val hostelId: String = "",
     val hostelName: String = "",//Can be derived
-    val price: Double = 0.0,
+    val price: String = "",
     val type: String = "",
     val isAvailable: Boolean = true,
     val beds: Int = 1,

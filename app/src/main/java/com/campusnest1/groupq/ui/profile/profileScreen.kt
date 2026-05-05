@@ -87,25 +87,6 @@ fun ProfileScreen(
     )
 }
 
-@Preview(showBackground = true, heightDp = 1100)
-@Composable
-fun ProfileScreenPreview() {
-    ProfileScreenContent(
-        fname = "Alex",
-        lname = "Muhanji",
-        profileImageUrl = null,
-        course = "Software Eng",
-        studyYear = "2",
-        currentHostel = "Lakeside Hostel",
-        navController = null,
-        savedCount = 4,
-        bookingCount = 56,
-        isNotificationsEnabled = true,
-        onToggleNotifications = {},
-        onProfileImageClick = {}
-    )
-}
-
 @Composable
 fun ProfileScreenContent(
     fname: String,
@@ -454,4 +435,23 @@ fun SettingsItem(
             }
         }
     }
+}
+
+@Preview(showBackground = true, heightDp = 1100)
+@Composable
+fun ProfileScreenPreview() {
+    ProfileScreenContent(
+        fname = "Alex",
+        lname = "Muhanji",
+        profileImageUrl = null,
+        course = "Software Eng",
+        studyYear = "2",
+        currentHostel = "Lakeside Hostel",
+        navController = null,
+        savedCount = 4,
+        bookingCount = 56,
+        isNotificationsEnabled = true,
+        onToggleNotifications = {},
+        onProfileImageClick = {}
+    )
 }

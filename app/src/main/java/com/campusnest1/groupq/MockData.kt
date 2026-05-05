@@ -13,12 +13,12 @@ object MockData{
             location = "North Campus Avenue, Block B",
             lowestPrice = "350",
             highestPrice = "500",
-            imageUrl = "https://example.com/image1.jpg", // Coil will use this later
-            rating = 4.8,
+            imageUrl = "https://example.com/image1.jpg",
+            avgRating = 4.8, // Fixed: changed from rating to avgRating
             distance = "0.5 km from Main Gate",
             amenities = listOf("Free Wi-Fi", "Security"),
-            availableRooms = 3
-
+            availableRooms = 3,
+            roomTypes = listOf("Single", "Double")
         ),
         Hostel(
             hostelId = "2",
@@ -27,11 +27,11 @@ object MockData{
             lowestPrice = "280",
             highestPrice = "400",
             imageUrl = "https://example.com/image2.jpg",
-            rating = 4.5,
+            avgRating = 4.5,
             distance = "1.2 km from Main Gate",
             amenities = listOf("Spa", "Security"),
-            availableRooms = 10
-
+            availableRooms = 10,
+            roomTypes = listOf("Single", "Double", "Triple")
         ),
         Hostel(
             hostelId = "3",
@@ -40,15 +40,30 @@ object MockData{
             lowestPrice = "150",
             highestPrice = "250",
             imageUrl = "https://example.com/image3.jpg",
-            rating = 4.1,
+            avgRating = 4.1,
             distance = "2.5 km from Main Gate",
-            amenities = listOf("Free Wi-Fi", "Gym", "Security")
+            amenities = listOf("Free Wi-Fi", "Gym", "Security"),
+            roomTypes = listOf("Double", "Triple")
         )
     )
 
     val mockRooms = listOf(
-        Room(type = "Premium Single", price = 2000000.0, isAvailable = false, status = "Full", capacity = 1, beds = 1),
-        Room(type = "Double", price = 850000.0, isAvailable = true, status = "Available", capacity = 2, beds = 2)
+        Room(
+            type = "Premium Single", 
+            price = "2000000",
+            isAvailable = false, 
+            status = "Full", 
+            capacity = 1, 
+            beds = 1
+        ),
+        Room(
+            type = "Double", 
+            price = "850000",
+            isAvailable = true, 
+            status = "Available", 
+            capacity = 2, 
+            beds = 2
+        )
     )
 
     val mockEvents = listOf(
@@ -69,7 +84,6 @@ object MockData{
             eventOrganizer = "Campus Events",
             eventOrganizerImageURL = "https://example.com/organizer.jpg"
         ),
-
         Event(
             eventId = "2",
             title = "Tech Talk",
@@ -85,9 +99,7 @@ object MockData{
             attendees = "General Public",
             eventOrganizer = "Tech Events",
             eventOrganizerImageURL = "https://example.com/organizer.jpg"
-
         ),
-
         Event(
             eventId = "3",
             title = "Art Exhibition",
@@ -112,21 +124,18 @@ object MockData{
             userId = "2",
             title = "New room Available",
             message = "Sunrise Student Nest has a premium single available",
-            createdAt = 0,
+            createdAt = System.currentTimeMillis(),
             category = "Room Availability",
             isRead = false,
         ),
-
         Notification(
             notificationId = "2",
             userId = "4",
             title = "New Viewing Booked",
             message = "You recently booked a viewing for a Premium Single in Sunrise Student Nest",
-            createdAt = 3,
+            createdAt = System.currentTimeMillis() - 86400000,
             category = "Booking",
             isRead = true
         )
     )
-
-
 }
