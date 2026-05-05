@@ -22,6 +22,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Signpost
@@ -43,7 +45,9 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +62,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.ui.theme.BackgroundLight
@@ -87,7 +92,9 @@ fun HostelSearchScreen(navController: NavHostController, viewModel: HostelViewMo
     }
 
     val filteredHostels = viewModel.hostels.filter { hostel ->
-        val matchesSearch = searchQuery.isEmpty() || hostel.name.contains(searchQuery, ignoreCase = true) || hostel.location.contains(searchQuery, ignoreCase = true)
+        val matchesSearch = searchQuery.isEmpty()
+                || hostel.name.contains(searchQuery, ignoreCase = true)
+                || hostel.location.toString().contains(searchQuery, ignoreCase = true)
         val matchesPrice = hostel.highestPrice.toFloat() in appliedPriceRange
         val matchesRooms = appliedSelectedRooms.isEmpty() || appliedSelectedRooms.any { roomType -> hostel.roomTypes.contains(roomType) }
         val matchesLocation = appliedSelectedLocation.isEmpty() || hostel.location == appliedSelectedLocation
@@ -134,7 +141,7 @@ fun HostelSearchScreen(navController: NavHostController, viewModel: HostelViewMo
             filterType = activeFilterType,
             onDismiss = { showFilterSheet = false},
             onApply = { range, rooms, loc ->
-                appliedPriceRange = range
+                appliedPriceRange = range as ClosedFloatingPointRange<Float>
                 appliedSelectedRooms = rooms
                 appliedSelectedLocation = loc
                 showFilterSheet = false
@@ -501,14 +508,15 @@ fun SearchTopBar(navController: NavHostController) {
     )
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun HostelSearchScreenPreview() {
-//    CampusNestTheme {
-//        HostelSearchScreen(
-//            hostel = MockData.mockHostels[0]
-//        )
-//    }
-//}
+
+@Preview(showBackground = true)
+@Composable
+fun HostelSearchScreenPreview() {
+    CampusNestTheme {
+        HostelSearchScreen(
+            navController = rememberNavController()
+        )
+    }
+}
 
 // Albert: Implemented search bar, filters (price, location, roomTypes), navigation to details, favorite toggle, and integrated with ViewModel for Hostel Search Screen.

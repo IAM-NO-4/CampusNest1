@@ -87,7 +87,8 @@ class registerViewModel : ViewModel() {
                             email = state.email,
                             phone = state.phone
                         )
-                        db.collection("User")
+                        //Changed "User" to "users" to match profileViewModel
+                        db.collection("users")
                             .document(uid)
                             .set(newUser)
                             .addOnSuccessListener {

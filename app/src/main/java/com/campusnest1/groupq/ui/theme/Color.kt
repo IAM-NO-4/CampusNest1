@@ -13,7 +13,12 @@ val SurfaceWhite = Color(0xFFFFFFFF)
 val TextDark = Color(0xFF1A1A1A)
 val TextGrey = Color(0xFF757575)
 val StarYellow = Color(0xFFFFB400)
-val GreySurface = Color(0xFFF2F5F8) // The specific shade of grey from your image
+val GreySurface = Color(0xFFF2F5F8)
+
+val BgTop        = Color(0xFFDEEEEE)
+val BgBottom     = Color(0xFFF3EDE4)
+val FieldBg      = Color(0xFFFFFFFF)
+val FieldBorder  = Color(0xFFE2E2EF)
 
 // Dark Mode Colors
 val TealPrimaryDark = Color(0xFF26C6DA)
