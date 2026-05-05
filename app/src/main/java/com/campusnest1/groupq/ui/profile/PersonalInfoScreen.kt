@@ -121,17 +121,18 @@ fun ProfileInfoDisplay(label: String, value: String) {
             color = Color.Gray
         )
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
+        TextField(
             value = value,
             onValueChange = {},
             readOnly = true,
-            modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFE0E0E0),
-                unfocusedBorderColor = Color(0xFFE0E0E0),
-                disabledBorderColor = Color(0xFFE0E0E0),
-                cursorColor = Color(0xFF00A3A3)
+           modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                focusedTextColor = Color.DarkGray,
+                unfocusedTextColor = Color.LightGray
+
             )
+
         )
     }
 }
