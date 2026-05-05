@@ -1,6 +1,11 @@
 package com.campusnest1.groupq.model
 
 data class Profile(
+    val fname: String = "",
+    val lname: String = "",
+    val email: String = "",
+    val phone: String = "",
+    val profileImageUrl: String = "",
     val userId: String = "",
     val course: String = "",
     val yearOfStudy: String = "",

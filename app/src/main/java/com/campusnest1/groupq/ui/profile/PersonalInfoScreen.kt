@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.campusnest1.groupq.navigation.Screen
+import com.campusnest1.groupq.ui.profile.PersonalInfoContent
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 
 @Composable
@@ -28,7 +29,7 @@ fun PersonalInfoScreen(
 
     PersonalInfoContent(
         profileState = profileState,
-        onEditClick = { navController.navigate(Screen.ProfileSettings) }
+        onEditClick = { navController.navigate(Screen.ProfileSettings.route) }
     )
 }
 

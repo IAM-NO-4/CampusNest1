@@ -186,7 +186,7 @@ fun ProfileScreenContent(
                 color = Color(0xFFEFEFEF)
             ) {
                 Text(
-                    text = "$course Year: $studyYear",
+                    text = "$course : $studyYear",
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                     fontSize = 13.sp,
                     color = Color.Gray

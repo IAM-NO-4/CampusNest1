@@ -6,8 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.campusnest1.groupq.data.AuthRepository
 import com.campusnest1.groupq.data.AuthImplementationRepository
+import com.campusnest1.groupq.model.Profile
 import com.campusnest1.groupq.model.User
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.launch
 
 class AuthViewModel(
@@ -92,9 +95,29 @@ class AuthViewModel(
             _errorMessage.value = null
 
             val result = repository.signUp(email, pass, fname, lname, phone)
+            val userId = FirebaseAuth.getInstance().currentUser?.uid
+
 
             result.onSuccess {
                 _isLoading.value = false
+
+                val newProfile = Profile(
+                    userId = userId ?: "",
+                    fname = fname,
+                    lname = lname,
+                    email = email,
+                    phone = phone,
+                    profileImageUrl = "",
+                    course = "",
+                    yearOfStudy = "",
+                    currentHostel = "",
+                    currentRoomNo = "",
+                    favHostels = ""
+                )
+                val db = Firebase.firestore
+                db.collection("profiles").document(userId ?: "")
+                    .set(newProfile)
+
             }.onFailure { exception ->
                 _isLoading.value = false
                 _errorMessage.value = exception.message ?: "Sign up failed."

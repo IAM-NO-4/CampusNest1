@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.campusnest1.groupq.ui.profile.ProfileSettingsContent
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 
 @Composable
@@ -125,7 +126,9 @@ fun ProfileInputField(label: String, value: String, onValueChange: (String) -> U
         Text(
             text = label,
             fontWeight = FontWeight.Bold,
-            fontSize = 14.sp
+            fontSize = 14.sp,
+            color = Color.DarkGray
+
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
@@ -134,13 +137,13 @@ fun ProfileInputField(label: String, value: String, onValueChange: (String) -> U
             modifier = Modifier.fillMaxWidth(),
             placeholder = {
                 Text(
-                    text = "Enter your $label", color = Color.Gray,
+                    text = "Enter your $label", color = Color.Black,
                     fontSize = 13.sp
                 )
             },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xFF00A3A3),
-                unfocusedBorderColor = Color(0xFFE0E0E0),
+                unfocusedBorderColor = Color.Black,
                 cursorColor = Color(0xFF00A3A3)
             )
         )

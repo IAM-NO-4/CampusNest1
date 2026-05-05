@@ -18,9 +18,12 @@ import com.campusnest1.groupq.ui.HostelDetailsScreen
 import com.campusnest1.groupq.ui.HostelSearchScreen
 import com.campusnest1.groupq.ui.LoginScreen
 import com.campusnest1.groupq.ui.profile.ProfileScreen
+import com.campusnest1.groupq.ui.profile.PersonalInfoScreen
+import com.campusnest1.groupq.ui.profile.ProfileSettingsScreen
 import com.campusnest1.groupq.ui.registerScreen
 import com.campusnest1.groupq.viewmodel.EventViewModel
 import com.campusnest1.groupq.viewmodel.AuthViewModel
+import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -38,6 +41,7 @@ fun AppNavHost() {
 
     val authViewModel: AuthViewModel = koinViewModel()
     val eventsviewModel: EventViewModel = koinViewModel()
+    val profileViewM: profileViewModel = koinViewModel()
 
     val user by authViewModel.user
 
@@ -78,6 +82,10 @@ fun AppNavHost() {
                 registerScreen(navController = navController)
             }
 
+
+            composable (Screen.PersonalInfo.route){
+                PersonalInfoScreen(navController = navController, profileView = profileViewM)
+            }
             //Main Tabs
             composable(Screen.Home.route) {
                 CampusNestApp(navController)
@@ -90,6 +98,9 @@ fun AppNavHost() {
             composable(Screen.Profile.route) {
                 ProfileScreen(navController)
             }
+                composable (Screen.ProfileSettings.route){
+                    ProfileSettingsScreen(navController= navController,profileView= profileViewM)
+                }
 
             //Top Tabs
             composable(Screen.Events.route) {
