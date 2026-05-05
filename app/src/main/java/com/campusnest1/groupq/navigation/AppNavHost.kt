@@ -16,11 +16,11 @@ import com.campusnest1.groupq.ui.EventDetailsScreen
 import com.campusnest1.groupq.ui.EventsScreen
 import com.campusnest1.groupq.ui.HostelDetailsScreen
 import com.campusnest1.groupq.ui.HostelSearchScreen
+import com.campusnest1.groupq.ui.LoginScreen
 import com.campusnest1.groupq.ui.profile.ProfileScreen
 import com.campusnest1.groupq.ui.registerScreen
 import com.campusnest1.groupq.viewmodel.EventViewModel
 import com.campusnest1.groupq.viewmodel.AuthViewModel
-import com.example.campusnet.ui.LoginScreen
 import org.koin.androidx.compose.koinViewModel
 
 @Composable

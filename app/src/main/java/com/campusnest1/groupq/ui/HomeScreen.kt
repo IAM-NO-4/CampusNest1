@@ -24,7 +24,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.ui.MockData.mockHostels
@@ -33,7 +32,6 @@ import com.campusnest1.groupq.viewmodel.HostelViewModel
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 import org.koin.androidx.compose.koinViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.utils.getTime
 import com.campusnest1.groupq.viewmodel.NotificationViewModel
@@ -42,8 +40,8 @@ import com.campusnest1.groupq.viewmodel.NotificationViewModel
 fun CampusNestApp(
     navController: NavController,
     viewModel: HostelViewModel = koinViewModel(),
-    profViewModel: profileViewModel = viewModel(),
-    notifViewModel: NotificationViewModel = viewModel()
+    profViewModel: profileViewModel = koinViewModel(),
+    notifViewModel: NotificationViewModel = koinViewModel()
     ) {
     LaunchedEffect(Unit) {
         viewModel.fetchHostelsData()
@@ -52,12 +50,13 @@ fun CampusNestApp(
 
     var showNotificationsSheet by remember { mutableStateOf(false) }
     val uiState = profViewModel.uiState
-    val hostels = viewModel.savedHostels
+
+    val hostels = viewModel.hostels
 
     if (showNotificationsSheet) {
         NotificationsSheet(
             navController = navController,
-            notifications = MockData.mockNotification,
+            notifications = notifViewModel.notifications,
             onDismiss = { showNotificationsSheet = false },
             onDelete = { notification ->
                 notifViewModel.deleteNotification(notification.notificationId)
@@ -65,13 +64,14 @@ fun CampusNestApp(
             onNotificationClick = { notification ->
                 notifViewModel.markAsRead(notification.notificationId)
                 notification.targetId?.let { id ->
-                    navController.navigate("hostelDetails/$id")
+                    when (notification.category.lowercase()) {
+                        "event" -> navController.navigate("eventDetails/$id")
+                        "hostel", "room availability", "booking" -> navController.navigate("hostelDetails/$id")
+                    }
                     showNotificationsSheet = false
                 }
             }
         )
-
-
     }
 
     HomeScreenContent(
@@ -476,7 +476,7 @@ fun HostelCard(
                         color = OrangeAccent
                     )
                     Text(
-                        text = " /semister",
+                        text = " /semester",
                         style = MaterialTheme.typography.bodyMedium,
                         color = TextGrey,
                         modifier = Modifier.padding(bottom = 2.dp)
@@ -516,7 +516,7 @@ fun HostelRating(hostel: Hostel, color: Color = OrangeAccentLight) {
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = hostel.rating.toString(),
+                text = hostel.avgRating.toString(),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = TextDark
@@ -531,9 +531,7 @@ fun HomeScreenPreview() {
     CampusNestTheme {
         HomeScreenContent(
             fName = "Amir",
-            hostels = mockHostels,
+            hostels = mockHostels
         )
     }
 }
-
-// Albert: Implemented search bar navigation to Hostel Search Screen in Home Screen.
