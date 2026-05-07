@@ -6,6 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -17,18 +18,31 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.campusnest1.groupq.navigation.Screen
+import com.campusnest1.groupq.ui.profile.PersonalInfoContent
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun PersonalInfoScreen(
     navController: NavController,
-    profileView: profileViewModel = viewModel()
+    profileView: profileViewModel = koinViewModel()
 ) {
     val profileState = profileView.uiState
 
+    LaunchedEffect(Unit) {
+        profileView.fetchProfileData()
+    }
+
+    if (profileState.isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color(0xFF00A3A3))
+        }
+        return
+    }
+
     PersonalInfoContent(
         profileState = profileState,
-        onEditClick = { navController.navigate(Screen.ProfileSettings) }
+        onEditClick = { navController.navigate(Screen.ProfileSettings.route) }
     )
 }
 
@@ -107,17 +121,18 @@ fun ProfileInfoDisplay(label: String, value: String) {
             color = Color.Gray
         )
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
+        TextField(
             value = value,
             onValueChange = {},
             readOnly = true,
-            modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFE0E0E0),
-                unfocusedBorderColor = Color(0xFFE0E0E0),
-                disabledBorderColor = Color(0xFFE0E0E0),
-                cursorColor = Color(0xFF00A3A3)
+           modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                focusedTextColor = Color.DarkGray,
+                unfocusedTextColor = Color.LightGray
+
             )
+
         )
     }
 }
