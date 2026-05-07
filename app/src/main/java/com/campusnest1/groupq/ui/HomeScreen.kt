@@ -47,6 +47,9 @@ fun CampusNestApp(
         viewModel.fetchHostelsData()
         viewModel.loadStudentData()
         profViewModel.fetchProfileData()
+        notifViewModel.fetchNotifications(
+            userId = profViewModel.uiState.userId
+        )
     }
 
     var showNotificationsSheet by remember { mutableStateOf(false) }
