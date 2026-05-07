@@ -318,14 +318,7 @@ fun SearchBar(onSearchClick: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f)
             )
-            IconButton(onClick = { }, modifier = Modifier.size(24.dp)) {
-                Icon(
-                    imageVector = Icons.Default.Tune,
-                    contentDescription = "Filter",
-                    tint = TextGrey,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+
         }
     }
 }
