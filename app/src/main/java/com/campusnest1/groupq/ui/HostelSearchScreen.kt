@@ -29,13 +29,14 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.ui.theme.*
+import com.campusnest1.groupq.utils.formatCurrency
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HostelSearchScreen(navController: NavHostController, viewModel: HostelViewModel = koinViewModel()){
-    var showFilterSheet by remember {mutableStateOf(false)} //Remember if the drawer open
-    var activeFilterType by remember {mutableStateOf("")} // Remember which filter clicked
+    var showFilterSheet by remember {mutableStateOf(false)} 
+    var activeFilterType by remember {mutableStateOf("")} 
 
     var searchQuery by remember { mutableStateOf("") }
     var appliedPriceRange by remember { mutableStateOf<ClosedFloatingPointRange<Float>>(200_000f..3_000_000f) }
@@ -50,7 +51,10 @@ fun HostelSearchScreen(navController: NavHostController, viewModel: HostelViewMo
         val matchesSearch = searchQuery.isEmpty()
                 || hostel.name.contains(searchQuery, ignoreCase = true)
                 || hostel.location.toString().contains(searchQuery, ignoreCase = true)
-        val matchesPrice = hostel.highestPrice.toFloat() in appliedPriceRange
+        
+        val hostelPrice = hostel.highestPrice.replace(Regex("[^\\d.]"), "").toFloatOrNull() ?: 0f
+        val matchesPrice = hostelPrice in appliedPriceRange
+        
         val matchesRooms = appliedSelectedRooms.isEmpty() || appliedSelectedRooms.any { roomType -> hostel.roomTypes.contains(roomType) }
         val matchesLocation = appliedSelectedLocation.isEmpty() || hostel.location == appliedSelectedLocation
         matchesSearch && matchesPrice && matchesRooms && matchesLocation
@@ -107,15 +111,15 @@ fun HostelSearchScreen(navController: NavHostController, viewModel: HostelViewMo
 @Composable
 fun SearchHostelCard(hostel: Hostel, navController: NavHostController, viewModel: HostelViewModel) {
     val statusText = when (hostel.availableRooms) {
-        0 -> { "Sold Out" }
-        in 1..5 -> { "${hostel.availableRooms} left" }
-        else -> ("Available")
+        0 -> "Sold Out"
+        in 1..5 -> "${hostel.availableRooms} left"
+        else -> "Available"
     }
 
     val statusColor = when (hostel.availableRooms) {
-        0 -> { Color.Red }
-        in 1..<5 -> { RedAccent }
-        else -> (TealPrimary)
+        0 -> Color.Red
+        in 1..<5 -> RedAccent
+        else -> TealPrimary
     }
 
     val statusBg = when (hostel.availableRooms) {
@@ -123,12 +127,18 @@ fun SearchHostelCard(hostel: Hostel, navController: NavHostController, viewModel
         in 1..5 -> OrangeAccentLight
         else -> Color(0xFFE8F5E9)
     }
+    
+    val isSaved = viewModel.savedStatus[hostel.hostelId] ?: false
+    
+    LaunchedEffect(hostel.hostelId) {
+        viewModel.checkIfSaved(hostel.hostelId)
+    }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 8.dp)
-            .clickable { navController.navigate("hostel_details/${hostel.hostelId}") },
+            .clickable { navController.navigate("hostelDetails/${hostel.hostelId}") },
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -159,11 +169,11 @@ fun SearchHostelCard(hostel: Hostel, navController: NavHostController, viewModel
                     color = Color.White.copy(alpha = 0.8f),
                     shape = CircleShape
                 ) {
-                    IconButton(onClick = { /* TODO: Toggle fav from ViewModel */ }) {
+                    IconButton(onClick = { viewModel.toggleFavorite(hostel.hostelId) }) {
                         Icon(
-                            imageVector = Icons.Default.FavoriteBorder,
+                            imageVector = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Favorite",
-                            tint = TextGrey,
+                            tint = if (isSaved) Color.Red else TextGrey,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -221,7 +231,7 @@ fun SearchHostelCard(hostel: Hostel, navController: NavHostController, viewModel
                 ) {
                     Row(verticalAlignment = Alignment.Bottom){
                         Text(
-                            text = "UGX ${hostel.highestPrice} ",
+                            text = "UGX ${formatCurrency(hostel.highestPrice)} ",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = TealPrimary
@@ -249,15 +259,12 @@ fun SearchHostelCard(hostel: Hostel, navController: NavHostController, viewModel
     }
 }
 
-// ... Rest of the filter and topbar components ...
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterBottomSheet(filterType: String, onDismiss: () -> Unit, onApply: (ClosedFloatingPointRange<Float>, Set<String>, String) -> Unit) {
     var priceRange by remember {mutableStateOf<ClosedFloatingPointRange<Float>>(200_000f..3_000_000f)}
-
     val roomOptions = listOf("Single", "Double", "Triple")
     var selectedRooms by remember { mutableStateOf(setOf<String>())}
-
     val locations = listOf("Kikoni", "Kikumi Kikumi", "Wandegeya", "Mulago", "Nakulabye")
     var selectedLocation by remember { mutableStateOf("")}
 
@@ -361,20 +368,16 @@ fun FilterBottomSheet(filterType: String, onDismiss: () -> Unit, onApply: (Close
 @Composable
 fun FilterChipsRow(selectedFilter: String, onFilterClick: (String) -> Unit) {
     val filters = listOf("Price Range", "Location", "Room Type")
-
-
     LazyRow(
         Modifier.fillMaxWidth().padding(vertical = 8.dp),
         contentPadding = PaddingValues(horizontal = 20.dp ),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(filters){ filter ->
-
             FilterChipItem(
                 label = filter,
                 isSelected = (filter == selectedFilter),
                 onClick = { onFilterClick(filter) }
-
             )
         }
     }
@@ -445,10 +448,7 @@ fun SearchTopBar(navController: NavHostController) {
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
-            scrolledContainerColor = Color.Unspecified,
-            navigationIconContentColor = Color.Unspecified,
-            titleContentColor = Color.Unspecified,
-            actionIconContentColor = Color.Unspecified
+            titleContentColor = TextDark
         )
     )
 }
