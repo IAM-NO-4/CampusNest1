@@ -33,6 +33,7 @@ import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 import org.koin.androidx.compose.koinViewModel
 import androidx.navigation.NavController
 import com.campusnest1.groupq.navigation.Screen
+import com.campusnest1.groupq.utils.formatCurrency
 import com.campusnest1.groupq.utils.getTime
 import com.campusnest1.groupq.viewmodel.NotificationViewModel
 
@@ -86,7 +87,13 @@ fun CampusNestApp(
         savedStatus = viewModel.savedStatus,
         onToggleFavorite = { viewModel.toggleFavorite(it) },
         onCheckIfSaved = { viewModel.checkIfSaved(it) },
-        onTabSelected = { viewModel.setCategory(it) },
+        onTabSelected = { category ->
+            when (category) {
+                "Hostels" -> navController.navigate(Screen.Hostels.route)
+                "Events" -> navController.navigate(Screen.Events.route)
+                else -> viewModel.setCategory(category)
+            }
+        },
         onNavigateToDetails = { hostelId ->
             navController.navigate("hostelDetails/$hostelId")
         },
@@ -477,7 +484,7 @@ fun HostelCard(
                 // Price
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
-                        text = "UGX ${hostel.highestPrice}",
+                        text = "UGX ${formatCurrency(hostel.highestPrice)}",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = OrangeAccent

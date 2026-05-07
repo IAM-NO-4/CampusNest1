@@ -10,12 +10,11 @@ class HostelImplementationRepository(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) : HostelRepository {
 
-    // Fetches all available hostels for the main list
     override suspend fun getHostels(): List<Hostel> {
         return try {
             val snapshot = db.collection("hostels").get().await()
             snapshot.documents.mapNotNull { doc ->
-                doc.toObject(Hostel::class.java)?.copy(hostelId = doc.id)
+                mapDocumentToHostel(doc)
             }
         } catch (e: Exception) {
             emptyList()
@@ -23,41 +22,61 @@ class HostelImplementationRepository(
     }
 
     override suspend fun getHostelById(hostelId: String): Hostel? {
+        if (hostelId.isEmpty()) return null
         return try {
             val doc = db.collection("hostels").document(hostelId).get().await()
-            doc.toObject(Hostel::class.java)?.copy(hostelId = doc.id)
+            if (!doc.exists()) return null
+            mapDocumentToHostel(doc)
         } catch (e: Exception) {
             null
         }
     }
 
     override suspend fun getRoomsForHostel(hostelId: String): List<Room> {
+        if (hostelId.isEmpty()) return emptyList()
         return try {
-            val snapshot = db.collection("hostels").document(hostelId)
-                .collection("rooms").get().await()
+            // Based on screenshot: rooms is a ROOT collection, not a subcollection.
+            // We fetch documents where the 'hostelId' field matches the current hostel.
+            val snapshot = db.collection("rooms")
+                .whereEqualTo("hostelId", hostelId)
+                .get()
+                .await()
+            
             snapshot.documents.mapNotNull { doc ->
-                doc.toObject(Room::class.java)?.copy(roomId = doc.id, hostelId = hostelId)
+                val data = doc.data ?: return@mapNotNull null
+                Room(
+                    roomId = doc.id,
+                    hostelId = data["hostelId"] as? String ?: hostelId,
+                    hostelName = data["hostelName"] as? String ?: "",
+                    // Safely handles both String and Number types from Firestore
+                    price = data["price"]?.toString() ?: "",
+                    type = data["type"] as? String ?: "",
+                    isAvailable = data["isAvailable"] as? Boolean ?: true,
+                    beds = (data["beds"] as? Number)?.toInt() ?: 1,
+                    capacity = (data["capacity"] as? Number)?.toInt() ?: 1,
+                    status = data["status"] as? String ?: ""
+                )
             }
         } catch (e: Exception) {
             emptyList()
         }
     }
 
-    // Fetches only the hostels this specific student saved
     override suspend fun getSavedHostels(userId: String): List<Hostel> {
+        if (userId.isEmpty()) return emptyList()
         return try {
             val snapshot = db.collection("users").document(userId)
                 .collection("savedHostels").get().await()
             snapshot.documents.mapNotNull { doc ->
-                doc.toObject(Hostel::class.java)?.copy(hostelId = doc.id)
+                mapDocumentToHostel(doc)
             }
         } catch (e: Exception) {
             emptyList()
         }
     }
 
-    // Fetches the student's booking records
     override suspend fun getBookingHistory(userId: String): List<Booking> {
+        if (userId.isEmpty()) return emptyList()
         return try {
             val snapshot = db.collection("bookings")
                 .whereEqualTo("studentId", userId).get().await()
@@ -68,7 +87,7 @@ class HostelImplementationRepository(
     }
 
     override suspend fun toggleSavedHostel(userId: String, hostelId: String): Boolean {
-        if (hostelId.isEmpty()) return false
+        if (userId.isEmpty() || hostelId.isEmpty()) return false
         return try {
             val docRef = db.collection("users").document(userId)
                 .collection("savedHostels").document(hostelId)
@@ -76,16 +95,16 @@ class HostelImplementationRepository(
             val doc = docRef.get().await()
             if (doc.exists()) {
                 docRef.delete().await()
-                false // Removed from favorites
+                false 
             } else {
                 val hostelDoc = db.collection("hostels").document(hostelId).get().await()
                 if (hostelDoc.exists()) {
                     val data = hostelDoc.data?.toMutableMap() ?: mutableMapOf()
                     data["hostelId"] = hostelId
                     docRef.set(data).await()
-                    true // Successfully added
+                    true 
                 } else {
-                    false // Hostel not found in master list
+                    false
                 }
             }
         } catch (e: Exception) {
@@ -94,6 +113,7 @@ class HostelImplementationRepository(
     }
 
     override suspend fun isHostelSaved(userId: String, hostelId: String): Boolean {
+        if (userId.isEmpty() || hostelId.isEmpty()) return false
         return try {
             val doc = db.collection("users").document(userId)
                 .collection("savedHostels").document(hostelId).get().await()
@@ -101,5 +121,24 @@ class HostelImplementationRepository(
         } catch (e: Exception) {
             false
         }
+    }
+
+    private fun mapDocumentToHostel(doc: com.google.firebase.firestore.DocumentSnapshot): Hostel? {
+        val data = doc.data ?: return null
+        return Hostel(
+            hostelId = doc.id,
+            name = data["name"] as? String ?: "",
+            location = data["location"] ?: "",
+            lowestPrice = data["lowestPrice"]?.toString() ?: "",
+            highestPrice = data["highestPrice"]?.toString() ?: "",
+            managerId = data["managerId"] as? String ?: "",
+            distance = data["distance"] as? String ?: "",
+            imageUrl = data["imageUrl"] as? String ?: "",
+            avgRating = (data["avgRating"] as? Number)?.toDouble() ?: 0.0,
+            description = data["description"] as? String ?: "",
+            amenities = (data["amenities"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
+            availableRooms = (data["availableRooms"] as? Number)?.toInt() ?: 0,
+            roomTypes = (data["roomTypes"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
+        )
     }
 }
