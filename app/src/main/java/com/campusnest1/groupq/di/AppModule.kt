@@ -18,11 +18,12 @@ val appModule = module {
     single<AuthRepository> { AuthImplementationRepository(get()) }
     single<HostelRepository> { HostelImplementationRepository(get()) }
     single<EventRepository> { EventImplementationRepository(get()) }
+    single<NotificationRepository> { NotificationRepositoryImpl() }
 
     viewModel { AuthViewModel(get()) }
     viewModel { registerViewModel() }
     viewModel { HostelViewModel(get(), get()) }
     viewModel { EventViewModel(get(), get()) }
     viewModel { profileViewModel() }
-    viewModel { NotificationViewModel() }
+    viewModel { NotificationViewModel(get()) }
 }
