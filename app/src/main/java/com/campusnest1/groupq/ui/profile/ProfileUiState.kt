@@ -10,7 +10,7 @@ data class ProfileUiState(
     var profileImageUrl: String? = null,
     val course: String? = "",
     val yearOfStudy: String? = "",
-    val currentHostel: String? = "",
+    val currentHostel: String = "",
     val currentRoomNo: String = "",
     val favHostels: String? = "",
     val isLoading: Boolean = false,

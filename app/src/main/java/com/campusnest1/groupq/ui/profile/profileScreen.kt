@@ -34,12 +34,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.koin.androidx.compose.koinViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ProfileScreen(
@@ -53,11 +53,12 @@ fun ProfileScreen(
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
+
         if (uri != null) {
             profileView.changeProfileImage(context, uri, uiState.userId)
         }
     }
-
+    // Fetch updated counts when screen opens
     LaunchedEffect(Unit) {
         profileView.fetchProfileData()
         hostelViewModel.loadStudentData()
@@ -84,6 +85,25 @@ fun ProfileScreen(
         onToggleNotifications = { profileView.toggleNotifications(it) },
         onProfileImageClick = { launcher.launch("image/*") },
         navController = navController
+    )
+}
+
+@Preview(showBackground = true, heightDp = 1100)
+@Composable
+fun ProfileScreenPreview() {
+    ProfileScreenContent(
+        fname = "Alex",
+        lname = "Muhanji",
+        profileImageUrl = null,
+        course = "Software Eng",
+        studyYear = "2",
+        currentHostel = "Lakeside Hostel",
+        navController = null,
+        savedCount = 4,
+        bookingCount = 56,
+        isNotificationsEnabled = true,
+        onToggleNotifications = {},
+        onProfileImageClick = {}
     )
 }
 
@@ -435,23 +455,4 @@ fun SettingsItem(
             }
         }
     }
-}
-
-@Preview(showBackground = true, heightDp = 1100)
-@Composable
-fun ProfileScreenPreview() {
-    ProfileScreenContent(
-        fname = "Alex",
-        lname = "Muhanji",
-        profileImageUrl = null,
-        course = "Software Eng",
-        studyYear = "2",
-        currentHostel = "Lakeside Hostel",
-        navController = null,
-        savedCount = 4,
-        bookingCount = 56,
-        isNotificationsEnabled = true,
-        onToggleNotifications = {},
-        onProfileImageClick = {}
-    )
 }

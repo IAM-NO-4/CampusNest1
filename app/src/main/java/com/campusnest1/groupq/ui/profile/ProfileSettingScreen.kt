@@ -6,7 +6,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -15,11 +14,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import com.campusnest1.groupq.ui.profile.ProfileSettingsContent
-import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 import org.koin.androidx.compose.koinViewModel
+import androidx.navigation.NavController
+import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 
 @Composable
 fun ProfileSettingsScreen(
@@ -27,10 +24,6 @@ fun ProfileSettingsScreen(
     profileView: profileViewModel = koinViewModel()
 ) {
     val profileState = profileView.uiState
-
-    LaunchedEffect(Unit) {
-        profileView.fetchProfileData()
-    }
 
     ProfileSettingsContent(
         profileState = profileState,
@@ -132,9 +125,7 @@ fun ProfileInputField(label: String, value: String, onValueChange: (String) -> U
         Text(
             text = label,
             fontWeight = FontWeight.Bold,
-            fontSize = 14.sp,
-            color = Color.DarkGray
-
+            fontSize = 14.sp
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
@@ -143,13 +134,13 @@ fun ProfileInputField(label: String, value: String, onValueChange: (String) -> U
             modifier = Modifier.fillMaxWidth(),
             placeholder = {
                 Text(
-                    text = "Enter your $label", color = Color.Black,
+                    text = "Enter your $label", color = Color.Gray,
                     fontSize = 13.sp
                 )
             },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xFF00A3A3),
-                unfocusedBorderColor = Color.Black,
+                unfocusedBorderColor = Color(0xFFE0E0E0),
                 cursorColor = Color(0xFF00A3A3)
             )
         )

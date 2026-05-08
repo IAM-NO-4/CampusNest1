@@ -120,11 +120,11 @@ class profileViewModel: ViewModel() {
 
         val newProfile = Profile(
             userId = uid,
-            course = uiState.course ?: "",
-            yearOfStudy = uiState.yearOfStudy ?: "",
-            currentHostel = uiState.currentHostel ?: "",
-            currentRoomNo = uiState.currentRoomNo ?: "",
-            favHostels = uiState.favHostels ?: ""
+            course = uiState.course,
+            yearOfStudy = uiState.yearOfStudy,
+            currentHostel = uiState.currentHostel,
+            currentRoomNo = uiState.currentRoomNo,
+            favHostels = uiState.favHostels
         )
         val updatedUser = User(
             userId = uid,
