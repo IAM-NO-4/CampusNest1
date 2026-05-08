@@ -64,6 +64,9 @@ class profileViewModel: ViewModel() {
                                 currentHostel = profile?.currentHostel ?: "",
                                 currentRoomNo = profile?.currentRoomNo ?: "",
                                 favHostels = profile?.favHostels ?: "",
+                                priceChangeNotify = profile?.priceChangeNotify ?: true,
+                                newEventNotify = profile?.newEventNotify ?: true,
+                                roomAvailabilityNotify = profile?.roomAvailabilityNotify ?: true,
                                 isLoading = false
                             )
                         }
@@ -109,11 +112,30 @@ class profileViewModel: ViewModel() {
     }
 
     fun updateNotificationPreference(type: String, enabled: Boolean) {
+        val uid = auth.currentUser?.uid ?: return
+        
         uiState = when (type) {
             "price" -> uiState.copy(priceChangeNotify = enabled)
             "event" -> uiState.copy(newEventNotify = enabled)
             "room" -> uiState.copy(roomAvailabilityNotify = enabled)
             else -> uiState
+        }
+
+        // Persist to Firestore
+        val field = when (type) {
+            "price" -> "priceChangeNotify"
+            "event" -> "newEventNotify"
+            "room" -> "roomAvailabilityNotify"
+            else -> null
+        }
+
+        field?.let {
+            db.collection("profiles").document(uid)
+                .update(it, enabled)
+                .addOnFailureListener { e ->
+                    // Optionally handle error, e.g., revert state
+                    uiState = uiState.copy(error = "Failed to update preference: ${e.message}")
+                }
         }
     }
 
@@ -133,7 +155,10 @@ class profileViewModel: ViewModel() {
             yearOfStudy = uiState.yearOfStudy,
             currentHostel = uiState.currentHostel,
             currentRoomNo = uiState.currentRoomNo,
-            favHostels = uiState.favHostels
+            favHostels = uiState.favHostels,
+            priceChangeNotify = uiState.priceChangeNotify,
+            newEventNotify = uiState.newEventNotify,
+            roomAvailabilityNotify = uiState.roomAvailabilityNotify
         )
         val updatedUser = User(
             userId = uid,
@@ -162,13 +187,6 @@ class profileViewModel: ViewModel() {
     }
 
     val currentUser = auth.currentUser
-
-    var isNotificationsEnabled = mutableStateOf(true)
-        private set
-
-    fun toggleNotifications(enabled: Boolean) {
-        isNotificationsEnabled.value = enabled
-    }
 
     fun logout() {
         auth.signOut()

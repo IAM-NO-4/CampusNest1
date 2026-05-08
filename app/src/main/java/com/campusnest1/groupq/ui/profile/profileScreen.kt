@@ -82,7 +82,6 @@ fun ProfileScreen(
         currentHostel = uiState.currentHostel?.ifEmpty { "Not set" } ?: "Not set",
         savedCount = hostelViewModel.savedHostels.size,
         bookingCount = hostelViewModel.bookingHistory.value.size,
-        isNotificationsEnabled = profileView.isNotificationsEnabled.value,
         onNotificationSettingsClick = { navController.navigate(Screen.NotificationSettings.route) },
         onProfileImageClick = { launcher.launch("image/*") },
         onLogoutClick = {
@@ -108,7 +107,6 @@ fun ProfileScreenPreview() {
         navController = null,
         savedCount = 4,
             bookingCount = 56,
-        isNotificationsEnabled = true,
         onNotificationSettingsClick = {},
         onProfileImageClick = {},
         onLogoutClick = {}
@@ -125,7 +123,6 @@ fun ProfileScreenContent(
     currentHostel: String,
     savedCount: Int,
     bookingCount: Int,
-    isNotificationsEnabled: Boolean,
     onNotificationSettingsClick: () -> Unit,
     onProfileImageClick: () -> Unit,
     onLogoutClick: () -> Unit,
