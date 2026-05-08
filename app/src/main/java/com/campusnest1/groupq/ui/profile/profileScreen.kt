@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -45,8 +46,16 @@ import org.koin.androidx.compose.koinViewModel
 fun ProfileScreen(
     navController: NavController,
     profileView: profileViewModel = koinViewModel(),
-    hostelViewModel: HostelViewModel = koinViewModel()
+    hostelViewModel: HostelViewModel = koinViewModel(),
+    onScroll: (Boolean) -> Unit
 ) {
+    val navScrollState = rememberScrollState()
+
+    val shouldShow = !navScrollState.isScrollInProgress || navScrollState.value == 0
+    LaunchedEffect(shouldShow) {
+        onScroll(shouldShow)
+    }
+
     val uiState = profileView.uiState
     val context = LocalContext.current
 
@@ -83,7 +92,8 @@ fun ProfileScreen(
         isNotificationsEnabled = profileView.isNotificationsEnabled.value,
         onToggleNotifications = { profileView.toggleNotifications(it) },
         onProfileImageClick = { launcher.launch("image/*") },
-        navController = navController
+        navController = navController,
+        scrollState= navScrollState
     )
 }
 
@@ -100,9 +110,9 @@ fun ProfileScreenContent(
     isNotificationsEnabled: Boolean,
     onToggleNotifications: (Boolean) -> Unit,
     onProfileImageClick: () -> Unit,
-    navController: NavController?
+    navController: NavController?,
+    scrollState: ScrollState
 ) {
-    val scrollState = rememberScrollState()
 
     Box(
         modifier = Modifier
@@ -452,6 +462,7 @@ fun ProfileScreenPreview() {
         bookingCount = 56,
         isNotificationsEnabled = true,
         onToggleNotifications = {},
-        onProfileImageClick = {}
+        onProfileImageClick = {},
+        scrollState = rememberScrollState()
     )
 }

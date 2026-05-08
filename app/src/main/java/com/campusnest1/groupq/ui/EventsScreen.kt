@@ -15,11 +15,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.EventBusy
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Sensors
@@ -37,23 +40,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Event
-import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.ui.theme.BackgroundLight
 import com.campusnest1.groupq.ui.theme.CampusNestTheme
 import com.campusnest1.groupq.ui.theme.OrangeAccent
@@ -63,19 +63,33 @@ import com.campusnest1.groupq.ui.theme.TealPrimary
 import com.campusnest1.groupq.ui.theme.TealSecondary
 import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.ui.theme.TextGrey
+import com.campusnest1.groupq.utils.isEventLive
 import com.campusnest1.groupq.viewmodel.EventViewModel
 
 @Composable
 fun EventsScreen(
     navController: NavController,
-    viewModel: EventViewModel
+    viewModel: EventViewModel,
+    onScroll: (Boolean) -> Unit
 ) {
+    val scrollState = rememberLazyListState()
+
+    val shouldShow = !scrollState.isScrollInProgress || scrollState.firstVisibleItemIndex == 0
+    LaunchedEffect(shouldShow) {
+        onScroll(shouldShow)
+    }
+
     EventsScreenContent(
         onEventClick = { eventId ->
             navController.navigate("eventDetails/$eventId")
         },
         events = viewModel.events.value,
-        isLoading = viewModel.isLoading.value
+        filteredEvents = viewModel.getFilteredEvents(),
+        liveEvents = viewModel.getLiveEvents(),
+        selectedCategory = viewModel.selectedCategory,
+        onCategorySelected = { viewModel.setCategory(it) },
+        isLoading = viewModel.isLoading.value,
+        scrollState = scrollState
     )
 }
 
@@ -83,15 +97,14 @@ fun EventsScreen(
 fun EventsScreenContent(
     onEventClick: (eventId: String) -> Unit = {},
     events: List<Event>,
-    isLoading: Boolean = false
+    filteredEvents: List<Event> = emptyList(),
+    liveEvents: List<Event> = emptyList(),
+    selectedCategory: String = "All",
+    onCategorySelected: (String) -> Unit = {},
+    isLoading: Boolean = false,
+    scrollState: LazyListState
 ) {
-    var selectedTab by remember { mutableStateOf("All") }
-    val categories = listOf("All", "Social", "Academic", "Sports")
-
-    val filteredEvents = remember(selectedTab, events) {
-        if (selectedTab == "All") events
-        else events.filter { it.category.equals(selectedTab, ignoreCase = true) }
-    }
+    val categories = listOf("All", "Social", "Academic", "Sports", "Art")
 
     Scaffold(
         containerColor = BackgroundLight
@@ -102,6 +115,7 @@ fun EventsScreenContent(
             }
         } else {
             LazyColumn(
+                state = scrollState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
@@ -114,7 +128,8 @@ fun EventsScreenContent(
                     EventHeaderSection()
                 }
 
-                if (events.isNotEmpty()) {
+                // Show "Happening Now" list for live events only
+                if (liveEvents.isNotEmpty()) {
                     item {
                         Column {
                             Text(
@@ -124,7 +139,7 @@ fun EventsScreenContent(
                                 color = TextDark
                             )
                             Spacer(modifier = Modifier.height(12.dp))
-                            HappeningNowList(events.take(5), onEventClick)
+                            HappeningNowList(liveEvents.take(5), onEventClick)
                         }
                     }
                 }
@@ -136,10 +151,10 @@ fun EventsScreenContent(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         items(categories) { category ->
-                            val isSelected = selectedTab == category
+                            val isSelected = selectedCategory == category
                             FilterChip(
                                 selected = isSelected,
-                                onClick = { selectedTab = category },
+                                onClick = { onCategorySelected(category) },
                                 label = { Text(category, fontWeight = FontWeight.Bold) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = TealPrimary,
@@ -163,21 +178,60 @@ fun EventsScreenContent(
 
                 item {
                     Text(
-                        text = if (selectedTab == "All") "Upcoming Events" else "$selectedTab Events",
+                        text = if (selectedCategory == "All") "Upcoming Events" else "$selectedCategory Events",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = TextDark
                     )
                 }
 
-                items(filteredEvents) { event ->
-                    UpcomingEventItem(event, { onEventClick(event.eventId) })
+                if (filteredEvents.isEmpty()) {
+                    item {
+                        EmptyEventsState(category = selectedCategory)
+                    }
+                } else {
+                    items(filteredEvents) { event ->
+                        UpcomingEventItem(event, { onEventClick(event.eventId) })
+                    }
                 }
 
                 item { Spacer(modifier = Modifier.height(16.dp)) }
 
             }
         }
+    }
+}
+
+@Composable
+fun EmptyEventsState(category: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 60.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.EventBusy,
+            contentDescription = null,
+            modifier = Modifier.size(80.dp),
+            tint = TextGrey.copy(alpha = 0.4f)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = if (category == "All") "No events found" else "No $category events scheduled",
+            style = MaterialTheme.typography.titleMedium,
+            color = TextDark,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Check back later for new updates on campus happenings.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextGrey,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
     }
 }
 
@@ -224,22 +278,6 @@ fun EventHeaderSection() {
                 style = MaterialTheme.typography.headlineMedium,
                 color = TextDark
             )
-
-            //Filter
-            Surface(
-                shape = CircleShape,
-                color = Color.White,
-                shadowElevation = 4.dp,
-                modifier = Modifier.size(48.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Outlined.Tune,
-                        contentDescription = "Filter",
-                        tint = TextDark
-                    )
-                }
-            }
         }
         Text(text = "🎉", fontSize = 24.sp)
     }
@@ -362,6 +400,8 @@ fun UpcomingEventItem(event: Event, onBtnClick: () -> Unit) {
 
 @Composable
 fun EventCard(event: Event, onClick: () -> Unit) {
+    val isLive = isEventLive(event.date, event.startTime, event.endTime)
+    
     Card(
         modifier = Modifier.size(240.dp, 300.dp),
         shape = MaterialTheme.shapes.large,
@@ -386,32 +426,33 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                     )
             )
 
-            //Live Badge
-            Surface(
-                modifier = Modifier
-                    .padding(12.dp)
-                    .align(Alignment.TopStart),
-                color = RedAccent,
-                shape = CircleShape
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            //Live Badge - Only shown if the event is currently live
+            if (isLive) {
+                Surface(
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .align(Alignment.TopStart),
+                    color = RedAccent,
+                    shape = CircleShape
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Sensors,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = Color.White
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Live",
-                        color = Color.White,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Sensors,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = Color.White
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Live",
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
 
@@ -456,6 +497,13 @@ fun EventCard(event: Event, onClick: () -> Unit) {
 @Composable
 fun EventsScreenPreview() {
     CampusNestTheme {
-        EventsScreenContent(events = MockData.mockEvents)
+        val previewScrollState = rememberLazyListState()
+
+        EventsScreenContent(
+            events = com.campusnest1.groupq.ui.MockData.mockEvents,
+            filteredEvents = com.campusnest1.groupq.ui.MockData.mockEvents,
+            liveEvents = com.campusnest1.groupq.ui.MockData.mockEvents.take(2),
+            scrollState = previewScrollState
+        )
     }
 }
