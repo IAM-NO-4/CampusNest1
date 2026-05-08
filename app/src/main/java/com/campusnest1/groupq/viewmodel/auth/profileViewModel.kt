@@ -108,6 +108,15 @@ class profileViewModel: ViewModel() {
         uiState = uiState.copy(profileImageUrl = url)
     }
 
+    fun updateNotificationPreference(type: String, enabled: Boolean) {
+        uiState = when (type) {
+            "price" -> uiState.copy(priceChangeNotify = enabled)
+            "event" -> uiState.copy(newEventNotify = enabled)
+            "room" -> uiState.copy(roomAvailabilityNotify = enabled)
+            else -> uiState
+        }
+    }
+
     fun resetSuccess() {
         uiState = uiState.copy(isSuccess = false)
     }
@@ -159,6 +168,10 @@ class profileViewModel: ViewModel() {
 
     fun toggleNotifications(enabled: Boolean) {
         isNotificationsEnabled.value = enabled
+    }
+
+    fun logout() {
+        auth.signOut()
     }
 
     fun changeProfileImage(context: Context, uri: Uri, userId: String) {

@@ -11,5 +11,8 @@ data class Profile(
     val yearOfStudy: String? = "",
     val currentHostel: String = "",
     val currentRoomNo: String = "",
-    val favHostels: String? = "" // I SUGGEST THIS REMOVED. IT CAN BE DERIVED
+    val favHostels: String? = "",
+    val priceChangeNotify: Boolean = true,
+    val newEventNotify: Boolean = true,
+    val roomAvailabilityNotify: Boolean = true
 )

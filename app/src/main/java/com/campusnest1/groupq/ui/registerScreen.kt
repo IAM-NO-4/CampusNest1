@@ -26,9 +26,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import androidx.navigation.NavController
 import com.campusnest1.groupq.auth1.RegisterUiState
+import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.viewmodel.AuthViewModel
 import com.campusnest1.groupq.viewmodel.auth.registerViewModel
@@ -36,8 +37,8 @@ import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 @Composable
 fun registerScreen(
     navController: NavController? = null,
-    viewModel: registerViewModel = viewModel(),
-    authViewModel: AuthViewModel = viewModel(),
+    viewModel: registerViewModel = koinViewModel(),
+    authViewModel: AuthViewModel = koinViewModel(),
     onRegisterSuccess: () -> Unit = {}
 ) {
     val state = viewModel.uiState
@@ -64,7 +65,7 @@ fun registerScreen(
         onRegisterClick = { 
             authViewModel.signUp(state.email, state.password, state.fname, state.lname, state.phone)
         },
-        onLoginClick = { navController?.navigate("login") },
+        onLoginClick = { navController?.navigate(Screen.Login.route) },
         getPasswordStrength = { viewModel.getPasswordStrength(it) },
         isFormValid = { viewModel.isFormValid() }
     )
