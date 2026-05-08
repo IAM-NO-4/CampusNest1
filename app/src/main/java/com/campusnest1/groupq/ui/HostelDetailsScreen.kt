@@ -32,6 +32,7 @@ import com.campusnest1.groupq.ui.BookingBottomSheet
 import com.campusnest1.groupq.ui.HostelRating
 import com.campusnest1.groupq.ui.MockData
 import com.campusnest1.groupq.ui.theme.*
+import com.campusnest1.groupq.utils.formatCurrency
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -92,7 +93,7 @@ fun HostelDetailsContent(
     Scaffold(
         containerColor = Color.White,
         bottomBar = {
-            BottomBookingBar(hostel = hostel, selectedRoom = selectedRoom, viewModel = viewModel)
+            BottomBookingBar(viewModel = viewModel)
         }
     ) { padding ->
         LazyColumn(
@@ -278,20 +279,6 @@ fun HostelHeaderImage(
                 }
             }
         }
-
-        Surface(
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
-            color = Color.Black.copy(alpha = 0.5f),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Icons.Default.Image, null, tint = Color.White, modifier = Modifier.size(14.dp))
-                Text(" 1/12", color = Color.White, fontSize = 12.sp)
-            }
-        }
     }
 }
 
@@ -365,7 +352,7 @@ fun RoomCard(
                     Column {
                         Text("Monthly Rent", color = TextGrey, fontSize = 12.sp)
                         Text(
-                            text = "UGX ${room.price}",
+                            text = "UGX ${formatCurrency(room.price)}",
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
                             color = if (isAvailable) TextDark else TextGrey
@@ -429,74 +416,23 @@ fun AmenitiesList(amenities: List<String>) {
 }
 
 @Composable
-fun BottomBookingBar(hostel: Hostel, selectedRoom: Room?, viewModel: HostelViewModel) {
-    val showBookingSheet = viewModel.showBookingSheet
+fun BottomBookingBar(viewModel: HostelViewModel) {
 
-    if (showBookingSheet && selectedRoom != null){
-        BookingBottomSheet(
-            hostel = hostel,
-            room = selectedRoom,
-            onDismiss = { viewModel.updateShowBookingSheet(false) },
-            onBook = { _, _ ->
-                viewModel.updateShowBookingSheet(false) // Close after booking
-            }
-        )
-    }
-
-    val displayPrice = selectedRoom?.price?.toInt()?.toString() ?: hostel.lowestPrice
-
-    Surface(
-        shadowElevation = 16.dp,
-        color = Color.White,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = if (selectedRoom != null) "Room Price" else "Starts from",
-                    color = TextGrey,
-                    fontSize = 14.sp
-                )
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text("UGX $displayPrice", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = TextDark)
-                    Text("/mo", color = TextGrey, fontSize = 16.sp, modifier = Modifier.padding(bottom = 2.dp))
-                }
-            }
             Button(
                 onClick = { viewModel.updateShowBookingSheet(true) },
-                enabled = selectedRoom != null,
-                modifier = Modifier.height(60.dp).fillMaxWidth(0.75f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF2994A),
-                    disabledContainerColor = Color.LightGray
-                ),
+                modifier = Modifier.height(56.dp).fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = if (selectedRoom != null) "Book Viewing" else "Select a Room",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = Color.White
-                    )
-                    if (selectedRoom != null) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                    Text("Book Viewing", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
                 }
             }
-        }
-    }
+
 }
+
 
 @Preview(showBackground = true)
 @Composable

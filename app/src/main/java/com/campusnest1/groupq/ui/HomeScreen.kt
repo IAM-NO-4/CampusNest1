@@ -2,6 +2,7 @@ package com.campusnest1.groupq.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -26,13 +27,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
-import com.campusnest1.groupq.ui.MockData.mockHostels
 import com.campusnest1.groupq.ui.theme.*
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 import org.koin.androidx.compose.koinViewModel
 import androidx.navigation.NavController
 import com.campusnest1.groupq.navigation.Screen
+import com.campusnest1.groupq.utils.formatCurrency
 import com.campusnest1.groupq.utils.getTime
 import com.campusnest1.groupq.viewmodel.NotificationViewModel
 
@@ -46,6 +47,10 @@ fun CampusNestApp(
     LaunchedEffect(Unit) {
         viewModel.fetchHostelsData()
         viewModel.loadStudentData()
+        profViewModel.fetchProfileData()
+        notifViewModel.fetchNotifications(
+            userId = profViewModel.uiState.userId
+        )
     }
 
     var showNotificationsSheet by remember { mutableStateOf(false) }
@@ -82,7 +87,13 @@ fun CampusNestApp(
         savedStatus = viewModel.savedStatus,
         onToggleFavorite = { viewModel.toggleFavorite(it) },
         onCheckIfSaved = { viewModel.checkIfSaved(it) },
-        onTabSelected = { viewModel.setCategory(it) },
+        onTabSelected = { category ->
+            when (category) {
+                "Hostels" -> navController.navigate(Screen.Hostels.route)
+                "Events" -> navController.navigate(Screen.Events.route)
+                else -> viewModel.setCategory(category)
+            }
+        },
         onNavigateToDetails = { hostelId ->
             navController.navigate("hostelDetails/$hostelId")
         },
@@ -95,16 +106,16 @@ fun CampusNestApp(
 fun HomeScreenContent(
     fName: String,
     hostels: List<Hostel>,
+    selectedCategory: String = "All",
     onNotificationClick: () -> Unit = {},
     onSeeAllClick: () -> Unit = {},
+    onSearchClick: () -> Unit = {},
     savedStatus: Map<String, Boolean> = emptyMap(),
     onToggleFavorite: (String) -> Unit = {},
     onCheckIfSaved: (String) -> Unit = {},
     onNavigateToDetails: (String) -> Unit = {},
-    onTabSelected: (String) -> Unit = {},
-    onSearchClick: () -> Unit = {}
+    onTabSelected: (String) -> Unit = {}
 ) {
-    var selectedTab by remember { mutableStateOf("All") }
     val categories = listOf("All", "Hostels", "Events")
     val scrollState = rememberScrollState()
 
@@ -134,12 +145,11 @@ fun HomeScreenContent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 items(categories) { category ->
-                    val isSelected = selectedTab == category
+                    val isSelected = selectedCategory == category
                     Button(
                         onClick = {
-                            selectedTab = category
                             onTabSelected(category)
-                                  },
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isSelected) TealPrimary else Color.White,
                             contentColor = if (isSelected) Color.White else TextDark
@@ -195,14 +205,25 @@ fun HomeScreenContent(
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            Box(modifier = Modifier.heightIn(max = 2000.dp)) {
-                HostelList(
-                    hostels = hostels,
-                    savedStatus = savedStatus,
-                    onToggleFavorite = onToggleFavorite,
-                    onCheckIfSaved = onCheckIfSaved,
-                    onNavigateToDetails = onNavigateToDetails
-                )
+            if (hostels.isEmpty() && selectedCategory != "Events") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 40.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No hostels available", color = TextGrey)
+                }
+            } else {
+                Box(modifier = Modifier.heightIn(max = 2000.dp)) {
+                    HostelList(
+                        hostels = hostels,
+                        savedStatus = savedStatus,
+                        onToggleFavorite = onToggleFavorite,
+                        onCheckIfSaved = onCheckIfSaved,
+                        onNavigateToDetails = onNavigateToDetails
+                    )
+                }
             }
         }
     }
@@ -307,14 +328,7 @@ fun SearchBar(onSearchClick: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f)
             )
-            IconButton(onClick = { }, modifier = Modifier.size(24.dp)) {
-                Icon(
-                    imageVector = Icons.Default.Tune,
-                    contentDescription = "Filter",
-                    tint = TextGrey,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+
         }
     }
 }
@@ -470,7 +484,7 @@ fun HostelCard(
                 // Price
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
-                        text = "UGX ${hostel.highestPrice}",
+                        text = "UGX ${formatCurrency(hostel.highestPrice)}",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = OrangeAccent
@@ -531,7 +545,7 @@ fun HomeScreenPreview() {
     CampusNestTheme {
         HomeScreenContent(
             fName = "Amir",
-            hostels = mockHostels
+            hostels = MockData.mockHostels
         )
     }
 }
