@@ -6,6 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -24,6 +25,10 @@ fun ProfileSettingsScreen(
     profileView: profileViewModel = koinViewModel()
 ) {
     val profileState = profileView.uiState
+
+    LaunchedEffect(Unit) {
+        profileView.fetchProfileData()
+    }
 
     ProfileSettingsContent(
         profileState = profileState,
@@ -125,13 +130,15 @@ fun ProfileInputField(label: String, value: String, onValueChange: (String) -> U
         Text(
             text = label,
             fontWeight = FontWeight.Bold,
-            fontSize = 14.sp
+            fontSize = 14.sp,
+            color = Color.DarkGray
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
+            textStyle = androidx.compose.ui.text.TextStyle(color = Color.Black, fontSize = 16.sp),
             placeholder = {
                 Text(
                     text = "Enter your $label", color = Color.Gray,
@@ -139,10 +146,13 @@ fun ProfileInputField(label: String, value: String, onValueChange: (String) -> U
                 )
             },
             colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
                 focusedBorderColor = Color(0xFF00A3A3),
                 unfocusedBorderColor = Color(0xFFE0E0E0),
                 cursorColor = Color(0xFF00A3A3)
-            )
+            ),
+            singleLine = true
         )
     }
 }

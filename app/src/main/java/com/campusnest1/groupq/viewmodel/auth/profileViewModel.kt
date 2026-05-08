@@ -42,23 +42,27 @@ class profileViewModel: ViewModel() {
         if (uid != null) {
             uiState = uiState.copy(isLoading = true, error = null)
             
-            //Information about the user
+            // Step 1: Fetch User Data (Basic info)
             db.collection("users").document(uid).get()
                 .addOnSuccessListener { userDoc ->
                     val user = userDoc.toObject(User::class.java)
                     
-                    // profile-specific information
+                    // Immediately update UI with user data so the form isn't empty while waiting for profile
+                    uiState = uiState.copy(
+                        userId = uid,
+                        fname = user?.fname ?: uiState.fname,
+                        lname = user?.lname ?: uiState.lname,
+                        email = user?.email ?: uiState.email,
+                        phone = user?.phone ?: uiState.phone,
+                        profileImageUrl = user?.profileImageUrl ?: uiState.profileImageUrl
+                    )
+
+                    // Step 2: Fetch Profile Data (Academic/Settings)
                     db.collection("profiles").document(uid).get()
                         .addOnSuccessListener { profileDoc ->
                             val profile = profileDoc.toObject(Profile::class.java)
                             
                             uiState = uiState.copy(
-                                userId = uid,
-                                fname = user?.fname ?: "",
-                                lname = user?.lname ?: "",
-                                email = user?.email ?: "",
-                                phone = user?.phone ?: "",
-                                profileImageUrl = user?.profileImageUrl, // Assume User model has this or add to Profile
                                 course = profile?.course ?: "",
                                 yearOfStudy = profile?.yearOfStudy ?: "",
                                 currentHostel = profile?.currentHostel ?: "",
@@ -71,11 +75,12 @@ class profileViewModel: ViewModel() {
                             )
                         }
                         .addOnFailureListener { e ->
-                            uiState = uiState.copy(isLoading = false, error = e.message)
+                            // Even if profile fails, we still have user data
+                            uiState = uiState.copy(isLoading = false, error = "Profile data failed: ${e.message}")
                         }
                 }
                 .addOnFailureListener { e ->
-                    uiState = uiState.copy(isLoading = false, error = e.message)
+                    uiState = uiState.copy(isLoading = false, error = "User data failed: ${e.message}")
                 }
         }
     }

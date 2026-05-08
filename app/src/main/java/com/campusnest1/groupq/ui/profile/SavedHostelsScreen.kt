@@ -43,7 +43,9 @@ fun SavedHostelsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
+                    containerColor = Color.Transparent,
+                    titleContentColor = Color.DarkGray,
+                    navigationIconContentColor = Color.DarkGray
                 )
             )
         },

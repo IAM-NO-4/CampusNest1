@@ -104,7 +104,7 @@ fun ProfileInfoDisplay(label: String, value: String) {
             text = label,
             fontWeight = FontWeight.Bold,
             fontSize = 14.sp,
-            color = Color.Gray
+            color = Color.DarkGray
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(

@@ -1,5 +1,10 @@
 package com.campusnest1.groupq.ui.profile
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,17 +16,20 @@ import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Hotel
 import androidx.compose.material.icons.filled.Sell
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,15 +39,63 @@ fun NotificationSettingsScreen(
     profileViewModel: profileViewModel = koinViewModel()
 ) {
     val uiState = profileViewModel.uiState
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    var pendingPreference by remember { mutableStateOf<String?>(null) }
+
+    // Permission launcher for Android 13+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            pendingPreference?.let { type ->
+                profileViewModel.updateNotificationPreference(type, true)
+                val label = when(type) {
+                    "price" -> "Price alerts"
+                    "event" -> "Event notifications"
+                    "room" -> "Availability alerts"
+                    else -> "Notifications"
+                }
+                scope.launch { snackbarHostState.showSnackbar("$label enabled") }
+            }
+        } else {
+            scope.launch {
+                snackbarHostState.showSnackbar("Notifications are disabled. Please enable them in settings.")
+            }
+        }
+        pendingPreference = null
+    }
+
+    fun checkAndRequestPermission(type: String, onPermissionAlreadyGranted: () -> Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    onPermissionAlreadyGranted()
+                }
+                else -> {
+                    pendingPreference = type
+                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+        } else {
+            onPermissionAlreadyGranted()
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
                         "Notification Settings",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 22.sp,
+                        color = Color.DarkGray
                     )
                 },
                 navigationIcon = {
@@ -48,7 +104,9 @@ fun NotificationSettingsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent
+                    containerColor = Color.Transparent,
+                    titleContentColor = Color.DarkGray,
+                    navigationIconContentColor = Color.DarkGray
                 )
             )
         },
@@ -75,7 +133,7 @@ fun NotificationSettingsScreen(
                 Text(
                     text = "Stay updated on what matters to you. Toggle the notifications you'd like to receive.",
                     fontSize = 14.sp,
-                    color = Color.Gray,
+                    color = Color.DarkGray,
                     modifier = Modifier.padding(bottom = 32.dp)
                 )
 
@@ -84,7 +142,18 @@ fun NotificationSettingsScreen(
                     description = "Get notified when hostel prices drop or increase",
                     icon = Icons.Default.Sell,
                     checked = uiState.priceChangeNotify,
-                    onCheckedChange = { profileViewModel.updateNotificationPreference("price", it) }
+                    onCheckedChange = { enabled ->
+                        val action = if (enabled) "enabled" else "disabled"
+                        if (enabled) {
+                            checkAndRequestPermission("price") {
+                                profileViewModel.updateNotificationPreference("price", true)
+                                scope.launch { snackbarHostState.showSnackbar("Price alerts $action") }
+                            }
+                        } else {
+                            profileViewModel.updateNotificationPreference("price", false)
+                            scope.launch { snackbarHostState.showSnackbar("Price alerts $action") }
+                        }
+                    }
                 )
 
                 NotificationToggleItem(
@@ -92,7 +161,18 @@ fun NotificationSettingsScreen(
                     description = "Be the first to know about campus events and activities",
                     icon = Icons.Default.Event,
                     checked = uiState.newEventNotify,
-                    onCheckedChange = { profileViewModel.updateNotificationPreference("event", it) }
+                    onCheckedChange = { enabled ->
+                        val action = if (enabled) { "enabled" } else { "disabled" }
+                        if (enabled) {
+                            checkAndRequestPermission("event") {
+                                profileViewModel.updateNotificationPreference("event", true)
+                                scope.launch { snackbarHostState.showSnackbar("Event notifications $action") }
+                            }
+                        } else {
+                            profileViewModel.updateNotificationPreference("event", false)
+                            scope.launch { snackbarHostState.showSnackbar("Event notifications $action") }
+                        }
+                    }
                 )
 
                 NotificationToggleItem(
@@ -100,7 +180,18 @@ fun NotificationSettingsScreen(
                     description = "Alerts when rooms become available in your favorite hostels",
                     icon = Icons.Default.Hotel,
                     checked = uiState.roomAvailabilityNotify,
-                    onCheckedChange = { profileViewModel.updateNotificationPreference("room", it) }
+                    onCheckedChange = { enabled ->
+                        val action = if (enabled) "enabled" else "disabled"
+                        if (enabled) {
+                            checkAndRequestPermission("room") {
+                                profileViewModel.updateNotificationPreference("room", true)
+                                scope.launch { snackbarHostState.showSnackbar("Availability alerts $action") }
+                            }
+                        } else {
+                            profileViewModel.updateNotificationPreference("room", false)
+                            scope.launch { snackbarHostState.showSnackbar("Availability alerts $action") }
+                        }
+                    }
                 )
             }
         }
