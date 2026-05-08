@@ -11,8 +11,8 @@ android {
 
     defaultConfig {
         applicationId = "com.campusnest1.groupq"
-        minSdk = 23
-        targetSdk = 35
+        minSdk = 24
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -67,10 +67,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.navigation.compose)
     
-    // UI specific libraries (from libs.versions.toml)
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.text)
-
     // Images & Icons
     //implementation(libs.coil.compose)
     implementation("io.coil-kt:coil-compose:2.6.0")

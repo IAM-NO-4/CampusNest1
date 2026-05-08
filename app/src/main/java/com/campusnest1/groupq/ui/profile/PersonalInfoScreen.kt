@@ -28,7 +28,7 @@ fun PersonalInfoScreen(
 
     PersonalInfoContent(
         profileState = profileState,
-        onEditClick = { navController.navigate(Screen.ProfileSettings) }
+        onEditClick = { navController.navigate(Screen.ProfileSettings.route) }
     )
 }
 
