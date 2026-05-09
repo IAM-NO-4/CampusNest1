@@ -50,6 +50,10 @@ fun NotificationSettingsScreen(
     val scope = rememberCoroutineScope()
     var pendingPreference by remember { mutableStateOf<String?>(null) }
 
+    LaunchedEffect(Unit) {
+        profileViewModel.fetchProfileData()
+    }
+
     // Permission launcher for Android 13+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()

@@ -42,7 +42,8 @@ fun CampusNestApp(
     navController: NavController,
     viewModel: HostelViewModel = koinViewModel(),
     profViewModel: profileViewModel = koinViewModel(),
-    notifViewModel: NotificationViewModel = koinViewModel()
+    notifViewModel: NotificationViewModel = koinViewModel(),
+    onScroll: (Boolean) -> Unit = {}
     ) {
     LaunchedEffect(Unit) {
         viewModel.fetchHostelsData()
@@ -97,7 +98,8 @@ fun CampusNestApp(
         onNavigateToDetails = { hostelId ->
             navController.navigate("hostelDetails/$hostelId")
         },
-        onSearchClick = { navController.navigate("hostels") }
+        onSearchClick = { navController.navigate("hostels") },
+        onScroll = onScroll
     )
 }
 
@@ -114,10 +116,16 @@ fun HomeScreenContent(
     onToggleFavorite: (String) -> Unit = {},
     onCheckIfSaved: (String) -> Unit = {},
     onNavigateToDetails: (String) -> Unit = {},
-    onTabSelected: (String) -> Unit = {}
+    onTabSelected: (String) -> Unit = {},
+    onScroll: (Boolean) -> Unit = {}
 ) {
     val categories = listOf("All", "Hostels", "Events")
     val scrollState = rememberScrollState()
+
+    val shouldShow = !scrollState.isScrollInProgress || scrollState.value == 0
+    LaunchedEffect(shouldShow) {
+        onScroll(shouldShow)
+    }
 
     Scaffold(
         containerColor = BackgroundLight

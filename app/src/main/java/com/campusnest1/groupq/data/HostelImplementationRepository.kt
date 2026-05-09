@@ -163,7 +163,7 @@ class HostelImplementationRepository(
         val data = doc.data ?: return null
         return Hostel(
             hostelId = data["hostelId"] as? String ?: doc.id,
-            name = data["name"] as? String ?: "",
+            name = (data["name"] as? String) ?: (data["hostelName"] as? String) ?: "",
             location = data["location"] as? String ?: "",
             lowestPrice = data["lowestPrice"]?.toString() ?: "",
             highestPrice = data["highestPrice"]?.toString() ?: "",

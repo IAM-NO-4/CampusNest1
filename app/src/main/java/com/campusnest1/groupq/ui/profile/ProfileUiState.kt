@@ -13,9 +13,9 @@ data class ProfileUiState(
     val currentHostel: String = "",
     val currentRoomNo: String = "",
     val favHostels: String? = "",
-    val priceChangeNotify: Boolean = true,
-    val newEventNotify: Boolean = true,
-    val roomAvailabilityNotify: Boolean = true,
+    val priceChangeNotify: Boolean = false,
+    val newEventNotify: Boolean = false,
+    val roomAvailabilityNotify: Boolean = false,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val error: String? = null

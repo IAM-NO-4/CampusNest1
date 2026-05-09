@@ -141,7 +141,7 @@ fun AppNavHost() {
             }
 
             composable(Screen.NotificationSettings.route) {
-                NotificationSettingsScreen(navController = navController)
+                NotificationSettingsScreen(navController = navController, profileViewModel = profileViewM)
             }
 
             composable(Screen.BookingHistory.route) {

@@ -36,7 +36,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -68,14 +70,16 @@ import com.campusnest1.groupq.viewmodel.EventViewModel
 @Composable
 fun EventsScreen(
     navController: NavController,
-    viewModel: EventViewModel
+    viewModel: EventViewModel,
+    onScroll: (Boolean) -> Unit = {}
 ) {
     EventsScreenContent(
         onEventClick = { eventId ->
             navController.navigate("eventDetails/$eventId")
         },
         events = viewModel.events.value,
-        isLoading = viewModel.isLoading.value
+        isLoading = viewModel.isLoading.value,
+        onScroll = onScroll
     )
 }
 
@@ -83,10 +87,17 @@ fun EventsScreen(
 fun EventsScreenContent(
     onEventClick: (eventId: String) -> Unit = {},
     events: List<Event>,
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
+    onScroll: (Boolean) -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf("All") }
     val categories = listOf("All", "Social", "Academic", "Sports")
+    val listState = rememberLazyListState()
+
+    val shouldShow = !listState.isScrollInProgress || listState.firstVisibleItemIndex == 0
+    LaunchedEffect(shouldShow) {
+        onScroll(shouldShow)
+    }
 
     val filteredEvents = remember(selectedTab, events) {
         if (selectedTab == "All") events
@@ -102,6 +113,7 @@ fun EventsScreenContent(
             }
         } else {
             LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)

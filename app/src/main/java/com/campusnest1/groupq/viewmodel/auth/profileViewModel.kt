@@ -91,9 +91,9 @@ class profileViewModel: ViewModel() {
                         currentHostel = profile?.currentHostel ?: "",
                         currentRoomNo = profile?.currentRoomNo ?: "",
                         favHostels = profile?.favHostels ?: "",
-                        priceChangeNotify = profile?.priceChangeNotify ?: true,
-                        newEventNotify = profile?.newEventNotify ?: true,
-                        roomAvailabilityNotify = profile?.roomAvailabilityNotify ?: true
+                        priceChangeNotify = profile?.priceChangeNotify ?: false,
+                        newEventNotify = profile?.newEventNotify ?: false,
+                        roomAvailabilityNotify = profile?.roomAvailabilityNotify ?: false
                     )
                 }
                 
@@ -103,10 +103,6 @@ class profileViewModel: ViewModel() {
             }
         }
     }
-
-
-
-
 
     fun onCourseChange(course:String){
         uiState = uiState.copy(course = course)

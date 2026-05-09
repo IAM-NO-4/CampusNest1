@@ -67,7 +67,8 @@ fun HostelDetailsScreen(
             onShareClick = {
                 val sendIntent: Intent = Intent().apply {
                     action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, "Check out ${hostel.name} in ${hostel.location}! Prices starting from UGX ${hostel.lowestPrice}. Download CampusNest to see more.")
+                    val displayName = hostel.name.ifBlank { "this hostel" }
+                    putExtra(Intent.EXTRA_TEXT, "Check out $displayName in ${hostel.location}! Prices starting from UGX ${hostel.lowestPrice}. Download CampusNest to see more.")
                     type = "text/plain"
                 }
                 val shareIntent = Intent.createChooser(sendIntent, null)
