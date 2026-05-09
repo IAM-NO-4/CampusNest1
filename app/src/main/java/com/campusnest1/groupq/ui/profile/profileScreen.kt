@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -46,8 +47,16 @@ import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 fun ProfileScreen(
     navController: NavController,
     profileView: profileViewModel = koinViewModel(),
-    hostelViewModel: HostelViewModel = koinViewModel()
+    hostelViewModel: HostelViewModel = koinViewModel(),
+    onScroll: (Boolean) -> Unit
 ) {
+    val navScrollState = rememberScrollState()
+
+    val shouldShow = !navScrollState.isScrollInProgress || navScrollState.value == 0
+    LaunchedEffect(shouldShow) {
+        onScroll(shouldShow)
+    }
+
     val uiState = profileView.uiState
     val context = LocalContext.current
 
@@ -84,6 +93,7 @@ fun ProfileScreen(
         bookingCount = hostelViewModel.bookingHistory.value.size,
         onNotificationSettingsClick = { navController.navigate(Screen.NotificationSettings.route) },
         onProfileImageClick = { launcher.launch("image/*") },
+        scrollState= navScrollState,
         onLogoutClick = {
             profileView.logout()
             navController.navigate(Screen.Login.route) {
@@ -91,27 +101,10 @@ fun ProfileScreen(
             }
         },
         navController = navController
+
     )
 }
 
-@Preview(showBackground = true, heightDp = 1100)
-@Composable
-fun ProfileScreenPreview() {
-    ProfileScreenContent(
-        fname = "Alex",
-        lname = "Muhanji",
-        profileImageUrl = null,
-        course = "Software Eng",
-        studyYear = "2",
-        currentHostel = "Lakeside Hostel",
-        navController = null,
-        savedCount = 4,
-            bookingCount = 56,
-        onNotificationSettingsClick = {},
-        onProfileImageClick = {},
-        onLogoutClick = {}
-    )
-}
 
 @Composable
 fun ProfileScreenContent(
@@ -125,10 +118,10 @@ fun ProfileScreenContent(
     bookingCount: Int,
     onNotificationSettingsClick: () -> Unit,
     onProfileImageClick: () -> Unit,
+    scrollState: ScrollState,
     onLogoutClick: () -> Unit,
     navController: NavController?
 ) {
-    val scrollState = rememberScrollState()
 
     Box(
         modifier = Modifier
@@ -421,3 +414,25 @@ fun SettingsItem(
         }
     }
 }
+
+
+@Preview(showBackground = true, heightDp = 1100)
+@Composable
+fun ProfileScreenPreview() {
+    ProfileScreenContent(
+        fname = "Alex",
+        lname = "Muhanji",
+        profileImageUrl = null,
+        course = "Software Eng",
+        studyYear = "2",
+        currentHostel = "Lakeside Hostel",
+        navController = null,
+        savedCount = 4,
+        bookingCount = 56,
+        onNotificationSettingsClick = {},
+        onProfileImageClick = {},
+        onLogoutClick = {},
+        scrollState = rememberScrollState()
+    )
+}
+

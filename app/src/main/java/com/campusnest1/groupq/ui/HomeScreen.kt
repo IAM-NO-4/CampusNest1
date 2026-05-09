@@ -1,10 +1,12 @@
 package com.campusnest1.groupq.ui
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,11 +22,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.ui.theme.*
@@ -42,8 +46,17 @@ fun CampusNestApp(
     navController: NavController,
     viewModel: HostelViewModel = koinViewModel(),
     profViewModel: profileViewModel = koinViewModel(),
-    notifViewModel: NotificationViewModel = koinViewModel()
-    ) {
+    notifViewModel: NotificationViewModel = koinViewModel(),
+    onScroll: (Boolean) -> Unit
+) {
+    val scrollState = rememberScrollState()
+
+    val shouldShow = !scrollState.isScrollInProgress || scrollState.value == 0
+
+    LaunchedEffect(shouldShow) {
+        onScroll(shouldShow)
+    }
+
     LaunchedEffect(Unit) {
         viewModel.fetchHostelsData()
         viewModel.loadStudentData()
@@ -55,7 +68,6 @@ fun CampusNestApp(
 
     var showNotificationsSheet by remember { mutableStateOf(false) }
     val uiState = profViewModel.uiState
-
     val hostels = viewModel.hostels
 
     if (showNotificationsSheet) {
@@ -97,10 +109,10 @@ fun CampusNestApp(
         onNavigateToDetails = { hostelId ->
             navController.navigate("hostelDetails/$hostelId")
         },
-        onSearchClick = { navController.navigate("hostels") }
+        onSearchClick = { navController.navigate("hostels") },
+        navScrollState = scrollState
     )
 }
-
 
 @Composable
 fun HomeScreenContent(
@@ -114,125 +126,125 @@ fun HomeScreenContent(
     onToggleFavorite: (String) -> Unit = {},
     onCheckIfSaved: (String) -> Unit = {},
     onNavigateToDetails: (String) -> Unit = {},
-    onTabSelected: (String) -> Unit = {}
+    onTabSelected: (String) -> Unit = {},
+    navScrollState: ScrollState
 ) {
     val categories = listOf("All", "Hostels", "Events")
     val scrollState = rememberScrollState()
 
-    Scaffold(
-        containerColor = BackgroundLight
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 24.dp)
-                .verticalScroll(scrollState)
+    // Removed Scaffold to fix doubled-up top padding
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color(0xFFE0F7FA), Color.White)
+                )
+            )
+            .statusBarsPadding() // Ensures content starts below the status bar
+            .padding(horizontal = 24.dp)
+            .verticalScroll(scrollState)
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        HeaderSection(onNotificationClick = onNotificationClick, fName = fName)
+        
+        Spacer(modifier = Modifier.height(20.dp))
+        
+        SearchBar(onSearchClick = onSearchClick)
+        
+        Spacer(modifier = Modifier.height(20.dp))
+        
+        // Top Tabs
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            HeaderSection(onNotificationClick = onNotificationClick, fName = fName)
-            
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            SearchBar(onSearchClick = onSearchClick)
-            
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            // Top Tabs
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(categories) { category ->
-                    val isSelected = selectedCategory == category
-                    Button(
-                        onClick = {
-                            onTabSelected(category)
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isSelected) TealPrimary else Color.White,
-                            contentColor = if (isSelected) Color.White else TextDark
-                        ),
-                        shape = RoundedCornerShape(24.dp),
-                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
-                        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp)
-                    ) {
-                        Text(text = category, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Recommendation Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "Recommended",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = TextDark
-                    )
-                    Text(
-                        text = "Hostels",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = TextDark
-                    )
-                }
-                TextButton(onClick = onSeeAllClick) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "See all",
-                            color = TealPrimary,
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = TealPrimary
-                        )
-                    }
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            if (hostels.isEmpty() && selectedCategory != "Events") {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 40.dp),
-                    contentAlignment = Alignment.Center
+            items(categories) { category ->
+                val isSelected = selectedCategory == category
+                Button(
+                    onClick = { onTabSelected(category) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isSelected) TealPrimary else Color.White,
+                        contentColor = if (isSelected) Color.White else TextDark
+                    ),
+                    shape = RoundedCornerShape(24.dp),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp)
                 ) {
-                    Text("No hostels available", color = TextGrey)
+                    Text(text = category, fontWeight = FontWeight.Bold)
                 }
-            } else {
-                Box(modifier = Modifier.heightIn(max = 2000.dp)) {
-                    HostelList(
-                        hostels = hostels,
-                        savedStatus = savedStatus,
-                        onToggleFavorite = onToggleFavorite,
-                        onCheckIfSaved = onCheckIfSaved,
-                        onNavigateToDetails = onNavigateToDetails
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Recommendation Header
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = "Recommended",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark
+                )
+                Text(
+                    text = "Hostels",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark
+                )
+            }
+            TextButton(onClick = onSeeAllClick) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "See all",
+                        color = TealPrimary,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = TealPrimary
                     )
                 }
             }
         }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        if (hostels.isEmpty() && selectedCategory != "Events") {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 40.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No hostels available", color = TextGrey)
+            }
+        } else {
+            HostelList(
+                hostels = hostels,
+                savedStatus = savedStatus,
+                onToggleFavorite = onToggleFavorite,
+                onCheckIfSaved = onCheckIfSaved,
+                onNavigateToDetails = onNavigateToDetails
+            )
+        }
+        
+        // Add padding at the bottom so the last item isn't hidden by the floating bar
+        Spacer(modifier = Modifier.height(100.dp))
     }
 }
 
 @Composable
-fun HeaderSection( onNotificationClick: () -> Unit,
-                   fName: String = "Alex"
-  ) {
+fun HeaderSection(onNotificationClick: () -> Unit, fName: String = "Alex") {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -245,7 +257,6 @@ fun HeaderSection( onNotificationClick: () -> Unit,
                         "Good morning","Good evening" -> Icons.Default.WbTwilight
                          else -> Icons.Default.WbSunny
                     },
-
                     contentDescription = null,
                     tint = Color(0xFFF2994A),
                     modifier = Modifier.size(16.dp)
@@ -260,15 +271,12 @@ fun HeaderSection( onNotificationClick: () -> Unit,
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "Hello, $fName",
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = TextDark
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "👋",
-                    style = MaterialTheme.typography.headlineMedium
-                )
+                Text(text = "👋", style = MaterialTheme.typography.headlineMedium)
             }
         }
 
@@ -279,26 +287,24 @@ fun HeaderSection( onNotificationClick: () -> Unit,
             shadowElevation = 4.dp,
             modifier = Modifier.size(48.dp)
         ) {
-            IconButton(
-                onClick = onNotificationClick
-            ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Outlined.Notifications,
-                    contentDescription = "Notifications",
-                    tint = TextDark
-                )
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .offset(x = 10.dp, y = (-10).dp)
-                        .background(Color.Red, CircleShape)
-                        .align(Alignment.Center)
-                )
+            IconButton(onClick = onNotificationClick) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Outlined.Notifications,
+                        contentDescription = "Notifications",
+                        tint = TextDark
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .offset(x = 10.dp, y = (-10).dp)
+                            .background(Color.Red, CircleShape)
+                            .align(Alignment.Center)
+                    )
+                }
             }
         }
     }
-  }
 }
 
 @Composable
@@ -311,8 +317,7 @@ fun SearchBar(onSearchClick: () -> Unit) {
         shadowElevation = 2.dp
     ) {
         Row(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
@@ -328,7 +333,6 @@ fun SearchBar(onSearchClick: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f)
             )
-
         }
     }
 }
@@ -352,6 +356,31 @@ fun HostelList(
                 onToggleFavorite = { onToggleFavorite(hostel.hostelId) },
                 onCheckIfSaved = { onCheckIfSaved(hostel.hostelId) },
                 onNavigateToDetails = { onNavigateToDetails(hostel.hostelId) }
+            )
+        }
+    }
+}
+
+@Composable
+fun HostelRating(hostel: Hostel, color: Color = OrangeAccentLight) {
+    Surface(color = color , shape = RoundedCornerShape(12.dp)){
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Spacer(modifier = Modifier.width(4.dp))
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = null,
+                tint = StarYellow,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = hostel.avgRating.toString(),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = TextDark
             )
         }
     }
@@ -416,7 +445,6 @@ fun HostelCard(
                     }
                 }
 
-                // Favorites
                 Surface(
                     modifier = Modifier
                         .padding(12.dp)
@@ -438,7 +466,6 @@ fun HostelCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Name
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -447,11 +474,9 @@ fun HostelCard(
                 Text(
                     text = hostel.name,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Normal,
                     color = TextDark
                 )
-
-                // Rating
                 HostelRating(hostel)
             }
 
@@ -464,12 +489,11 @@ fun HostelCard(
                     tint = TextGrey,
                     modifier = Modifier.size(16.dp)
                 )
+
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = hostel.location.toString(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextGrey
-                )
+
+                Text(text = hostel.location,  color = TextGrey, style = MaterialTheme.typography.bodyMedium)
+
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -481,12 +505,12 @@ fun HostelCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Price
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
                         text = "UGX ${formatCurrency(hostel.highestPrice)}",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Normal,
                         color = OrangeAccent
                     )
                     Text(
@@ -501,51 +525,15 @@ fun HostelCard(
                     onClick = onNavigateToDetails,
                     colors = ButtonDefaults.buttonColors(containerColor = TealSecondary),
                     shape = RoundedCornerShape(20.dp),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
+                    contentPadding = PaddingValues(horizontal = 18.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = "View Details",
+                        text = "View",
                         color = TealPrimary,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun HostelRating(hostel: Hostel, color: Color = OrangeAccentLight) {
-    Surface(color = color , shape = RoundedCornerShape(12.dp)){
-        Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-    ) {
-            Spacer(modifier = Modifier.width(4.dp))
-            Icon(
-                imageVector = Icons.Default.Star,
-                contentDescription = null,
-                tint = StarYellow,
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = hostel.avgRating.toString(),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                color = TextDark
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true, heightDp = 1500)
-@Composable
-fun HomeScreenPreview() {
-    CampusNestTheme {
-        HomeScreenContent(
-            fName = "Amir",
-            hostels = MockData.mockHostels
-        )
     }
 }

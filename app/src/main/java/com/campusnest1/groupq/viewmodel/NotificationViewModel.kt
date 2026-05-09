@@ -16,50 +16,61 @@ class NotificationViewModel(
     var notifications by mutableStateOf<List<Notification>>(emptyList())
         private set
 
+    var isLoading by mutableStateOf(false)
+        private set
+
     fun fetchNotifications(userId: String) {
-
+        if (userId.isEmpty()) return
+        
         viewModelScope.launch {
-
-            notifications =
-                repository.getNotifications(userId)
+            isLoading = true
+            try {
+                notifications = repository.getNotifications(userId)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // Handle error gracefully, maybe set an error state
+            } finally {
+                isLoading = false
+            }
         }
     }
 
     fun markAsRead(notificationId: String) {
-
         viewModelScope.launch {
-
-            repository.markAsRead(notificationId)
-
-            notifications = notifications.map {
-                if (it.notificationId == notificationId) {
-                    it.copy(isRead = true)
-                } else it
+            try {
+                repository.markAsRead(notificationId)
+                notifications = notifications.map {
+                    if (it.notificationId == notificationId) {
+                        it.copy(isRead = true)
+                    } else it
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
 
     fun deleteNotification(notificationId: String) {
-
         viewModelScope.launch {
-
-            repository.deleteNotification(notificationId)
-
-            notifications =
-                notifications.filter {
+            try {
+                repository.deleteNotification(notificationId)
+                notifications = notifications.filter {
                     it.notificationId != notificationId
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
     fun addNotification(notification: Notification) {
-
         viewModelScope.launch {
-
-            repository.addNotification(notification)
-
-            notifications =
-                listOf(notification) + notifications
+            try {
+                repository.addNotification(notification)
+                notifications = listOf(notification) + notifications
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

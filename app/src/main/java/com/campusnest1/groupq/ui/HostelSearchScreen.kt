@@ -3,9 +3,11 @@ package com.campusnest1.groupq.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -43,8 +45,11 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun HostelSearchScreen(
     navController: NavHostController,
-    viewModel: HostelViewModel = koinViewModel()
+    viewModel: HostelViewModel = koinViewModel(),
+    onScroll: (Boolean) -> Unit
 ) {
+    val scrollState = rememberLazyListState()
+
     var showFilterSheet by rememberSaveable { mutableStateOf(false) }
     var activeFilterType by rememberSaveable { mutableStateOf("") }
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -67,12 +72,17 @@ fun HostelSearchScreen(
     val filteredHostels = allHostels.filter { hostel ->
         val matchesSearch = searchQuery.isBlank() ||
             hostel.name.contains(searchQuery, ignoreCase = true) ||
-            hostel.location.toString().contains(searchQuery, ignoreCase = true)
+            hostel.location.contains(searchQuery, ignoreCase = true)
         val price = hostel.highestPrice.replace(Regex("[^\\d.]"), "").toFloatOrNull() ?: 0f
         val matchesPrice = price >= priceRange.start && price <= priceRange.endInclusive
         val matchesLocation = selectedLocation.isBlank() ||
-            hostel.location.toString().contains(selectedLocation, ignoreCase = true)
+            hostel.location.contains(selectedLocation, ignoreCase = true)
         matchesSearch && matchesPrice && matchesLocation
+    }
+
+    val shouldShow = !scrollState.isScrollInProgress || scrollState.firstVisibleItemIndex == 0
+    LaunchedEffect(shouldShow) {
+        onScroll(shouldShow)
     }
 
     Scaffold(
@@ -115,6 +125,7 @@ fun HostelSearchScreen(
                 }
                 else -> {
                     LazyColumn(
+                        state = scrollState,
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = 16.dp)
                     ) {
@@ -242,6 +253,12 @@ fun SearchHostelCard(
                             modifier = Modifier.padding(bottom = 2.dp)
                         )
                     }
+
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End){
                     Surface(color = statusBg, shape = RoundedCornerShape(12.dp)) {
                         Text(text = statusText, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), color = statusColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
@@ -392,7 +409,8 @@ fun SearchTopBar(
 fun HostelSearchScreenPreview() {
     CampusNestTheme {
         HostelSearchScreen(
-            navController = rememberNavController()
+            navController = rememberNavController(),
+            onScroll ={}
         )
     }
 }

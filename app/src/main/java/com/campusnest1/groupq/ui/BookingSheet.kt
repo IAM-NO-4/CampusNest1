@@ -47,6 +47,7 @@ import com.campusnest1.groupq.ui.theme.BackgroundLight
 import com.campusnest1.groupq.ui.theme.CampusNestTheme
 import com.campusnest1.groupq.ui.theme.OrangeAccent
 import com.campusnest1.groupq.ui.theme.TealPrimary
+import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.ui.theme.TextGrey
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,6 +76,7 @@ fun BookingBottomSheet(
                 text = "Booking Summary",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
+                color = TextDark,
                 modifier = Modifier.padding(vertical = 16.dp)
             )
 
@@ -89,6 +91,7 @@ fun BookingBottomSheet(
 
                     Text(
                         text = hostel.name,
+                        color = TextDark,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -123,6 +126,7 @@ fun BookingBottomSheet(
                                 )
                                 Text(
                                     text = "Oct 24, 2023",  /* Placeholder ~TODO */
+                                    color = TextDark,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -150,6 +154,7 @@ fun BookingBottomSheet(
                                 )
                                 Text(
                                     text = "10:30 AM", /* Placeholder ~TODO */
+                                    color = TextDark,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -170,7 +175,7 @@ fun BookingBottomSheet(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "${room.type} • ${room.capacity} Person", /* Placeholder ~TODO */
+                            text = "${room.type} • ${room.capacity} Person",
                             style = MaterialTheme.typography.bodyMedium,
                             color = TextGrey
                         )

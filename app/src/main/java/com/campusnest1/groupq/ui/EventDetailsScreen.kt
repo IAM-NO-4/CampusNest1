@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Event
+import com.campusnest1.groupq.ui.theme.BackgroundLight
 import com.campusnest1.groupq.ui.theme.CampusNestTheme
 import com.campusnest1.groupq.ui.theme.TealPrimary
 import com.campusnest1.groupq.ui.theme.TealSecondary
@@ -60,6 +61,7 @@ fun EventDetailsScreen(
     val isSaved = viewModel?.savedStatus?.get(event.eventId) ?: false
 
     Scaffold(
+        containerColor = BackgroundLight, // Explicitly set background to avoid dark mode issues
         bottomBar = {
             BottomEventBar(
                 onCalendarClick = {
@@ -140,8 +142,19 @@ fun EventDetailCard(
         
         Spacer(modifier = Modifier.height(24.dp))
 
-        InfoRow(Icons.Outlined.CalendarToday, formatEventDate(event.date), "${formatEventTime(event.startTime)} - ${formatEventTime(event.endTime)}")
-        InfoRow(Icons.Outlined.LocationOn, "Event Venue", event.location)
+        // Time display safety: show original string if formatting fails or is empty
+        val startTime = formatEventTime(event.startTime)
+        val endTime = formatEventTime(event.endTime)
+        val timeDisplay = if (startTime.isNotEmpty() && endTime.isNotEmpty()) {
+            "$startTime - $endTime"
+        } else if (startTime.isNotEmpty()) {
+            startTime
+        } else {
+            "Time not specified"
+        }
+
+        InfoRow(Icons.Outlined.CalendarToday, formatEventDate(event.date), timeDisplay)
+        InfoRow(Icons.Outlined.LocationOn, "Event Venue", event.location.ifEmpty { "Location not specified" })
         InfoRow(Icons.Outlined.Money, "Open to ${event.attendees}", if (event.fee == "0" || event.fee.isEmpty()) "Free Entry" else "UGX ${event.fee}")
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -149,11 +162,13 @@ fun EventDetailCard(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(text = "About", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextDark)
-        Text(text = event.description, style = MaterialTheme.typography.bodyMedium, color = TextGrey, modifier = Modifier.padding(top = 8.dp))
+        Text(text = event.description.ifEmpty { "No description available." }, style = MaterialTheme.typography.bodyMedium, color = TextGrey, modifier = Modifier.padding(top = 8.dp))
 
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(text = "Event Highlights", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextDark)
-        HighlightsList(event.highlights)
+        if (event.highlights.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(text = "Event Highlights", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextDark)
+            HighlightsList(event.highlights)
+        }
         
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -175,7 +190,7 @@ fun EventDetailCard(
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = "Organized by", style = MaterialTheme.typography.bodySmall, color = TextGrey)
-                Text(text = event.eventOrganizer, style = MaterialTheme.typography.labelSmall, color = TextGrey)
+                Text(text = event.eventOrganizer.ifEmpty { "Unknown Organizer" }, style = MaterialTheme.typography.labelSmall, color = TextGrey)
             }
         }
     }
