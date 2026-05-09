@@ -17,6 +17,8 @@ import androidx.navigation.NavController
 import com.campusnest1.groupq.ui.HostelCard
 import com.campusnest1.groupq.ui.theme.BackgroundLight
 import com.campusnest1.groupq.ui.theme.TealPrimary
+import com.campusnest1.groupq.ui.theme.TextDark
+import com.campusnest1.groupq.ui.theme.TextGrey
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -44,8 +46,8 @@ fun SavedHostelsScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = Color.DarkGray,
-                    navigationIconContentColor = Color.DarkGray
+                    titleContentColor = TextDark,
+                    navigationIconContentColor = TextDark
                 )
             )
         },
@@ -62,7 +64,7 @@ fun SavedHostelsScreen(
                     Text(
                         text = "No saved hostels yet",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = Color.Gray
+                        color = TextGrey
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(

@@ -17,6 +17,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.koin.androidx.compose.koinViewModel
 import androidx.navigation.NavController
+import com.campusnest1.groupq.ui.theme.BorderLight
+import com.campusnest1.groupq.ui.theme.ErrorRed
+import com.campusnest1.groupq.ui.theme.LightBlue
+import com.campusnest1.groupq.ui.theme.SurfaceWhite
+import com.campusnest1.groupq.ui.theme.TealAccent
+import com.campusnest1.groupq.ui.theme.TextGrey
+import com.campusnest1.groupq.ui.theme.TextPrimary
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 
 @Composable
@@ -69,7 +76,7 @@ fun ProfileSettingsContent(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                brush = Brush.verticalGradient(listOf(Color(0xFFE0F7FA), Color.White))
+                brush = Brush.verticalGradient(listOf(LightBlue, SurfaceWhite))
             )
     ) {
         Column(
@@ -84,7 +91,7 @@ fun ProfileSettingsContent(
                 text = "Edit Profile",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF00A3A3)
+                color = TealAccent
             )
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -105,18 +112,18 @@ fun ProfileSettingsContent(
             Button(
                 onClick = onSaveButton,
                 modifier = Modifier.fillMaxWidth().height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A3A3))
+                colors = ButtonDefaults.buttonColors(containerColor = TealAccent)
             ) {
 
                 if (profileState.isLoading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                    CircularProgressIndicator(color = SurfaceWhite, modifier = Modifier.size(20.dp))
                 } else {
-                    Text("Save Changes", fontWeight = FontWeight.Bold)
+                    Text("Save Changes", fontWeight = FontWeight.Bold, color = SurfaceWhite)
                 }
             }
             
             if (profileState.error != null) {
-                Text(text = profileState.error, color = Color.Red, modifier = Modifier.padding(top = 8.dp))
+                Text(text = profileState.error, color = ErrorRed, modifier = Modifier.padding(top = 8.dp))
             }
             
             Spacer(modifier = Modifier.height(40.dp))
@@ -131,26 +138,26 @@ fun ProfileInputField(label: String, value: String, onValueChange: (String) -> U
             text = label,
             fontWeight = FontWeight.Bold,
             fontSize = 14.sp,
-            color = Color.DarkGray
+            color = TextGrey
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
-            textStyle = androidx.compose.ui.text.TextStyle(color = Color.Black, fontSize = 16.sp),
+            textStyle = androidx.compose.ui.text.TextStyle(color = TextPrimary, fontSize = 16.sp),
             placeholder = {
                 Text(
-                    text = "Enter your $label", color = Color.Gray,
+                    text = "Enter your $label", color = TextGrey,
                     fontSize = 13.sp
                 )
             },
             colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black,
-                focusedBorderColor = Color(0xFF00A3A3),
-                unfocusedBorderColor = Color(0xFFE0E0E0),
-                cursorColor = Color(0xFF00A3A3)
+                focusedTextColor = TextPrimary,
+                unfocusedTextColor = TextPrimary,
+                focusedBorderColor = TealAccent,
+                unfocusedBorderColor = BorderLight,
+                cursorColor = TealAccent
             ),
             singleLine = true
         )

@@ -2,8 +2,11 @@ package com.campusnest1.groupq.data
 
 import com.google.firebase.auth.FirebaseAuth
 import com.campusnest1.groupq.data.AuthRepository
+import com.campusnest1.groupq.model.Profile
 import com.campusnest1.groupq.model.User
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
@@ -43,7 +46,6 @@ class AuthImplementationRepository (
             val result = firebaseAuth.createUserWithEmailAndPassword(email, pass).await()
             val userId = result.user?.uid ?: throw Exception("User ID not found")
             
-            // Save user profile to Firestore
             val user = User(
                 userId = userId,
                 fname = fname,
@@ -51,11 +53,22 @@ class AuthImplementationRepository (
                 email = email,
                 phone = phone
             )
-            com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                .collection("users")
-                .document(userId)
-                .set(user)
-                .await()
+
+            val profile = Profile(
+                userId = userId,
+                fname = fname,
+                lname = lname,
+                email = email,
+                phone = phone
+            )
+
+            coroutineScope {
+                val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                val userTask = async { db.collection("users").document(userId).set(user).await() }
+                val profileTask = async { db.collection("profiles").document(userId).set(profile).await() }
+                userTask.await()
+                profileTask.await()
+            }
 
             Result.success(Unit)
         } catch (e: Exception) {

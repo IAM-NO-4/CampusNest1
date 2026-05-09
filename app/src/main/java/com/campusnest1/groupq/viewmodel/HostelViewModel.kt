@@ -108,21 +108,28 @@ class HostelViewModel(
     }
 
     // 2. Function to fetch data when the screen opens
-    fun loadStudentData() {
+    fun loadStudentData(forceRefresh: Boolean = false) {
         val userId = authRepository.getCurrentUser()?.userId ?: ""
         if (userId.isEmpty()) return
 
+        // If we already have data and not forcing refresh, load in background
+        val showLoading = forceRefresh || (savedHostels.isEmpty() && bookingHistory.value.isEmpty())
+
         viewModelScope.launch {
-            isLoading.value = true
+            if (showLoading) {
+                isLoading.value = true
+            }
 
-            // Fetch both lists in parallel
-            val savedTask = async { repository.getSavedHostels(userId) }
-            val bookingTask = async { repository.getBookingHistory(userId) }
+            try {
+                // Fetch both lists in parallel
+                val savedTask = async { repository.getSavedHostels(userId) }
+                val bookingTask = async { repository.getBookingHistory(userId) }
 
-            savedHostels = savedTask.await()
-            bookingHistory.value = bookingTask.await()
-
-            isLoading.value = false
+                savedHostels = savedTask.await()
+                bookingHistory.value = bookingTask.await()
+            } finally {
+                isLoading.value = false
+            }
         }
     }
     //for category button in homescreen real filtering

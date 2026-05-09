@@ -26,64 +26,86 @@ import okhttp3.Response
 import org.json.JSONObject
 import java.io.IOException
 
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.SetOptions
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+
 class profileViewModel: ViewModel() {
     var uiState by mutableStateOf(ProfileUiState())
         private set
 
     private val db = Firebase.firestore
     private val auth = Firebase.auth
+    private val client = OkHttpClient()
 
-    init {
-        fetchProfileData()
-    }
-
-    fun fetchProfileData() {
+    fun fetchProfileData(forceRefresh: Boolean = false) {
         val uid = auth.currentUser?.uid
-        if (uid != null) {
-            uiState = uiState.copy(isLoading = true, error = null)
-            
-            // Step 1: Fetch User Data (Basic info)
-            db.collection("users").document(uid).get()
-                .addOnSuccessListener { userDoc ->
-                    val user = userDoc.toObject(User::class.java)
-                    
-                    // Immediately update UI with user data so the form isn't empty while waiting for profile
-                    uiState = uiState.copy(
-                        userId = uid,
-                        fname = user?.fname ?: uiState.fname,
-                        lname = user?.lname ?: uiState.lname,
-                        email = user?.email ?: uiState.email,
-                        phone = user?.phone ?: uiState.phone,
-                        profileImageUrl = user?.profileImageUrl ?: uiState.profileImageUrl
-                    )
+        if (uid == null) {
+            uiState = uiState.copy(error = "User not logged in", isLoading = false)
+            return
+        }
 
-                    // Step 2: Fetch Profile Data (Academic/Settings)
-                    db.collection("profiles").document(uid).get()
-                        .addOnSuccessListener { profileDoc ->
-                            val profile = profileDoc.toObject(Profile::class.java)
-                            
-                            uiState = uiState.copy(
-                                course = profile?.course ?: "",
-                                yearOfStudy = profile?.yearOfStudy ?: "",
-                                currentHostel = profile?.currentHostel ?: "",
-                                currentRoomNo = profile?.currentRoomNo ?: "",
-                                favHostels = profile?.favHostels ?: "",
-                                priceChangeNotify = profile?.priceChangeNotify ?: true,
-                                newEventNotify = profile?.newEventNotify ?: true,
-                                roomAvailabilityNotify = profile?.roomAvailabilityNotify ?: true,
-                                isLoading = false
-                            )
-                        }
-                        .addOnFailureListener { e ->
-                            // Even if profile fails, we still have user data
-                            uiState = uiState.copy(isLoading = false, error = "Profile data failed: ${e.message}")
-                        }
+        // Avoid redundant loading if already loading
+        if (uiState.isLoading && !forceRefresh) return
+        
+        // If we already have data and not forcing refresh, we can skip the full loading state
+        val shouldShowLoading = forceRefresh || uiState.fname.isEmpty()
+
+        viewModelScope.launch {
+            if (shouldShowLoading) {
+                uiState = uiState.copy(isLoading = true, error = null)
+            }
+            
+            try {
+                // Parallel fetching of User and Profile data
+                // We use Source.DEFAULT to leverage cache first if available
+                val userTask = async { db.collection("users").document(uid).get().await() }
+                val profileTask = async { db.collection("profiles").document(uid).get().await() }
+
+                val userDoc = userTask.await()
+                val profileDoc = profileTask.await()
+
+                var newState = uiState.copy(userId = uid)
+
+                if (userDoc.exists()) {
+                    val user = userDoc.toObject(User::class.java)
+                    newState = newState.copy(
+                        fname = user?.fname ?: "",
+                        lname = user?.lname ?: "",
+                        email = user?.email ?: "",
+                        phone = user?.phone ?: "",
+                        profileImageUrl = user?.profileImageUrl ?: ""
+                    )
                 }
-                .addOnFailureListener { e ->
-                    uiState = uiState.copy(isLoading = false, error = "User data failed: ${e.message}")
+
+                if (profileDoc.exists()) {
+                    val profile = profileDoc.toObject(Profile::class.java)
+                    newState = newState.copy(
+                        course = profile?.course ?: "",
+                        yearOfStudy = profile?.yearOfStudy ?: "",
+                        currentHostel = profile?.currentHostel ?: "",
+                        currentRoomNo = profile?.currentRoomNo ?: "",
+                        favHostels = profile?.favHostels ?: "",
+                        priceChangeNotify = profile?.priceChangeNotify ?: true,
+                        newEventNotify = profile?.newEventNotify ?: true,
+                        roomAvailabilityNotify = profile?.roomAvailabilityNotify ?: true
+                    )
                 }
+                
+                uiState = newState.copy(isLoading = false)
+            } catch (e: Exception) {
+                uiState = uiState.copy(error = "Failed to load profile: ${e.message}", isLoading = false)
+            }
         }
     }
+
+
+
 
 
     fun onCourseChange(course:String){
@@ -202,20 +224,15 @@ class profileViewModel: ViewModel() {
     }
 
     fun uploadImage(context: Context, uri: Uri, userId: String) {
-
         uiState = uiState.copy(isLoading = true)
-
-        uploadToCloudinary( context = context, imageUri = uri) { url ->
-
+        viewModelScope.launch {
+            val url = uploadToCloudinary(context, uri)
             if (url != null) {
-
                 uiState = uiState.copy(
                     profileImageUrl = url,
                     isLoading = false
                 )
-
                 saveImageUrl(userId, url)
-
             } else {
                 uiState = uiState.copy(
                     isLoading = false,
@@ -225,25 +242,32 @@ class profileViewModel: ViewModel() {
         }
     }
 
-    private fun saveImageUrl(userId: String, url: String) {
-        db.collection("users")
-            .document(userId)
-            .update("profileImageUrl", url)
+    private suspend fun saveImageUrl(userId: String, url: String) {
+        try {
+            coroutineScope {
+                val userTask = async {
+                    db.collection("users").document(userId).update("profileImageUrl", url).await()
+                }
+                val profileTask = async {
+                    db.collection("profiles").document(userId).update("profileImageUrl", url).await()
+                }
+                userTask.await()
+                profileTask.await()
+            }
+        } catch (e: Exception) {
+            // Error handled in the UI through uiState if necessary, 
+            // but here we just ensure both are attempted.
+        }
     }
 
-    fun uploadToCloudinary(
+    private suspend fun uploadToCloudinary(
         context: Context,
-        imageUri: Uri,
-        onResult: (String?) -> Unit
-    ) {
+        imageUri: Uri
+    ): String? = withContext(Dispatchers.IO) {
+        var imageUrl: String? = null
         try {
             val inputStream = context.contentResolver.openInputStream(imageUri)
-            val bytes = inputStream?.readBytes()
-
-            if (bytes == null) {
-                onResult(null)
-                return
-            }
+            val bytes = inputStream?.use { it.readBytes() } ?: return@withContext null
 
             val requestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
@@ -260,22 +284,19 @@ class profileViewModel: ViewModel() {
                 .post(requestBody)
                 .build()
 
-            OkHttpClient().newCall(request).enqueue(object : okhttp3.Callback {
-
-                override fun onResponse(call: Call, response: Response) {
-                    val json = JSONObject(response.body!!.string())
-                    val url = json.getString("secure_url")
-                    onResult(url)
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val bodyString = response.body?.string() ?: ""
+                    val json = JSONObject(bodyString)
+                    if (json.has("secure_url")) {
+                        imageUrl = json.getString("secure_url")
+                    }
                 }
-
-                override fun onFailure(call: Call, e: IOException) {
-                    onResult(null)
-                }
-            })
-
+            }
         } catch (e: Exception) {
-            onResult(null)
+            e.printStackTrace()
         }
+        imageUrl
     }
 
 

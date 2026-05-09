@@ -44,7 +44,9 @@ import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.model.Room
 import com.campusnest1.groupq.ui.theme.BackgroundLight
+import com.campusnest1.groupq.ui.theme.BorderGrey
 import com.campusnest1.groupq.ui.theme.CampusNestTheme
+import com.campusnest1.groupq.ui.theme.IconBgGray
 import com.campusnest1.groupq.ui.theme.OrangeAccent
 import com.campusnest1.groupq.ui.theme.TealPrimary
 import com.campusnest1.groupq.ui.theme.TextGrey
@@ -100,7 +102,7 @@ fun BookingBottomSheet(
                     HostelRating(hostel)
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider(color = Color(0xFFF5F5F5), thickness = 1.dp)
+                    HorizontalDivider(color = IconBgGray, thickness = 1.dp)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Row(
@@ -131,7 +133,7 @@ fun BookingBottomSheet(
 
                         VerticalDivider(
                             modifier = Modifier.height(32.dp).padding(horizontal = 12.dp),
-                            color = Color(0xFFEEEEEE)
+                            color = BorderGrey
                         )
 
                         Row(modifier = Modifier.weight(1f)) {
@@ -158,7 +160,7 @@ fun BookingBottomSheet(
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider(color = Color(0xFFF5F5F5), thickness = 1.dp)
+                    HorizontalDivider(color = IconBgGray, thickness = 1.dp)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Row(verticalAlignment = Alignment.CenterVertically) {

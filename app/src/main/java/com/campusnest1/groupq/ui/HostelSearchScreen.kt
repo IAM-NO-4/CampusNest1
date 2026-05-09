@@ -35,7 +35,21 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
-import com.campusnest1.groupq.ui.theme.*
+import com.campusnest1.groupq.ui.theme.BackgroundLight
+import com.campusnest1.groupq.ui.theme.CampusNestTheme
+import com.campusnest1.groupq.ui.theme.ErrorRed
+import com.campusnest1.groupq.ui.theme.LightGray
+import com.campusnest1.groupq.ui.theme.OrangeAccentLight
+import com.campusnest1.groupq.ui.theme.RedAccent
+import com.campusnest1.groupq.ui.theme.RedAccentLight
+import com.campusnest1.groupq.ui.theme.RedStandard
+import com.campusnest1.groupq.ui.theme.SuccessGreenLight
+import com.campusnest1.groupq.ui.theme.SurfaceWhite
+import com.campusnest1.groupq.ui.theme.TealPrimary
+import com.campusnest1.groupq.ui.theme.TealSecondary
+import com.campusnest1.groupq.ui.theme.TextDark
+import com.campusnest1.groupq.ui.theme.TextGrey
+import com.campusnest1.groupq.ui.theme.TextPrimary
 import com.campusnest1.groupq.utils.formatCurrency
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -162,14 +176,14 @@ fun SearchHostelCard(
         else -> "Available"
     }
     val statusColor = when (hostel.availableRooms) {
-        0 -> Color.Red
+        0 -> ErrorRed
         in 1..<5 -> RedAccent
         else -> TealPrimary
     }
     val statusBg = when (hostel.availableRooms) {
         0 -> RedAccentLight
         in 1..5 -> OrangeAccentLight
-        else -> Color(0xFFE8F5E9)
+        else -> SuccessGreenLight
     }
     
     LaunchedEffect(hostel.hostelId) {
@@ -182,7 +196,7 @@ fun SearchHostelCard(
             .padding(horizontal = 20.dp, vertical = 8.dp)
             .clickable { onCardClick() },
         shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -195,7 +209,7 @@ fun SearchHostelCard(
                 )
                 Surface(
                     modifier = Modifier.padding(8.dp).align(Alignment.TopEnd).size(28.dp),
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = SurfaceWhite.copy(alpha = 0.8f),
                     shape = CircleShape
                 ) {
 
@@ -203,7 +217,7 @@ fun SearchHostelCard(
                         Icon(
                             imageVector = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Favorite",
-                            tint = if (isSaved) Color.Red else TextGrey,
+                            tint = if (isSaved) RedStandard else TextGrey,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -272,7 +286,7 @@ fun FilterBottomSheet(
         return if (p >= 1_000_000) "${p / 1_000_000}M" else "${p / 1000}k"
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = Color.White) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = SurfaceWhite) {
         Column(modifier = Modifier.fillMaxWidth().padding(24.dp).padding(bottom = 32.dp)) {
             Text("Filter by $filterType", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = TextDark)
             Spacer(modifier = Modifier.height(24.dp))
@@ -331,11 +345,11 @@ fun FilterChipsRow(selectedFilter: String, onFilterClick: (String) -> Unit) {
 
 @Composable
 fun FilterChipItem(isSelected: Boolean, label: String, onClick: () -> Unit) {
-    Surface(onClick = onClick, shape = MaterialTheme.shapes.large, border = BorderStroke(1.dp, if (isSelected) TealPrimary else Color.LightGray.copy(0.5f)), color = if (isSelected) TealSecondary else Color.White) {
+    Surface(onClick = onClick, shape = MaterialTheme.shapes.large, border = BorderStroke(1.dp, if (isSelected) TealPrimary else LightGray.copy(0.5f)), color = if (isSelected) TealSecondary else SurfaceWhite) {
         Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(text = label, style = MaterialTheme.typography.bodyMedium, color = if (isSelected) TealPrimary else Color.Black)
+            Text(text = label, style = MaterialTheme.typography.bodyMedium, color = if (isSelected) TealPrimary else TextPrimary)
             Spacer(modifier = Modifier.width(4.dp))
-            Icon(imageVector = Icons.Default.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(16.dp), tint = if (isSelected) TealPrimary else Color.Black)
+            Icon(imageVector = Icons.Default.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(16.dp), tint = if (isSelected) TealPrimary else TextPrimary)
         }
     }
 }
@@ -359,8 +373,8 @@ fun SearchTopBar(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     shape = RoundedCornerShape(24.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = TealPrimary, unfocusedBorderColor = Color.LightGray,
-                        focusedContainerColor = Color.White, unfocusedContainerColor = Color.White,
+                        focusedBorderColor = TealPrimary, unfocusedBorderColor = LightGray,
+                        focusedContainerColor = SurfaceWhite, unfocusedContainerColor = SurfaceWhite,
                         focusedTextColor = TextDark, unfocusedTextColor = TextDark, cursorColor = TealPrimary
                     ),
                     modifier = Modifier.fillMaxWidth().height(52.dp)
@@ -370,14 +384,14 @@ fun SearchTopBar(
             }
         },
         navigationIcon = {
-            Surface(shape = CircleShape, color = Color.White, shadowElevation = 2.dp, modifier = Modifier.padding(start = 8.dp).size(40.dp)) {
+            Surface(shape = CircleShape, color = SurfaceWhite, shadowElevation = 2.dp, modifier = Modifier.padding(start = 8.dp).size(40.dp)) {
                 IconButton(onClick = onBackClick) {
                     Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextDark)
                 }
             }
         },
         actions = {
-            Surface(shape = CircleShape, color = Color.White, shadowElevation = 2.dp, modifier = Modifier.padding(end = 8.dp).size(40.dp)) {
+            Surface(shape = CircleShape, color = SurfaceWhite, shadowElevation = 2.dp, modifier = Modifier.padding(end = 8.dp).size(40.dp)) {
                 IconButton(onClick = onSearchToggle) {
                     Icon(imageVector = if (showSearchField) Icons.Default.Close else Icons.Default.Search, contentDescription = if (showSearchField) "Close" else "Search", tint = TextDark)
                 }

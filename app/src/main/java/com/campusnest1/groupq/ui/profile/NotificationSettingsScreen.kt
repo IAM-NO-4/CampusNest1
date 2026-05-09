@@ -28,6 +28,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import com.campusnest1.groupq.ui.theme.BorderGrey
+import com.campusnest1.groupq.ui.theme.LightBlue
+import com.campusnest1.groupq.ui.theme.SurfaceWhite
+import com.campusnest1.groupq.ui.theme.TealAccent
+import com.campusnest1.groupq.ui.theme.TextGrey
+import com.campusnest1.groupq.ui.theme.TextPrimary
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -95,7 +101,7 @@ fun NotificationSettingsScreen(
                         "Notification Settings",
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 22.sp,
-                        color = Color.DarkGray
+                        color = TextPrimary
                     )
                 },
                 navigationIcon = {
@@ -105,8 +111,8 @@ fun NotificationSettingsScreen(
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = Color.DarkGray,
-                    navigationIconContentColor = Color.DarkGray
+                    titleContentColor = TextPrimary,
+                    navigationIconContentColor = TextPrimary
                 )
             )
         },
@@ -117,7 +123,7 @@ fun NotificationSettingsScreen(
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color(0xFFE0F7FA), Color.White)
+                        colors = listOf(LightBlue, SurfaceWhite)
                     )
                 )
                 .padding(padding)
@@ -133,7 +139,7 @@ fun NotificationSettingsScreen(
                 Text(
                     text = "Stay updated on what matters to you. Toggle the notifications you'd like to receive.",
                     fontSize = 14.sp,
-                    color = Color.DarkGray,
+                    color = TextGrey,
                     modifier = Modifier.padding(bottom = 32.dp)
                 )
 
@@ -211,9 +217,9 @@ fun NotificationToggleItem(
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+        border = BorderStroke(1.dp, BorderGrey)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -222,13 +228,13 @@ fun NotificationToggleItem(
             Surface(
                 modifier = Modifier.size(44.dp),
                 shape = CircleShape,
-                color = Color(0xFFE0F7FA)
+                color = LightBlue
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     modifier = Modifier.padding(10.dp),
-                    tint = Color(0xFF00A3A3)
+                    tint = TealAccent
                 )
             }
             
@@ -239,12 +245,12 @@ fun NotificationToggleItem(
                     text = title,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333)
+                    color = TextPrimary
                 )
                 Text(
                     text = description,
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = TextGrey
                 )
             }
             
@@ -252,8 +258,8 @@ fun NotificationToggleItem(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
-                    checkedTrackColor = Color(0xFF00A3A3)
+                    checkedThumbColor = SurfaceWhite,
+                    checkedTrackColor = TealAccent
                 )
             )
         }

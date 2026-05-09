@@ -30,12 +30,14 @@ import androidx.navigation.compose.rememberNavController
 import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.ui.theme.BgBottom
 import com.campusnest1.groupq.ui.theme.BgTop
+import com.campusnest1.groupq.ui.theme.ErrorRed
 import com.campusnest1.groupq.ui.theme.FieldBg
 import com.campusnest1.groupq.ui.theme.FieldBorder
 import com.campusnest1.groupq.ui.theme.OrangeAccent
 import com.campusnest1.groupq.ui.theme.TealPrimary
 import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.ui.theme.TextGrey
+import com.campusnest1.groupq.ui.theme.SurfaceWhite
 import com.campusnest1.groupq.viewmodel.AuthViewModel
 import com.campusnest1.groupq.R
 import org.koin.androidx.compose.koinViewModel
@@ -135,7 +137,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
             if (errorMessage != null) {
-                Text(text = errorMessage!!, color = Color.Red, fontSize = 13.sp, modifier = Modifier.padding(bottom = 8.dp), textAlign = TextAlign.Center)
+                Text(text = errorMessage!!, color = ErrorRed, fontSize = 13.sp, modifier = Modifier.padding(bottom = 8.dp), textAlign = TextAlign.Center)
             }
 
             Button(
@@ -150,9 +152,9 @@ fun LoginScreen(
                 )
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = SurfaceWhite, strokeWidth = 2.dp)
                 } else {
-                    Text(text = "Log In  →", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text(text = "Log In  →", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = SurfaceWhite)
                 }
             }
 

@@ -6,6 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -17,6 +18,13 @@ import androidx.compose.ui.unit.sp
 import org.koin.androidx.compose.koinViewModel
 import androidx.navigation.NavController
 import com.campusnest1.groupq.navigation.Screen
+import com.campusnest1.groupq.ui.theme.BorderLight
+import com.campusnest1.groupq.ui.theme.ErrorRed
+import com.campusnest1.groupq.ui.theme.LightBlue
+import com.campusnest1.groupq.ui.theme.SurfaceWhite
+import com.campusnest1.groupq.ui.theme.TealAccent
+import com.campusnest1.groupq.ui.theme.TextGrey
+import com.campusnest1.groupq.ui.theme.TextPrimary
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 
 @Composable
@@ -26,10 +34,23 @@ fun PersonalInfoScreen(
 ) {
     val profileState = profileView.uiState
 
-    PersonalInfoContent(
-        profileState = profileState,
-        onEditClick = { navController.navigate(Screen.ProfileSettings.route) }
-    )
+    LaunchedEffect(Unit) {
+        profileView.fetchProfileData()
+    }
+
+    // Only show full-screen loading if we have NO data yet
+    val isInitialLoading = profileState.isLoading && profileState.fname.isEmpty()
+
+    if (isInitialLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = TealAccent)
+        }
+    } else {
+        PersonalInfoContent(
+            profileState = profileState,
+            onEditClick = { navController.navigate(Screen.ProfileSettings.route) }
+        )
+    }
 }
 
 @Composable
@@ -42,7 +63,7 @@ fun PersonalInfoContent(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                brush = Brush.verticalGradient(listOf(Color(0xFFE0F7FA), Color.White))
+                brush = Brush.verticalGradient(listOf(LightBlue, SurfaceWhite))
             )
     ) {
         Column(
@@ -57,11 +78,10 @@ fun PersonalInfoContent(
                 text = "Personal Info",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF00A3A3)
+                color = TealAccent
             )
 
             Spacer(modifier = Modifier.height(20.dp))
-
 
             // User Info
             ProfileInfoDisplay(label = "First Name", value = profileState.fname)
@@ -70,9 +90,13 @@ fun PersonalInfoContent(
             ProfileInfoDisplay(label = "Phone Number", value = profileState.phone)
             
             // Academic Info
-            ProfileInfoDisplay(label = "Course", value = profileState.course ?: "Not set")
-            ProfileInfoDisplay(label = "Year of Study", value = profileState.yearOfStudy ?: "Not set")
-            ProfileInfoDisplay(label = "Current Hostel", value = profileState.currentHostel ?: "Not set")
+            ProfileInfoDisplay(label = "Course", value = profileState.course?.ifEmpty { "Not set" } ?: "Not set")
+            ProfileInfoDisplay(label = "Year of Study", value = profileState.yearOfStudy?.ifEmpty { "Not set" } ?: "Not set")
+            ProfileInfoDisplay(label = "Current Hostel", value = profileState.currentHostel.ifEmpty { "Not set" })
+
+            if (profileState.error != null) {
+                Text(text = profileState.error, color = ErrorRed, modifier = Modifier.padding(top = 8.dp))
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
 
@@ -82,13 +106,13 @@ fun PersonalInfoContent(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A3A3))
+                colors = ButtonDefaults.buttonColors(containerColor = TealAccent)
             ) {
                 Text(
                     text = "Edit Profile",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = SurfaceWhite
                 )
             }
 
@@ -104,7 +128,7 @@ fun ProfileInfoDisplay(label: String, value: String) {
             text = label,
             fontWeight = FontWeight.Bold,
             fontSize = 14.sp,
-            color = Color.DarkGray
+            color = TextGrey
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
@@ -112,11 +136,14 @@ fun ProfileInfoDisplay(label: String, value: String) {
             onValueChange = {},
             readOnly = true,
             modifier = Modifier.fillMaxWidth(),
+            textStyle = androidx.compose.ui.text.TextStyle(color = TextPrimary, fontSize = 16.sp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFE0E0E0),
-                unfocusedBorderColor = Color(0xFFE0E0E0),
-                disabledBorderColor = Color(0xFFE0E0E0),
-                cursorColor = Color(0xFF00A3A3)
+                focusedTextColor = TextPrimary,
+                unfocusedTextColor = TextPrimary,
+                focusedBorderColor = BorderLight,
+                unfocusedBorderColor = BorderLight,
+                disabledBorderColor = BorderLight,
+                cursorColor = TealAccent
             )
         )
     }

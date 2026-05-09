@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.campusnest1.groupq.model.Notification
 import com.campusnest1.groupq.ui.theme.BackgroundLight
+import com.campusnest1.groupq.ui.theme.LightGray
+import com.campusnest1.groupq.ui.theme.SurfaceWhite
 import com.campusnest1.groupq.ui.theme.TealPrimary
 import com.campusnest1.groupq.viewmodel.NotificationViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -46,7 +48,7 @@ fun NotificationScreen(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.White
+                    containerColor = SurfaceWhite
                 )
             )
         },
@@ -94,7 +96,7 @@ fun NotificationScreen(
                                     Icon(
                                         Icons.Default.Delete,
                                         contentDescription = "Delete",
-                                        tint = Color.White
+                                        tint = SurfaceWhite
                                     )
                                 }
                             },
@@ -114,7 +116,7 @@ fun NotificationScreen(
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = 4.dp),
                             thickness = 0.5.dp,
-                            color = Color.LightGray.copy(alpha = 0.3f)
+                            color = LightGray.copy(alpha = 0.3f)
                         )
                     }
                 }

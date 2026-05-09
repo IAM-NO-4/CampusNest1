@@ -39,6 +39,19 @@ import org.koin.androidx.compose.koinViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.navigation.Screen
+import com.campusnest1.groupq.ui.theme.BorderGrey
+import com.campusnest1.groupq.ui.theme.ChipGray
+import com.campusnest1.groupq.ui.theme.ErrorRed
+import com.campusnest1.groupq.ui.theme.IconBgGray
+import com.campusnest1.groupq.ui.theme.LightBlue
+import com.campusnest1.groupq.ui.theme.LightGray
+import com.campusnest1.groupq.ui.theme.LightRed
+import com.campusnest1.groupq.ui.theme.OrangeAccent
+import com.campusnest1.groupq.ui.theme.RedStandard
+import com.campusnest1.groupq.ui.theme.SurfaceWhite
+import com.campusnest1.groupq.ui.theme.TealAccent
+import com.campusnest1.groupq.ui.theme.TextGrey
+import com.campusnest1.groupq.ui.theme.TextPrimary
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 
@@ -65,10 +78,12 @@ fun ProfileScreen(
         hostelViewModel.loadStudentData()
     }
 
-    // Show loading spinner while data is being fetched
-    if (uiState.isLoading) {
+    // Only show full-screen loading if we have NO name data yet
+    val isInitialLoading = uiState.isLoading && uiState.fname.isEmpty()
+
+    if (isInitialLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Color(0xFF00A3A3))
+            CircularProgressIndicator(color = TealAccent)
         }
         return
     }
@@ -79,7 +94,9 @@ fun ProfileScreen(
         profileImageUrl = uiState.profileImageUrl,
         course = uiState.course?.ifEmpty { "Not set" } ?: "Not set",
         studyYear = uiState.yearOfStudy?.ifEmpty { "Not set" } ?: "Not set",
-        currentHostel = uiState.currentHostel?.ifEmpty { "Not set" } ?: "Not set",
+        currentHostel = if (uiState.currentHostel.isBlank()) "Not set"
+        else if (uiState.currentRoomNo.isNotBlank()) "${uiState.currentHostel} - Room ${uiState.currentRoomNo}"
+        else uiState.currentHostel,
         savedCount = hostelViewModel.savedHostels.size,
         bookingCount = hostelViewModel.bookingHistory.value.size,
         onNotificationSettingsClick = { navController.navigate(Screen.NotificationSettings.route) },
@@ -135,7 +152,7 @@ fun ProfileScreenContent(
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFFE0F7FA), Color.White)
+                    colors = listOf(LightBlue, SurfaceWhite)
                 )
             )
     ) {
@@ -153,8 +170,8 @@ fun ProfileScreenContent(
                 Surface(
                     modifier = Modifier.size(120.dp),
                     shape = CircleShape,
-                    border = BorderStroke(4.dp, Color(0xFF00A3A3)),
-                    color = Color.LightGray
+                    border = BorderStroke(4.dp, TealAccent),
+                    color = LightGray
                 ) {
                     if (!profileImageUrl.isNullOrEmpty()) {
                         AsyncImage(
@@ -170,7 +187,7 @@ fun ProfileScreenContent(
                             imageVector = Icons.Default.Person,
                             contentDescription = null,
                             modifier = Modifier.padding(24.dp),
-                            tint = Color.Gray
+                            tint = TextGrey
                         )
                     }
                 }
@@ -179,15 +196,15 @@ fun ProfileScreenContent(
                         .size(36.dp)
                         .clickable { onProfileImageClick() },
                     shape = CircleShape,
-                    color = Color(0xFF00A3A3),
-                    border = BorderStroke(3.dp, Color.White)
+                    color = TealAccent,
+                    border = BorderStroke(3.dp, SurfaceWhite)
                 ) {
 
                     Icon(
                         imageVector = Icons.Default.CameraAlt,
                         contentDescription = "Change photo",
                         modifier = Modifier.padding(8.dp),
-                        tint = Color.White
+                        tint = SurfaceWhite
                     )
                 }
             }
@@ -199,14 +216,14 @@ fun ProfileScreenContent(
                     text = fname,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF333333)
+                    color = TextPrimary
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = lname,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Gray
+                    color = TextGrey
                 )
             }
 
@@ -214,13 +231,13 @@ fun ProfileScreenContent(
 
             Surface(
                 shape = RoundedCornerShape(20.dp),
-                color = Color(0xFFEFEFEF)
+                color = ChipGray
             ) {
                 Text(
                     text = "$course : $studyYear",
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                     fontSize = 13.sp,
-                    color = Color.Gray
+                    color = TextGrey
                 )
             }
 
@@ -235,9 +252,9 @@ fun ProfileScreenContent(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+                border = BorderStroke(1.dp, BorderGrey)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -246,25 +263,25 @@ fun ProfileScreenContent(
                     Surface(
                         modifier = Modifier.size(48.dp),
                         shape = RoundedCornerShape(12.dp),
-                        color = Color(0xFFE0F7FA)
+                        color = LightBlue
                     ) {
                         Icon(
                             imageVector = Icons.Default.Apartment,
                             contentDescription = null,
                             modifier = Modifier.padding(12.dp),
-                            tint = Color(0xFF00A3A3)
+                            tint = TealAccent
                         )
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(text = "Current Stay", fontSize = 12.sp, color = Color.Gray)
-                        Text(text = currentHostel, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "Current Stay", fontSize = 12.sp, color = TextGrey)
+                        Text(
+                            text = currentHostel,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (currentHostel == "Not set") TextGrey else TextPrimary
+                        )
                     }
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        tint = Color.LightGray
-                    )
                 }
             }
 
@@ -281,7 +298,7 @@ fun ProfileScreenContent(
             SettingsItem(icon = Icons.Default.History, label = "Booking History", badgeCount = bookingCount,
                 onItemClick = { navController?.navigate("booking_history") })
 
-            SettingsItem(icon = Icons.Default.Favorite, label = "Saved Hostels", badgeCount = savedCount, iconTint = Color.Red,
+            SettingsItem(icon = Icons.Default.Favorite, label = "Saved Hostels", badgeCount = savedCount, iconTint = RedStandard,
                 onItemClick = { navController?.navigate("saved_hostels") })
 
             SettingsItem(icon = Icons.Default.Notifications, label = "Notification Settings",
@@ -295,9 +312,9 @@ fun ProfileScreenContent(
                     .fillMaxWidth()
                     .clickable { onLogoutClick() },
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                colors = CardDefaults.cardColors(containerColor = LightRed),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                border = BorderStroke(1.dp, Color(0xFFFFCDD2))
+                border = BorderStroke(1.dp, LightRed)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -306,13 +323,13 @@ fun ProfileScreenContent(
                     Surface(
                         modifier = Modifier.size(44.dp),
                         shape = CircleShape,
-                        color = Color(0xFFD32F2F)
+                        color = ErrorRed
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Logout,
                             contentDescription = null,
                             modifier = Modifier.padding(10.dp),
-                            tint = Color.White
+                            tint = SurfaceWhite
                         )
                     }
                     Spacer(modifier = Modifier.width(16.dp))
@@ -321,14 +338,14 @@ fun ProfileScreenContent(
                             text = "Logout",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFFD32F2F)
+                            color = ErrorRed
                         )
-                        Text(text = "Sign out of your account", fontSize = 12.sp, color = Color.Gray)
+                        Text(text = "Sign out of your account", fontSize = 12.sp, color = TextGrey)
                     }
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
-                        tint = Color(0xFFD32F2F)
+                        tint = ErrorRed
                     )
                 }
             }
@@ -346,7 +363,7 @@ fun SectionHeader(title: String) {
         modifier = Modifier.fillMaxWidth(),
         fontSize = 18.sp,
         fontWeight = FontWeight.Bold,
-        color = Color(0xFF333333)
+        color = TextPrimary
     )
 }
 
@@ -363,9 +380,9 @@ fun SettingsItem(
             .fillMaxWidth()
             .padding(vertical = 6.dp),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+        border = BorderStroke(1.dp, BorderGrey)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -374,13 +391,13 @@ fun SettingsItem(
             Surface(
                 modifier = Modifier.size(40.dp),
                 shape = CircleShape,
-                color = Color(0xFFF5F5F5)
+                color = IconBgGray
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     modifier = Modifier.padding(10.dp),
-                    tint = iconTint ?: Color(0xFF333333)
+                    tint = iconTint ?: TextPrimary
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
@@ -389,19 +406,19 @@ fun SettingsItem(
                 modifier = Modifier.weight(1f),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF333333)
+                color = TextPrimary
             )
 
             if (badgeCount != null) {
                 Surface(
                     modifier = Modifier.padding(end = 12.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFFF2994A)
+                    color = OrangeAccent
                 ) {
                     Text(
                         text = badgeCount.toString(),
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
-                        color = Color.White,
+                        color = SurfaceWhite,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -415,7 +432,7 @@ fun SettingsItem(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = null,
-                    tint = Color.LightGray
+                    tint = LightGray
                 )
             }
         }

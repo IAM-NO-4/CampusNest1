@@ -9,12 +9,16 @@ import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.campusnest1.groupq.ui.theme.IconBgGray
 import com.campusnest1.groupq.ui.theme.OrangeAccent
 import com.campusnest1.groupq.ui.theme.OrangeAccentLight
 import com.campusnest1.groupq.ui.theme.RedAccent
 import com.campusnest1.groupq.ui.theme.RedAccentLight
+import com.campusnest1.groupq.ui.theme.SuccessGreenDark
+import com.campusnest1.groupq.ui.theme.SuccessGreenLight
 import com.campusnest1.groupq.ui.theme.TealPrimary
 import com.campusnest1.groupq.ui.theme.TealSecondary
+import com.campusnest1.groupq.ui.theme.TextGrey
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -33,12 +37,12 @@ fun getNotificationIcons(category: String): ImageVector{
 
 fun getNotificationColors(category: String): Pair<Color, Color>{
    return when(category.lowercase()){
-       "room availability" -> Color(0xFF2E7D32) to Color(0xFFE8F5E9)
-       "price drop" -> Color(0xFF2E7D32) to Color(0xFFE8F5E9)
+       "room availability" -> SuccessGreenDark to SuccessGreenLight
+       "price drop" -> SuccessGreenDark to SuccessGreenLight
        "price increase" -> RedAccent to RedAccentLight
        "event" -> OrangeAccent to OrangeAccentLight
        "booking" -> TealPrimary to TealSecondary
-       else -> Color(0xFF616161) to Color(0xFFF5F5F5)
+       else -> TextGrey to IconBgGray
    }
 }
 

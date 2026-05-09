@@ -6,6 +6,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.campusnest1.groupq.ui.theme.SurfaceWhite
+import com.campusnest1.groupq.ui.theme.TealAccent
+import com.campusnest1.groupq.ui.theme.TextGrey
 
 @Composable
 fun BottomNavBar(navController: NavHostController) {
@@ -20,7 +23,7 @@ fun BottomNavBar(navController: NavHostController) {
         navController.currentBackStackEntryAsState().value?.destination?.route
 
     NavigationBar(
-        containerColor = Color.White
+        containerColor = SurfaceWhite
     ) {
         items.forEach { item ->
             NavigationBarItem(
@@ -38,11 +41,11 @@ fun BottomNavBar(navController: NavHostController) {
                     Text(item.label)
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFF00A86B),
-                    selectedTextColor = Color(0xFF00A86B),
-                    indicatorColor = Color(0x1400A86B),
-                    unselectedIconColor = Color.Gray,
-                    unselectedTextColor = Color.Gray
+                    selectedIconColor = TealAccent,
+                    selectedTextColor = TealAccent,
+                    indicatorColor = TealAccent.copy(alpha = 0.1f),
+                    unselectedIconColor = TextGrey,
+                    unselectedTextColor = TextGrey
                 )
             )
         }

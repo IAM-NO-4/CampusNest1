@@ -20,8 +20,16 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.campusnest1.groupq.model.Booking
 import com.campusnest1.groupq.ui.theme.BackgroundLight
+import com.campusnest1.groupq.ui.theme.IconBgGray
+import com.campusnest1.groupq.ui.theme.LightGray
 import com.campusnest1.groupq.ui.theme.OrangeAccent
+import com.campusnest1.groupq.ui.theme.OrangeAccentLight
+import com.campusnest1.groupq.ui.theme.SuccessGreenDark
+import com.campusnest1.groupq.ui.theme.SuccessGreenLight
+import com.campusnest1.groupq.ui.theme.SurfaceWhite
 import com.campusnest1.groupq.ui.theme.TealPrimary
+import com.campusnest1.groupq.ui.theme.TextGrey
+import com.campusnest1.groupq.ui.theme.TextPrimary
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -48,8 +56,8 @@ fun BookingHistoryScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = Color.DarkGray,
-                    navigationIconContentColor = Color.DarkGray
+                    titleContentColor = TextPrimary,
+                    navigationIconContentColor = TextPrimary
                 )
             )
         },
@@ -67,13 +75,13 @@ fun BookingHistoryScreen(
                         imageVector = Icons.Default.History,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
-                        tint = Color.LightGray
+                        tint = LightGray
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "No booking history found",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = Color.Gray
+                        color = TextGrey
                     )
                 }
             }
@@ -99,7 +107,7 @@ fun BookingItem(booking: Booking) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -114,31 +122,31 @@ fun BookingItem(booking: Booking) {
                     text = booking.hostelName,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333)
+                    color = TextPrimary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Date: ${booking.date}",
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = TextGrey
                 )
             }
             
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 color = when (booking.status.lowercase()) {
-                    "confirmed" -> Color(0xFFE8F5E9)
-                    "pending" -> Color(0xFFFFF3E0)
-                    else -> Color(0xFFF5F5F5)
+                    "confirmed" -> SuccessGreenLight
+                    "pending" -> OrangeAccentLight
+                    else -> IconBgGray
                 }
             ) {
                 Text(
                     text = booking.status,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     color = when (booking.status.lowercase()) {
-                        "confirmed" -> Color(0xFF2E7D32)
+                        "confirmed" -> SuccessGreenDark
                         "pending" -> OrangeAccent
-                        else -> Color.Gray
+                        else -> TextGrey
                     },
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold

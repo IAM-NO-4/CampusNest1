@@ -45,6 +45,8 @@ import androidx.navigation.NavController
 import com.campusnest1.groupq.model.Notification
 import com.campusnest1.groupq.ui.theme.BackgroundLight
 import com.campusnest1.groupq.ui.theme.CampusNestTheme
+import com.campusnest1.groupq.ui.theme.LightGray
+import com.campusnest1.groupq.ui.theme.SurfaceWhite
 import com.campusnest1.groupq.ui.theme.TealPrimary
 import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.ui.theme.TextGrey
@@ -126,7 +128,7 @@ fun NotificationsSheet(
                                     Icon(
                                         Icons.Default.Delete,
                                         contentDescription = "Delete",
-                                        tint = Color.White
+                                        tint = SurfaceWhite
                                     )
                                 }
                             },
@@ -141,7 +143,7 @@ fun NotificationsSheet(
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = 12.dp),
                             thickness = 0.5.dp,
-                            color = Color.LightGray.copy(alpha = 0.5f)
+                            color = LightGray.copy(alpha = 0.5f)
                         )
                     }
                 }
@@ -193,7 +195,7 @@ fun NotificationItem(
     val (iconColor, iconBackgroundColor) = getNotificationColors(notification.category)
 
     Surface(
-        color = if (notification.isRead) Color.White else TealPrimary.copy(0.03f),
+        color = if (notification.isRead) SurfaceWhite else TealPrimary.copy(0.03f),
         onClick = onClick,
         modifier = Modifier.fillMaxWidth()
     ) {

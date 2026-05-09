@@ -34,11 +34,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Event
+import com.campusnest1.groupq.ui.theme.BorderGrey
 import com.campusnest1.groupq.ui.theme.CampusNestTheme
+import com.campusnest1.groupq.ui.theme.IconBgGray
+import com.campusnest1.groupq.ui.theme.LightGray
+import com.campusnest1.groupq.ui.theme.RedStandard
+import com.campusnest1.groupq.ui.theme.SurfaceWhite
 import com.campusnest1.groupq.ui.theme.TealPrimary
 import com.campusnest1.groupq.ui.theme.TealSecondary
 import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.ui.theme.TextGrey
+import com.campusnest1.groupq.ui.theme.TextPrimary
 import com.campusnest1.groupq.utils.formatEventDate
 import com.campusnest1.groupq.utils.formatEventTime
 import com.campusnest1.groupq.viewmodel.EventViewModel
@@ -119,11 +125,11 @@ fun EventDetailCard(
 ) {
     Column(modifier = Modifier.padding(20.dp)) {
         Row(modifier = Modifier.fillMaxWidth()) {
-            Surface(color = Color(0xFFEDF2F7), shape = RoundedCornerShape(12.dp)) {
+            Surface(color = IconBgGray, shape = RoundedCornerShape(12.dp)) {
                 Text(
                     text = event.category.uppercase(),
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    color = Color(0xFF616161),
+                    color = TextGrey,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -145,7 +151,7 @@ fun EventDetailCard(
         InfoRow(Icons.Outlined.Money, "Open to ${event.attendees}", if (event.fee == "0" || event.fee.isEmpty()) "Free Entry" else "UGX ${event.fee}")
 
         Spacer(modifier = Modifier.height(16.dp))
-        HorizontalDivider(color = Color(0xFFF0F0F0), thickness = 1.dp)
+        HorizontalDivider(color = BorderGrey, thickness = 1.dp)
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(text = "About", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextDark)
@@ -202,7 +208,7 @@ fun RegistrationBanner(onRegisterClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .background(color = TealSecondary, shape = MaterialTheme.shapes.small)
-            .border(width = 1.dp, color = Color.LightGray.copy(alpha = 0.1f), shape = MaterialTheme.shapes.small)
+            .border(width = 1.dp, color = LightGray.copy(alpha = 0.1f), shape = MaterialTheme.shapes.small)
             .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -223,9 +229,9 @@ fun RegistrationBanner(onRegisterClick: () -> Unit) {
             shape = MaterialTheme.shapes.small,
             contentPadding = PaddingValues(12.dp)
         ) {
-            Text(text = "Register Now", style = MaterialTheme.typography.labelSmall, color = Color.White)
+            Text(text = "Register Now", style = MaterialTheme.typography.labelSmall, color = SurfaceWhite)
             Spacer(modifier = Modifier.width(4.dp))
-            Icon(imageVector = Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+            Icon(imageVector = Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null, tint = SurfaceWhite, modifier = Modifier.size(14.dp))
         }
     }
 }
@@ -240,7 +246,7 @@ fun HighlightsList(highlights: List<String>) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .border(width = 1.dp, color = Color.LightGray.copy(alpha = 0.3f), shape = MaterialTheme.shapes.small)
+                    .border(width = 1.dp, color = LightGray.copy(alpha = 0.3f), shape = MaterialTheme.shapes.small)
                     .padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
                 Surface(shape = CircleShape, color = TealSecondary, modifier = Modifier.size(34.dp)) {
@@ -252,7 +258,7 @@ fun HighlightsList(highlights: List<String>) {
                     }
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = highlight, style = MaterialTheme.typography.bodySmall, color = Color.DarkGray)
+                Text(text = highlight, style = MaterialTheme.typography.bodySmall, color = TextPrimary)
             }
         }
     }
@@ -271,21 +277,21 @@ fun EventHeaderImage(
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             Surface(shape = CircleShape, color = Color.Black.copy(alpha = 0.3f)) {
                 IconButton(onClick = onBackClick) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = SurfaceWhite)
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Surface(shape = CircleShape, color = Color.Black.copy(alpha = 0.3f)) {
                     IconButton(onClick = onShareClick) {
-                        Icon(Icons.Default.Share, null, tint = Color.White)
+                        Icon(Icons.Default.Share, null, tint = SurfaceWhite)
                     }
                 }
-                Surface(shape = CircleShape, color = Color.White) {
+                Surface(shape = CircleShape, color = SurfaceWhite) {
                     IconButton(onClick = onToggleFavorite) {
                         Icon(
                             imageVector = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Favorite",
-                            tint = if (isSaved) Color.Red else Color.LightGray
+                            tint = if (isSaved) RedStandard else LightGray
                         )
                     }
                 }
@@ -296,16 +302,16 @@ fun EventHeaderImage(
 
 @Composable
 fun BottomEventBar(onCalendarClick: () -> Unit) {
-    Surface(shadowElevation = 8.dp, color = Color.White, modifier = Modifier.fillMaxWidth()) {
+    Surface(shadowElevation = 8.dp, color = SurfaceWhite, modifier = Modifier.fillMaxWidth()) {
         Button(
             onClick = onCalendarClick,
             modifier = Modifier.padding(20.dp).fillMaxWidth().height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = TealPrimary),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Icon(imageVector = Icons.Outlined.CalendarMonth, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+            Icon(imageVector = Icons.Outlined.CalendarMonth, contentDescription = null, tint = SurfaceWhite, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "Add to Calendar", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
+            Text(text = "Add to Calendar", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = SurfaceWhite)
         }
     }
 }

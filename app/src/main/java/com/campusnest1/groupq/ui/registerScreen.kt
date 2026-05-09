@@ -30,7 +30,18 @@ import org.koin.androidx.compose.koinViewModel
 import androidx.navigation.NavController
 import com.campusnest1.groupq.auth1.RegisterUiState
 import com.campusnest1.groupq.navigation.Screen
+import com.campusnest1.groupq.ui.theme.BgBottom
+import com.campusnest1.groupq.ui.theme.BgTop
+import com.campusnest1.groupq.ui.theme.BorderLight
+import com.campusnest1.groupq.ui.theme.ErrorRed
+import com.campusnest1.groupq.ui.theme.OrangeAccent
+import com.campusnest1.groupq.ui.theme.OrangeStandard
+import com.campusnest1.groupq.ui.theme.SuccessGreen
+import com.campusnest1.groupq.ui.theme.TealAccent
+import com.campusnest1.groupq.ui.theme.SurfaceWhite
 import com.campusnest1.groupq.ui.theme.TextDark
+import com.campusnest1.groupq.ui.theme.TextGrey
+import com.campusnest1.groupq.ui.theme.TextPrimary
 import com.campusnest1.groupq.viewmodel.AuthViewModel
 
 @Composable
@@ -138,7 +149,7 @@ fun RegisterScreenContent(
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFFDEEEEE), Color(0xFFF3EDE4))
+                    colors = listOf(BgTop, BgBottom)
                 )
             )
     ) {
@@ -157,14 +168,14 @@ fun RegisterScreenContent(
                     imageVector = Icons.Default.Email, //place holder
                     contentDescription = null,
                     modifier = Modifier.size(60.dp),
-                    tint = Color(0xFF00A3A3)
+                    tint = TealAccent
                 )
 
                 Text(
                     text = buildAnnotatedString {
                         withStyle(
                             style = SpanStyle(
-                                color = Color(0xFF00A3A3),
+                                color = TealAccent,
                                 fontWeight = FontWeight.Bold
                             )
                         ) {
@@ -172,7 +183,7 @@ fun RegisterScreenContent(
                         }
                         withStyle(
                             style = SpanStyle(
-                                color = Color(0xFFF2994A),
+                                color = OrangeAccent,
                                 fontWeight = FontWeight.Bold
                             )
                         ) {
@@ -190,13 +201,13 @@ fun RegisterScreenContent(
                 text = "Welcome Student!",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF333333)
+                color = TextPrimary
             )
 
             Text(
                 text = "Create an account to access CampusNest.",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = TextGrey,
                 modifier = Modifier.padding(top = 8.dp)
             )
 
@@ -207,7 +218,8 @@ fun RegisterScreenContent(
                     Text(
                         text = "First Name",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        color = TextDark
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
@@ -215,24 +227,26 @@ fun RegisterScreenContent(
                         onValueChange = onFNameChange,
                         placeholder = {
                             Text(
-                                text = "First Name", color = Color.Gray,
+                                text = "First Name", 
+                                color = TextGrey,
                                 fontSize = 13.sp
                             )
                         },
                         isError = state.fnameError != null,
                         colors = OutlinedTextFieldDefaults.colors(
+                            errorTextColor = TextDark,
                             focusedTextColor = TextDark,
                             unfocusedTextColor = TextDark,
-                            focusedBorderColor = Color(0xFF00A3A3),
-                            errorBorderColor = Color.Red,
-                            unfocusedBorderColor = Color(0xFFE0E0E0),
-                            cursorColor = Color(0xFF00A3A3)
+                            focusedBorderColor = TealAccent,
+                            errorBorderColor = ErrorRed,
+                            unfocusedBorderColor = BorderLight,
+                            cursorColor = TealAccent
                         )
                     )
                     state.fnameError?.let {
                         Text(
                             text = it,
-                            color = Color.Red,
+                            color = ErrorRed,
                             fontSize = 12.sp
                         )
                     }
@@ -242,7 +256,8 @@ fun RegisterScreenContent(
                     Text(
                         text = "Last Name",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        color = TextDark
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
@@ -250,24 +265,25 @@ fun RegisterScreenContent(
                         onValueChange = onLNameChange,
                         placeholder = {
                             Text(
-                                text = "Last Name", color = Color.Gray,
+                                text = "Last Name", color = TextGrey,
                                 fontSize = 13.sp
                             )
                         },
                         isError = state.lnameError != null,
                         colors = OutlinedTextFieldDefaults.colors(
+                            errorTextColor = TextDark,
                             focusedTextColor = TextDark,
                             unfocusedTextColor = TextDark,
-                            focusedBorderColor = Color(0xFF00A3A3),
-                            errorBorderColor = Color.Red,
-                            unfocusedBorderColor = Color(0xFFE0E0E0),
-                            cursorColor = Color(0xFF00A3A3)
+                            focusedBorderColor = TealAccent,
+                            errorBorderColor = ErrorRed,
+                            unfocusedBorderColor = BorderLight,
+                            cursorColor = TealAccent
                         )
                     )
                     state.lnameError?.let {
                         Text(
                             text = it,
-                            color = Color.Red,
+                            color = ErrorRed,
                             fontSize = 12.sp
                         )
                     }
@@ -278,7 +294,8 @@ fun RegisterScreenContent(
                 Text(
                     text = "Phone number",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
+                    color = TextDark
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
@@ -287,16 +304,17 @@ fun RegisterScreenContent(
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = {
                         Text(
-                            text = "Enter your phone number", color = Color.Gray,
+                            text = "Enter your phone number", color = TextGrey,
                             fontSize = 13.sp
                         )
                     },
                     colors = OutlinedTextFieldDefaults.colors(
+                        errorTextColor = TextDark,
                         focusedTextColor = TextDark,
                         unfocusedTextColor = TextDark,
-                        focusedBorderColor = Color(0xFF00A3A3),
-                        unfocusedBorderColor = Color(0xFFE0E0E0),
-                        cursorColor = Color(0xFF00A3A3)
+                        focusedBorderColor = TealAccent,
+                        unfocusedBorderColor = BorderLight,
+                        cursorColor = TealAccent
                     )
                 )
             }
@@ -314,23 +332,24 @@ fun RegisterScreenContent(
                     value = state.email,
                     onValueChange = onEmailChange,
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("student@campus.edu", color = Color.Gray) },
+                    placeholder = { Text("student@campus.edu", color = TextGrey) },
                     leadingIcon = {
                         Icon(
                             Icons.Default.Email,
                             contentDescription = null,
-                            tint = Color.Gray
+                            tint = TextGrey
                         )
                     },
                     isError = state.emailError != null,
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
+                        errorTextColor = TextDark,
                         focusedTextColor = TextDark,
                         unfocusedTextColor = TextDark,
-                        focusedBorderColor = Color(0xFF00A3A3),
-                        errorBorderColor = Color.Red,
-                        unfocusedBorderColor = Color(0xFFE0E0E0),
-                        cursorColor = Color(0xFF00A3A3)
+                        focusedBorderColor = TealAccent,
+                        errorBorderColor = ErrorRed,
+                        unfocusedBorderColor = BorderLight,
+                        cursorColor = TealAccent
                     ),
                     singleLine = true
                 )
@@ -338,7 +357,7 @@ fun RegisterScreenContent(
                 state.emailError?.let {
                     Text(
                         text = it,
-                        color = Color.Red,
+                        color = ErrorRed,
                         fontSize = 12.sp
                     )
                 }
@@ -352,19 +371,19 @@ fun RegisterScreenContent(
                     text = "Password",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333)
+                    color = TextPrimary
                 )
                 OutlinedTextField(
                     value = state.password,
                     onValueChange = onPasswordChange,
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("••••••••", color = Color.Gray) },
+                    placeholder = { Text("••••••••", color = TextGrey) },
                     isError = state.passwordError != null,
                     leadingIcon = {
                         Icon(
                             Icons.Default.Lock,
                             contentDescription = null,
-                            tint = Color.Gray
+                            tint = TextGrey
                         )
                     },
                     trailingIcon = {
@@ -372,19 +391,20 @@ fun RegisterScreenContent(
                             Icon(
                                 imageVector = if (state.passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                 contentDescription = null,
-                                tint = Color.Gray
+                                tint = TextGrey
                             )
                         }
                     },
                     visualTransformation = if (state.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
+                        errorTextColor = TextDark,
                         focusedTextColor = TextDark,
                         unfocusedTextColor = TextDark,
-                        focusedBorderColor = Color(0xFF00A3A3),
-                        errorBorderColor = Color.Red,
-                        unfocusedBorderColor = Color(0xFFE0E0E0),
-                        cursorColor = Color(0xFF00A3A3)
+                        focusedBorderColor = TealAccent,
+                        errorBorderColor = ErrorRed,
+                        unfocusedBorderColor = BorderLight,
+                        cursorColor = TealAccent
                     ),
                     singleLine = true
                 )
@@ -393,10 +413,10 @@ fun RegisterScreenContent(
                 Text(
                     text = "Strength: $strength",
                     color = when (strength) {
-                        "Weak" -> Color.Red
-                        "Medium" -> Color(0xFFFFA500)
-                        "Strong" -> Color.Green
-                        else -> Color.Gray
+                        "Weak" -> ErrorRed
+                        "Medium" -> OrangeStandard
+                        "Strong" -> SuccessGreen
+                        else -> TextGrey
                     },
                     fontSize = 12.sp
                 )
@@ -404,7 +424,7 @@ fun RegisterScreenContent(
                 state.passwordError?.let {
                     Text(
                         text = it,
-                        color = Color.Red,
+                        color = ErrorRed,
                         fontSize = 12.sp
                     )
                 }
@@ -416,7 +436,7 @@ fun RegisterScreenContent(
             if (authErrorMessage != null) {
                 Text(
                     text = authErrorMessage,
-                    color = Color.Red,
+                    color = ErrorRed,
                     fontSize = 13.sp,
                     modifier = Modifier.padding(bottom = 8.dp),
                     textAlign = TextAlign.Center
@@ -431,13 +451,13 @@ fun RegisterScreenContent(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00A3A3))
+                colors = ButtonDefaults.buttonColors(containerColor = TealAccent)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (state.isLoading || authIsLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = Color.White,
+                            color = SurfaceWhite,
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -458,11 +478,11 @@ fun RegisterScreenContent(
             Text(
                 text = "Already have an account?",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = TextGrey,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
             TextButton(onClick = onLoginClick) {
-                Text(text = "Login", fontSize = 14.sp, color = Color(0xFF00A3A3))
+                Text(text = "Login", fontSize = 14.sp, color = TealAccent)
             }
         }
     }
