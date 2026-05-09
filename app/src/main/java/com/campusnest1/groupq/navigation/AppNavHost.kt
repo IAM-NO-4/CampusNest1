@@ -29,6 +29,9 @@ import com.campusnest1.groupq.ui.LoginScreen
 import com.campusnest1.groupq.ui.profile.ProfileScreen
 import com.campusnest1.groupq.ui.profile.PersonalInfoScreen
 import com.campusnest1.groupq.ui.profile.ProfileSettingsScreen
+import com.campusnest1.groupq.ui.profile.NotificationSettingsScreen
+import com.campusnest1.groupq.ui.profile.BookingHistoryScreen
+import com.campusnest1.groupq.ui.profile.SavedHostelsScreen
 import com.campusnest1.groupq.ui.registerScreen
 import com.campusnest1.groupq.viewmodel.EventViewModel
 import com.campusnest1.groupq.viewmodel.AuthViewModel
@@ -135,6 +138,18 @@ fun AppNavHost() {
                         onBackClick = { navController.popBackStack() }
                     )
                 }
+            }
+
+            composable(Screen.NotificationSettings.route) {
+                NotificationSettingsScreen(navController = navController)
+            }
+
+            composable(Screen.BookingHistory.route) {
+                BookingHistoryScreen(navController = navController)
+            }
+
+            composable(Screen.SavedHostels.route) {
+                SavedHostelsScreen(navController = navController)
             }
             
             composable("notifications") {

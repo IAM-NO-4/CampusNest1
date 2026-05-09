@@ -15,11 +15,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import com.campusnest1.groupq.ui.profile.ProfileSettingsContent
-import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 import org.koin.androidx.compose.koinViewModel
+import androidx.navigation.NavController
+import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 
 @Composable
 fun ProfileSettingsScreen(
@@ -134,24 +132,27 @@ fun ProfileInputField(label: String, value: String, onValueChange: (String) -> U
             fontWeight = FontWeight.Bold,
             fontSize = 14.sp,
             color = Color.DarkGray
-
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
+            textStyle = androidx.compose.ui.text.TextStyle(color = Color.Black, fontSize = 16.sp),
             placeholder = {
                 Text(
-                    text = "Enter your $label", color = Color.Black,
+                    text = "Enter your $label", color = Color.Gray,
                     fontSize = 13.sp
                 )
             },
             colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
                 focusedBorderColor = Color(0xFF00A3A3),
-                unfocusedBorderColor = Color.Black,
+                unfocusedBorderColor = Color(0xFFE0E0E0),
                 cursorColor = Color(0xFF00A3A3)
-            )
+            ),
+            singleLine = true
         )
     }
 }

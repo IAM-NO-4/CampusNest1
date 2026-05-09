@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Favorite
@@ -35,12 +36,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.koin.androidx.compose.koinViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ProfileScreen(
@@ -62,11 +63,12 @@ fun ProfileScreen(
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
+
         if (uri != null) {
             profileView.changeProfileImage(context, uri, uiState.userId)
         }
     }
-
+    // Fetch updated counts when screen opens
     LaunchedEffect(Unit) {
         profileView.fetchProfileData()
         hostelViewModel.loadStudentData()
@@ -89,13 +91,20 @@ fun ProfileScreen(
         currentHostel = uiState.currentHostel?.ifEmpty { "Not set" } ?: "Not set",
         savedCount = hostelViewModel.savedHostels.size,
         bookingCount = hostelViewModel.bookingHistory.value.size,
-        isNotificationsEnabled = profileView.isNotificationsEnabled.value,
-        onToggleNotifications = { profileView.toggleNotifications(it) },
+        onNotificationSettingsClick = { navController.navigate(Screen.NotificationSettings.route) },
         onProfileImageClick = { launcher.launch("image/*") },
-        navController = navController,
-        scrollState= navScrollState
+        scrollState= navScrollState,
+        onLogoutClick = {
+            profileView.logout()
+            navController.navigate(Screen.Login.route) {
+                popUpTo(0) { inclusive = true }
+            }
+        },
+        navController = navController
+
     )
 }
+
 
 @Composable
 fun ProfileScreenContent(
@@ -107,11 +116,11 @@ fun ProfileScreenContent(
     currentHostel: String,
     savedCount: Int,
     bookingCount: Int,
-    isNotificationsEnabled: Boolean,
-    onToggleNotifications: (Boolean) -> Unit,
+    onNotificationSettingsClick: () -> Unit,
     onProfileImageClick: () -> Unit,
-    navController: NavController?,
-    scrollState: ScrollState
+    scrollState: ScrollState,
+    onLogoutClick: () -> Unit,
+    navController: NavController?
 ) {
 
     Box(
@@ -268,63 +277,20 @@ fun ProfileScreenContent(
             SettingsItem(icon = Icons.Default.Favorite, label = "Saved Hostels", badgeCount = savedCount, iconTint = Color.Red,
                 onItemClick = { navController?.navigate("saved_hostels") })
 
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // Notification Settings Switch Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                border = BorderStroke(1.dp, Color(0xFFF0F0F0))
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            modifier = Modifier.size(40.dp),
-                            shape = CircleShape,
-                            color = Color(0xFFF5F5F5)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Notifications,
-                                contentDescription = null,
-                                modifier = Modifier.padding(10.dp),
-                                tint = Color(0xFF333333)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(
-                            text = "Notification Settings",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF333333)
-                        )
-                    }
-
-                    Switch(
-                        checked = isNotificationsEnabled,
-                        onCheckedChange = onToggleNotifications,
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = Color(0xFF00A3A3)
-                        )
-                    )
-                }
-            }
+            SettingsItem(icon = Icons.Default.Notifications, label = "Notification Settings",
+                onItemClick = { onNotificationSettingsClick() })
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Dark Mode
+            // Logout
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onLogoutClick() },
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                border = BorderStroke(1.dp, Color(0xFFF0F0F0))
+                border = BorderStroke(1.dp, Color(0xFFFFCDD2))
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -333,10 +299,10 @@ fun ProfileScreenContent(
                     Surface(
                         modifier = Modifier.size(44.dp),
                         shape = CircleShape,
-                        color = Color(0xFF0D1B3E)
+                        color = Color(0xFFD32F2F)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Nightlight,
+                            imageVector = Icons.AutoMirrored.Filled.Logout,
                             contentDescription = null,
                             modifier = Modifier.padding(10.dp),
                             tint = Color.White
@@ -344,16 +310,18 @@ fun ProfileScreenContent(
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(text = "Dark Mode", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        Text(text = "Switch to dark theme", fontSize = 12.sp, color = Color.Gray)
-                    }
-                    Switch(
-                        checked = false,
-                        onCheckedChange = {},
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = Color(0xFF00A3A3)
+                        Text(
+                            text = "Logout",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFD32F2F)
                         )
+                        Text(text = "Sign out of your account", fontSize = 12.sp, color = Color.Gray)
+                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = Color(0xFFD32F2F)
                     )
                 }
             }
@@ -447,6 +415,7 @@ fun SettingsItem(
     }
 }
 
+
 @Preview(showBackground = true, heightDp = 1100)
 @Composable
 fun ProfileScreenPreview() {
@@ -460,9 +429,10 @@ fun ProfileScreenPreview() {
         navController = null,
         savedCount = 4,
         bookingCount = 56,
-        isNotificationsEnabled = true,
-        onToggleNotifications = {},
+        onNotificationSettingsClick = {},
         onProfileImageClick = {},
+        onLogoutClick = {},
         scrollState = rememberScrollState()
     )
 }
+

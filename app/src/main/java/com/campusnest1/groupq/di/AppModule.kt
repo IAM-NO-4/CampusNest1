@@ -1,6 +1,5 @@
 package com.campusnest1.groupq.di
 
-import com.campusnest1.groupq.auth1.Authrepo
 import com.campusnest1.groupq.data.*
 import com.campusnest1.groupq.viewmodel.*
 import com.campusnest1.groupq.viewmodel.auth.*
@@ -14,14 +13,12 @@ val appModule = module {
     single { Firebase.firestore }
     single { Firebase.auth }
 
-    single { Authrepo() }
     single<AuthRepository> { AuthImplementationRepository(get()) }
     single<HostelRepository> { HostelImplementationRepository(get()) }
     single<EventRepository> { EventImplementationRepository(get()) }
     single<NotificationRepository> { NotificationRepositoryImpl() }
 
     viewModel { AuthViewModel(get()) }
-    viewModel { registerViewModel() }
     viewModel { HostelViewModel(get(), get()) }
     viewModel { EventViewModel(get(), get()) }
     viewModel { profileViewModel() }

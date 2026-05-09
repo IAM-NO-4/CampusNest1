@@ -13,4 +13,6 @@ sealed class Screen(val route: String) {
     object SavedHostels : Screen("saved_hostels")
     object BookingHistory : Screen("booking_history")
     object ProfileSettings : Screen("profile_settings")
+    object Notifications : Screen("notifications")
+    object NotificationSettings : Screen("notification_settings")
 }

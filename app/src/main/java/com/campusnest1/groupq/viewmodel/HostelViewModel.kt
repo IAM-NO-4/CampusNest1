@@ -10,7 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.campusnest1.groupq.auth1.Authrepo
+import com.campusnest1.groupq.data.AuthRepository
 import com.campusnest1.groupq.data.HostelRepository
 import com.campusnest1.groupq.model.Booking
 import com.campusnest1.groupq.model.Hostel
@@ -24,7 +24,7 @@ import androidx.core.net.toUri
 
 class HostelViewModel(
     private val repository: HostelRepository,
-    private val authRepository: Authrepo
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
 
@@ -78,7 +78,7 @@ class HostelViewModel(
 
     // Load saved status for all fetched hostels at once
     private suspend fun loadSavedStatus() {
-        val userId = authRepository.getCurrentUser()?.uid ?: return
+        val userId = authRepository.getCurrentUser()?.userId ?: return
         hostels.forEach { hostel ->
             savedStatus[hostel.hostelId] = repository.isHostelSaved(userId, hostel.hostelId)
         }
@@ -114,7 +114,7 @@ class HostelViewModel(
 
     // 2. Function to fetch data when the screen opens
     fun loadStudentData() {
-        val userId = authRepository.getCurrentUser()?.uid ?: ""
+        val userId = authRepository.getCurrentUser()?.userId ?: ""
         if (userId.isEmpty()) return
 
         viewModelScope.launch {
@@ -143,7 +143,7 @@ class HostelViewModel(
     }
 
     fun toggleFavorite(hostelId: String) {
-        val userId = authRepository.getCurrentUser()?.uid ?: return
+        val userId = authRepository.getCurrentUser()?.userId ?: return
         val current = savedStatus[hostelId] ?: false
         val newState = !current
         savedStatus[hostelId] = newState // Update UI immediately
@@ -161,7 +161,7 @@ class HostelViewModel(
     }
 
     fun checkIfSaved(hostelId: String) {
-        val userId = authRepository.getCurrentUser()?.uid ?: return
+        val userId = authRepository.getCurrentUser()?.userId ?: return
         viewModelScope.launch {
             savedStatus[hostelId] = repository.isHostelSaved(userId, hostelId)
         }

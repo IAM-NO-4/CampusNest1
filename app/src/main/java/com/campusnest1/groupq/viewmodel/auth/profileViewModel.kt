@@ -42,37 +42,45 @@ class profileViewModel: ViewModel() {
         if (uid != null) {
             uiState = uiState.copy(isLoading = true, error = null)
             
-            //Information about the user
+            // Step 1: Fetch User Data (Basic info)
             db.collection("users").document(uid).get()
                 .addOnSuccessListener { userDoc ->
                     val user = userDoc.toObject(User::class.java)
                     
-                    // profile-specific information
+                    // Immediately update UI with user data so the form isn't empty while waiting for profile
+                    uiState = uiState.copy(
+                        userId = uid,
+                        fname = user?.fname ?: uiState.fname,
+                        lname = user?.lname ?: uiState.lname,
+                        email = user?.email ?: uiState.email,
+                        phone = user?.phone ?: uiState.phone,
+                        profileImageUrl = user?.profileImageUrl ?: uiState.profileImageUrl
+                    )
+
+                    // Step 2: Fetch Profile Data (Academic/Settings)
                     db.collection("profiles").document(uid).get()
                         .addOnSuccessListener { profileDoc ->
                             val profile = profileDoc.toObject(Profile::class.java)
                             
                             uiState = uiState.copy(
-                                userId = uid,
-                                fname = user?.fname ?: "",
-                                lname = user?.lname ?: "",
-                                email = user?.email ?: "",
-                                phone = user?.phone ?: "",
-                                profileImageUrl = user?.profileImageUrl, // Assume User model has this or add to Profile
                                 course = profile?.course ?: "",
                                 yearOfStudy = profile?.yearOfStudy ?: "",
                                 currentHostel = profile?.currentHostel ?: "",
                                 currentRoomNo = profile?.currentRoomNo ?: "",
                                 favHostels = profile?.favHostels ?: "",
+                                priceChangeNotify = profile?.priceChangeNotify ?: true,
+                                newEventNotify = profile?.newEventNotify ?: true,
+                                roomAvailabilityNotify = profile?.roomAvailabilityNotify ?: true,
                                 isLoading = false
                             )
                         }
                         .addOnFailureListener { e ->
-                            uiState = uiState.copy(isLoading = false, error = e.message)
+                            // Even if profile fails, we still have user data
+                            uiState = uiState.copy(isLoading = false, error = "Profile data failed: ${e.message}")
                         }
                 }
                 .addOnFailureListener { e ->
-                    uiState = uiState.copy(isLoading = false, error = e.message)
+                    uiState = uiState.copy(isLoading = false, error = "User data failed: ${e.message}")
                 }
         }
     }
@@ -108,6 +116,34 @@ class profileViewModel: ViewModel() {
         uiState = uiState.copy(profileImageUrl = url)
     }
 
+    fun updateNotificationPreference(type: String, enabled: Boolean) {
+        val uid = auth.currentUser?.uid ?: return
+        
+        uiState = when (type) {
+            "price" -> uiState.copy(priceChangeNotify = enabled)
+            "event" -> uiState.copy(newEventNotify = enabled)
+            "room" -> uiState.copy(roomAvailabilityNotify = enabled)
+            else -> uiState
+        }
+
+        // Persist to Firestore
+        val field = when (type) {
+            "price" -> "priceChangeNotify"
+            "event" -> "newEventNotify"
+            "room" -> "roomAvailabilityNotify"
+            else -> null
+        }
+
+        field?.let {
+            db.collection("profiles").document(uid)
+                .update(it, enabled)
+                .addOnFailureListener { e ->
+                    // Optionally handle error, e.g., revert state
+                    uiState = uiState.copy(error = "Failed to update preference: ${e.message}")
+                }
+        }
+    }
+
     fun resetSuccess() {
         uiState = uiState.copy(isSuccess = false)
     }
@@ -120,11 +156,14 @@ class profileViewModel: ViewModel() {
 
         val newProfile = Profile(
             userId = uid,
-            course = uiState.course ?: "",
-            yearOfStudy = uiState.yearOfStudy ?: "",
-            currentHostel = uiState.currentHostel ?: "",
-            currentRoomNo = uiState.currentRoomNo ?: "",
-            favHostels = uiState.favHostels ?: ""
+            course = uiState.course,
+            yearOfStudy = uiState.yearOfStudy,
+            currentHostel = uiState.currentHostel,
+            currentRoomNo = uiState.currentRoomNo,
+            favHostels = uiState.favHostels,
+            priceChangeNotify = uiState.priceChangeNotify,
+            newEventNotify = uiState.newEventNotify,
+            roomAvailabilityNotify = uiState.roomAvailabilityNotify
         )
         val updatedUser = User(
             userId = uid,
@@ -154,11 +193,8 @@ class profileViewModel: ViewModel() {
 
     val currentUser = auth.currentUser
 
-    var isNotificationsEnabled = mutableStateOf(true)
-        private set
-
-    fun toggleNotifications(enabled: Boolean) {
-        isNotificationsEnabled.value = enabled
+    fun logout() {
+        auth.signOut()
     }
 
     fun changeProfileImage(context: Context, uri: Uri, userId: String) {

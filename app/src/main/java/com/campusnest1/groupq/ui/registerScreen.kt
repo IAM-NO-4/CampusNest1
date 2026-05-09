@@ -26,21 +26,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import androidx.navigation.NavController
 import com.campusnest1.groupq.auth1.RegisterUiState
+import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.viewmodel.AuthViewModel
-import com.campusnest1.groupq.viewmodel.auth.registerViewModel
 
 @Composable
 fun registerScreen(
     navController: NavController? = null,
-    viewModel: registerViewModel = viewModel(),
-    authViewModel: AuthViewModel = viewModel(),
+    authViewModel: AuthViewModel = koinViewModel(),
     onRegisterSuccess: () -> Unit = {}
 ) {
-    val state = viewModel.uiState
+    var state by remember { mutableStateOf(RegisterUiState()) }
     val authIsLoading by authViewModel.isLoading
     val authErrorMessage by authViewModel.errorMessage
     val authUser by authViewModel.user
@@ -51,22 +50,70 @@ fun registerScreen(
         }
     }
 
+    fun getPasswordStrength(password: String): String {
+        return when {
+            password.length < 6 -> "Weak"
+            password.all { it.isDigit() } -> "Weak"
+            password.any { it.isLetter() } && password.any { it.isDigit() } -> "Strong"
+            else -> "Medium"
+        }
+    }
+
+    fun isFormValid(): Boolean {
+        return state.fname.isNotBlank() &&
+                state.lname.isNotBlank() &&
+                state.email.isNotBlank() &&
+                state.password.isNotBlank() &&
+                state.phone.isNotBlank() &&
+                state.fnameError == null &&
+                state.lnameError == null &&
+                state.emailError == null &&
+                state.passwordError == null
+    }
+
     RegisterScreenContent(
         state = state,
         authIsLoading = authIsLoading,
         authErrorMessage = authErrorMessage,
-        onFNameChange = { viewModel.onFNameChange(it) },
-        onLNameChange = { viewModel.onLNameChange(it) },
-        onEmailChange = { viewModel.onEmailChange(it) },
-        onPasswordChange = { viewModel.onPasswordChange(it) },
-        onPhoneChange = { viewModel.onPhoneChange(it) },
-        onPasswordVisibleToggle = { viewModel.togglePasswordVisibility() },
-        onRegisterClick = { 
+        onFNameChange = { fname ->
+            state = state.copy(
+                fname = fname,
+                fnameError = if (fname.isEmpty()) "First name cannot be empty" else null
+            )
+        },
+        onLNameChange = { lname ->
+            state = state.copy(
+                lname = lname,
+                lnameError = if (lname.isEmpty()) "Last name cannot be empty" else null
+            )
+        },
+        onEmailChange = { email ->
+            val isValid = android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+            state = state.copy(
+                email = email,
+                emailError = if (!isValid) "Invalid email" else null
+            )
+        },
+        onPasswordChange = { pass ->
+            val error = when {
+                pass.length < 6 -> "At least 6 characters"
+                pass.all { it.isDigit() } -> "Cannot be only digits"
+                !pass.any { it.isLetter() } -> "Must include a letter"
+                else -> null
+            }
+            state = state.copy(
+                password = pass,
+                passwordError = error
+            )
+        },
+        onPhoneChange = { phone -> state = state.copy(phone = phone) },
+        onPasswordVisibleToggle = { state = state.copy(passwordVisible = !state.passwordVisible) },
+        onRegisterClick = {
             authViewModel.signUp(state.email, state.password, state.fname, state.lname, state.phone)
         },
-        onLoginClick = { navController?.navigate("login") },
-        getPasswordStrength = { viewModel.getPasswordStrength(it) },
-        isFormValid = { viewModel.isFormValid() }
+        onLoginClick = { navController?.navigate(Screen.Login.route) },
+        getPasswordStrength = { getPasswordStrength(it) },
+        isFormValid = { isFormValid() }
     )
 }
 
