@@ -12,4 +12,5 @@ interface HostelRepository {
     suspend fun getBookingHistory(userId: String): List<Booking>
     suspend fun toggleSavedHostel(userId: String, hostelId: String): Boolean
     suspend fun isHostelSaved(userId: String, hostelId: String): Boolean
+    suspend fun getManagerContact(managerId: String): String?
 }

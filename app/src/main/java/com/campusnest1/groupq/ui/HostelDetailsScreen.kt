@@ -31,22 +31,7 @@ import com.campusnest1.groupq.model.Room
 import com.campusnest1.groupq.ui.BookingBottomSheet
 import com.campusnest1.groupq.ui.HostelRating
 import com.campusnest1.groupq.ui.MockData
-import com.campusnest1.groupq.ui.theme.BackgroundLight
-import com.campusnest1.groupq.ui.theme.CampusNestTheme
-import com.campusnest1.groupq.ui.theme.ErrorRed
-import com.campusnest1.groupq.ui.theme.GreySurface
-import com.campusnest1.groupq.ui.theme.LightGray
-import com.campusnest1.groupq.ui.theme.LightRed
-import com.campusnest1.groupq.ui.theme.OrangeAccent
-import com.campusnest1.groupq.ui.theme.OrangeAccentLight
-import com.campusnest1.groupq.ui.theme.RedStandard
-import com.campusnest1.groupq.ui.theme.SurfaceWhite
-import com.campusnest1.groupq.ui.theme.TealAccent
-import com.campusnest1.groupq.ui.theme.TealPrimary
-import com.campusnest1.groupq.ui.theme.TealSecondary
-import com.campusnest1.groupq.ui.theme.TextDark
-import com.campusnest1.groupq.ui.theme.TextGrey
-import com.campusnest1.groupq.ui.theme.TextPrimary
+import com.campusnest1.groupq.ui.theme.*
 import com.campusnest1.groupq.utils.formatCurrency
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -106,7 +91,7 @@ fun HostelDetailsContent(
     val selectedRoom = viewModel.selectedRoom
 
     Scaffold(
-        containerColor = SurfaceWhite,
+        containerColor = Color.White,
         bottomBar = {
             BottomBookingBar(viewModel = viewModel)
         }
@@ -159,7 +144,7 @@ fun HostelDetailsContent(
                     Text(
                         text = hostel.description,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary,
+                        color = Color(0xFF4F4F4F),
                         modifier = Modifier.padding(top = 8.dp),
                         maxLines = if (isDescriptionExpanded) Int.MAX_VALUE else 3,
                         overflow = TextOverflow.Ellipsis
@@ -171,7 +156,7 @@ fun HostelDetailsContent(
                     ) {
                         Text(
                             text = if (isDescriptionExpanded) "Read less" else "Read more",
-                            color = TealAccent,
+                            color = Color(0xFF1BAFA9),
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -270,7 +255,7 @@ fun HostelHeaderImage(
                 color = Color.Black.copy(alpha = 0.3f)
             ) {
                 IconButton(onClick = onBackClick) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = SurfaceWhite)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
                 }
             }
 
@@ -278,17 +263,17 @@ fun HostelHeaderImage(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Surface(shape = CircleShape, color = Color.Black.copy(alpha = 0.3f)) {
                     IconButton(onClick = onShareClick) {
-                        Icon(Icons.Default.Share, null, tint = SurfaceWhite)
+                        Icon(Icons.Default.Share, null, tint = Color.White)
                     }
                 }
 
                 //Favorites
-                Surface(shape = CircleShape, color = SurfaceWhite) {
+                Surface(shape = CircleShape, color = Color.White) {
                     IconButton(onClick = onToggleFavorite) {
                         Icon(
                             imageVector = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Favorite",
-                            tint = if (isSaved) RedStandard else LightGray
+                            tint = if (isSaved) Color.Red else Color.LightGray
                         )
                     }
                 }
@@ -304,14 +289,14 @@ fun RoomCard(
     onSelect: () -> Unit = {}
 ) {
     val isAvailable = room.isAvailable && !room.status.contains("Full", ignoreCase = true)
-    val statusColor = if (!isAvailable) ErrorRed else OrangeAccent
-    val statusBg = if (!isAvailable) LightRed else OrangeAccentLight
+    val statusColor = if (!isAvailable) Color.Red else Color(0xFFF2994A)
+    val statusBg = if (!isAvailable) Color(0xFFFFEBEE) else Color(0xFFFFF3E0)
     val borderColor = if (isSelected) TealPrimary else if (room.status.isNotEmpty()) statusBg else Color.Transparent
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         border = BorderStroke(1.dp, borderColor)
     ) {
@@ -378,8 +363,7 @@ fun RoomCard(
                         enabled = isAvailable,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = TealPrimary,
-                            contentColor = SurfaceWhite,
-                            disabledContainerColor = LightGray
+                            disabledContainerColor = Color.LightGray
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -436,8 +420,8 @@ fun BottomBookingBar(viewModel: HostelViewModel) {
 
             Button(
                 onClick = { viewModel.updateShowBookingSheet(true) },
-                modifier = Modifier.height(56.dp).fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent, contentColor = SurfaceWhite),
+                modifier = Modifier.height(56.dp).fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

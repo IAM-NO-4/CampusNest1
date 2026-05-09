@@ -16,27 +16,12 @@ class NotificationViewModel(
     var notifications by mutableStateOf<List<Notification>>(emptyList())
         private set
 
-    var isLoading by mutableStateOf(false)
-        private set
-
-    var error by mutableStateOf<String?>(null)
-        private set
-
     fun fetchNotifications(userId: String) {
-        if (userId.isEmpty()) return
-        
+
         viewModelScope.launch {
-            isLoading = true
-            error = null
-            try {
-                notifications = repository.getNotifications(userId)
-            } catch (e: Exception) {
-                error = e.message
-                // Log the error or handle it (e.g., missing index)
-                e.printStackTrace()
-            } finally {
-                isLoading = false
-            }
+
+            notifications =
+                repository.getNotifications(userId)
         }
     }
 

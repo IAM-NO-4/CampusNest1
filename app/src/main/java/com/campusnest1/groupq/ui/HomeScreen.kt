@@ -27,18 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
-import com.campusnest1.groupq.ui.theme.BackgroundLight
-import com.campusnest1.groupq.ui.theme.BorderGrey
-import com.campusnest1.groupq.ui.theme.CampusNestTheme
-import com.campusnest1.groupq.ui.theme.OrangeAccent
-import com.campusnest1.groupq.ui.theme.OrangeAccentLight
-import com.campusnest1.groupq.ui.theme.RedStandard
-import com.campusnest1.groupq.ui.theme.StarYellow
-import com.campusnest1.groupq.ui.theme.SurfaceWhite
-import com.campusnest1.groupq.ui.theme.TealPrimary
-import com.campusnest1.groupq.ui.theme.TealSecondary
-import com.campusnest1.groupq.ui.theme.TextDark
-import com.campusnest1.groupq.ui.theme.TextGrey
+import com.campusnest1.groupq.ui.theme.*
 import com.campusnest1.groupq.viewmodel.HostelViewModel
 import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -55,24 +44,18 @@ fun CampusNestApp(
     profViewModel: profileViewModel = koinViewModel(),
     notifViewModel: NotificationViewModel = koinViewModel()
     ) {
-    
-    val uiState = profViewModel.uiState
-    
     LaunchedEffect(Unit) {
-        // Fetch hostels and profile data in parallel
         viewModel.fetchHostelsData()
-        profViewModel.fetchProfileData()
         viewModel.loadStudentData()
-    }
-
-    // Fetch notifications once we have a valid userId
-    LaunchedEffect(uiState.userId) {
-        if (uiState.userId.isNotEmpty()) {
-            notifViewModel.fetchNotifications(userId = uiState.userId)
-        }
+        profViewModel.fetchProfileData()
+        notifViewModel.fetchNotifications(
+            userId = profViewModel.uiState.userId
+        )
     }
 
     var showNotificationsSheet by remember { mutableStateOf(false) }
+    val uiState = profViewModel.uiState
+
     val hostels = viewModel.hostels
 
     if (showNotificationsSheet) {
@@ -168,8 +151,8 @@ fun HomeScreenContent(
                             onTabSelected(category)
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isSelected) TealPrimary else SurfaceWhite,
-                            contentColor = if (isSelected) SurfaceWhite else TextDark
+                            containerColor = if (isSelected) TealPrimary else Color.White,
+                            contentColor = if (isSelected) Color.White else TextDark
                         ),
                         shape = RoundedCornerShape(24.dp),
                         elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
@@ -264,7 +247,7 @@ fun HeaderSection( onNotificationClick: () -> Unit,
                     },
 
                     contentDescription = null,
-                    tint = OrangeAccent,
+                    tint = Color(0xFFF2994A),
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
@@ -292,7 +275,7 @@ fun HeaderSection( onNotificationClick: () -> Unit,
         // Notification Bell
         Surface(
             shape = CircleShape,
-            color = SurfaceWhite,
+            color = Color.White,
             shadowElevation = 4.dp,
             modifier = Modifier.size(48.dp)
         ) {
@@ -309,7 +292,7 @@ fun HeaderSection( onNotificationClick: () -> Unit,
                     modifier = Modifier
                         .size(8.dp)
                         .offset(x = 10.dp, y = (-10).dp)
-                        .background(RedStandard, CircleShape)
+                        .background(Color.Red, CircleShape)
                         .align(Alignment.Center)
                 )
             }
@@ -324,7 +307,7 @@ fun SearchBar(onSearchClick: () -> Unit) {
         onClick = onSearchClick,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        color = SurfaceWhite,
+        color = Color.White,
         shadowElevation = 2.dp
     ) {
         Row(
@@ -389,7 +372,7 @@ fun HostelCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -410,7 +393,7 @@ fun HostelCard(
                     modifier = Modifier
                         .padding(12.dp)
                         .align(Alignment.TopStart),
-                    color = SurfaceWhite.copy(alpha = 0.8f),
+                    color = Color.White.copy(alpha = 0.8f),
                     shape = MaterialTheme.shapes.small
                 ) {
                     Row(
@@ -439,14 +422,14 @@ fun HostelCard(
                         .padding(12.dp)
                         .align(Alignment.TopEnd)
                         .size(36.dp),
-                    color = SurfaceWhite,
+                    color = Color.White,
                     shape = CircleShape
                 ) {
                     IconButton(onClick = onToggleFavorite) {
                         Icon(
                             imageVector = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Favorite",
-                            tint = if (isSaved) RedStandard else TextGrey,
+                            tint = if (isSaved) Color.Red else TextGrey,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -490,7 +473,7 @@ fun HostelCard(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = BorderGrey, thickness = 1.dp)
+            HorizontalDivider(color = Color(0xFFF0F0F0), thickness = 1.dp)
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(

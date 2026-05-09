@@ -56,17 +56,13 @@ import com.campusnest1.groupq.model.Event
 import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.ui.theme.BackgroundLight
 import com.campusnest1.groupq.ui.theme.CampusNestTheme
-import com.campusnest1.groupq.ui.theme.IconBgGray
-import com.campusnest1.groupq.ui.theme.LightGray
 import com.campusnest1.groupq.ui.theme.OrangeAccent
 import com.campusnest1.groupq.ui.theme.OrangeAccentLight
 import com.campusnest1.groupq.ui.theme.RedAccent
-import com.campusnest1.groupq.ui.theme.SurfaceWhite
 import com.campusnest1.groupq.ui.theme.TealPrimary
 import com.campusnest1.groupq.ui.theme.TealSecondary
 import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.ui.theme.TextGrey
-import com.campusnest1.groupq.ui.theme.TextPrimary
 import com.campusnest1.groupq.viewmodel.EventViewModel
 
 @Composable
@@ -147,12 +143,12 @@ fun EventsScreenContent(
                                 label = { Text(category, fontWeight = FontWeight.Bold) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = TealPrimary,
-                                    selectedLabelColor = SurfaceWhite,
-                                    containerColor = SurfaceWhite,
+                                    selectedLabelColor = Color.White,
+                                    containerColor = Color.White,
                                     labelColor = TextDark
                                 ),
                                 border = FilterChipDefaults.filterChipBorder(
-                                    borderColor = if (isSelected) TealPrimary else LightGray.copy(
+                                    borderColor = if (isSelected) TealPrimary else Color.LightGray.copy(
                                         alpha = 0.5f
                                     ),
                                     enabled = true,
@@ -232,7 +228,7 @@ fun EventHeaderSection() {
             //Filter
             Surface(
                 shape = CircleShape,
-                color = SurfaceWhite,
+                color = Color.White,
                 shadowElevation = 4.dp,
                 modifier = Modifier.size(48.dp)
             ) {
@@ -274,7 +270,7 @@ fun UpcomingEventItem(event: Event, onBtnClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
 
     ) {
@@ -309,13 +305,13 @@ fun UpcomingEventItem(event: Event, onBtnClick: () -> Unit) {
 
             Column(modifier = Modifier.weight(1f)) {
                 Surface(
-                    color = IconBgGray,
+                    color = Color(0xFFEDF2F7),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Text(
                         text = event.category.uppercase(),
                         fontSize = 10.sp,
-                        color = TextGrey,
+                        color = Color(0xFF4A5568),
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                     )
                 }
@@ -406,12 +402,12 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                         imageVector = Icons.Outlined.Sensors,
                         contentDescription = null,
                         modifier = Modifier.size(14.dp),
-                        tint = SurfaceWhite
+                        tint = Color.White
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "Live",
-                        color = SurfaceWhite,
+                        color = Color.White,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -424,12 +420,12 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                     .align(Alignment.BottomStart)
                     .padding(16.dp)
             ) {
-                Surface(color = SurfaceWhite.copy(alpha = 0.4f), shape = CircleShape) {
+                Surface(color = Color.White.copy(alpha = 0.4f), shape = CircleShape) {
                     Text(
                         text = event.category.uppercase(),
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
-                        color = SurfaceWhite,
+                        color = Color.White,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -440,16 +436,16 @@ fun EventCard(event: Event, onClick: () -> Unit) {
                     event.title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = SurfaceWhite
+                    color = Color.White
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Outlined.LocationOn,
                         null,
-                        tint = SurfaceWhite.copy(alpha = 0.7f),
+                        tint = Color.White.copy(alpha = 0.7f),
                         modifier = Modifier.size(14.dp)
                     )
-                    Text(event.location, color = SurfaceWhite.copy(alpha = 0.7f), fontSize = 12.sp)
+                    Text(event.location, color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
                 }
             }
         }

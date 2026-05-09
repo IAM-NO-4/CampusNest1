@@ -1,5 +1,9 @@
 package com.campusnest1.groupq.viewmodel
 
+import android.content.Context
+import android.content.Intent
+import android.content.Intent.ACTION_DIAL
+import android.widget.Toast.makeText
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -16,6 +20,7 @@ import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
 
 class HostelViewModel(
     private val repository: HostelRepository,
@@ -168,4 +173,24 @@ class HostelViewModel(
             savedStatus[hostelId] = repository.isHostelSaved(userId, hostelId)
         }
     }
+
+    fun contactManager(managerId: String, context: Context){
+        viewModelScope.launch {
+            val phoneNumber = repository.getManagerContact(managerId)
+            if(!phoneNumber.isNullOrEmpty()){
+                openDailer(phoneNumber, context)
+            }else {
+                makeText(context, "No phone number available for this hostel", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun openDailer(phoneNumber: String, context: Context) {
+        val intent = Intent(Intent.ACTION_DIAL).apply {
+            data = "tel:$phoneNumber".toUri()
+        }
+        context.startActivity(intent)
+    }
+
+
 }

@@ -6,4 +6,5 @@ interface EventRepository {
     suspend fun getEvents(): List<Event>
     suspend fun toggleSavedEvent(userId: String, eventId: String): Boolean
     suspend fun isEventSaved(userId: String, eventId: String): Boolean
+    suspend fun deleteEvent(eventId: String): Boolean
 }

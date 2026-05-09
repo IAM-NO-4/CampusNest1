@@ -57,9 +57,9 @@ class AuthViewModel(
 
             val result = repository.login(email, pass)
 
-            result.onSuccess {
+            result.onSuccess { loggedInUser ->
+                _user.value = loggedInUser // Manually update to trigger navigation instantly
                 _isLoading.value = false
-                // Note: authState listener will handle updating _user automatically
             }.onFailure { exception ->
                 _isLoading.value = false
                 _errorMessage.value = exception.message ?: "Login failed. Please try again."
@@ -105,7 +105,7 @@ class AuthViewModel(
     fun logout() {
         viewModelScope.launch {
             repository.logout()
-            // The authState listener in init{} will detect this and set _user to null
+            _user.value = null // Clear immediately for UI feedback
         }
     }
 
