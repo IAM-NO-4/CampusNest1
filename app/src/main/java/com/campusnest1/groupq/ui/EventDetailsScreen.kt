@@ -1,7 +1,6 @@
 package com.campusnest1.groupq.ui
 
 import android.content.Intent
-import android.net.Uri
 import android.provider.CalendarContract
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -45,6 +43,7 @@ import com.campusnest1.groupq.ui.theme.TealSecondary
 import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.ui.theme.TextGrey
 import com.campusnest1.groupq.ui.theme.TextPrimary
+import com.campusnest1.groupq.ui.theme.BackgroundLight
 import com.campusnest1.groupq.utils.formatEventDate
 import com.campusnest1.groupq.utils.formatEventTime
 import com.campusnest1.groupq.viewmodel.EventViewModel
@@ -66,6 +65,7 @@ fun EventDetailsScreen(
     val isSaved = viewModel?.savedStatus?.get(event.eventId) ?: false
 
     Scaffold(
+        containerColor = BackgroundLight,
         bottomBar = {
             BottomEventBar(
                 onCalendarClick = {
@@ -83,7 +83,7 @@ fun EventDetailsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(bottom = padding.calculateBottomPadding())
         ) {
             item {
                 EventHeaderImage(
@@ -139,8 +139,8 @@ fun EventDetailCard(
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = event.title,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
             color = TextDark
         )
         
@@ -155,11 +155,13 @@ fun EventDetailCard(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(text = "About", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextDark)
-        Text(text = event.description, style = MaterialTheme.typography.bodyMedium, color = TextGrey, modifier = Modifier.padding(top = 8.dp))
+        Text(text = event.description, style = MaterialTheme.typography.bodyMedium, color = TextDark.copy(alpha = 0.7f), modifier = Modifier.padding(top = 8.dp))
 
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(text = "Event Highlights", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextDark)
-        HighlightsList(event.highlights)
+        if (event.highlights.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(text = "Event Highlights", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = TextDark)
+            HighlightsList(event.highlights)
+        }
         
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -181,7 +183,7 @@ fun EventDetailCard(
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = "Organized by", style = MaterialTheme.typography.bodySmall, color = TextGrey)
-                Text(text = event.eventOrganizer, style = MaterialTheme.typography.labelSmall, color = TextGrey)
+                Text(text = event.eventOrganizer.ifEmpty { "Campus Events" }, style = MaterialTheme.typography.labelSmall, color = TextDark, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -219,7 +221,7 @@ fun RegistrationBanner(onRegisterClick: () -> Unit) {
             }
         }
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = "Registration", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall, color = TextDark)
+            Text(text = "Registration", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleSmall, color = TextDark)
             Text(text = "Register online to secure your spot!", style = MaterialTheme.typography.bodySmall, color = TextGrey)
         }
         Spacer(modifier = Modifier.width(8.dp))
@@ -274,7 +276,10 @@ fun EventHeaderImage(
 ) {
     Box(modifier = Modifier.height(300.dp).fillMaxWidth()) {
         AsyncImage(model = event.imageUrl, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-        Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(
+            modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(16.dp), 
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Surface(shape = CircleShape, color = Color.Black.copy(alpha = 0.3f)) {
                 IconButton(onClick = onBackClick) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = SurfaceWhite)

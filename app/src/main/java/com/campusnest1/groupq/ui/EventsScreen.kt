@@ -55,7 +55,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Event
-import com.campusnest1.groupq.navigation.Screen
 import com.campusnest1.groupq.ui.theme.BackgroundLight
 import com.campusnest1.groupq.ui.theme.CampusNestTheme
 import com.campusnest1.groupq.ui.theme.OrangeAccent
@@ -91,7 +90,7 @@ fun EventsScreenContent(
     onScroll: (Boolean) -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf("All") }
-    val categories = listOf("All", "Social", "Academic", "Sports")
+    val categories = listOf("All", "Social", "Wellness", "Academic", "Sports", "Tech", "Finance")
     val listState = rememberLazyListState()
 
     val shouldShow = !listState.isScrollInProgress || listState.firstVisibleItemIndex == 0
@@ -132,7 +131,7 @@ fun EventsScreenContent(
                             Text(
                                 text = "Happening Now",
                                 style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = TextDark
                             )
                             Spacer(modifier = Modifier.height(12.dp))
@@ -177,7 +176,7 @@ fun EventsScreenContent(
                     Text(
                         text = if (selectedTab == "All") "Upcoming Events" else "$selectedTab Events",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = TextDark
                     )
                 }
@@ -233,25 +232,9 @@ fun EventHeaderSection() {
             Text(
                 text = "Campus Events",
                 fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.titleLarge,
                 color = TextDark
             )
-
-            //Filter
-            Surface(
-                shape = CircleShape,
-                color = Color.White,
-                shadowElevation = 4.dp,
-                modifier = Modifier.size(48.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Outlined.Tune,
-                        contentDescription = "Filter",
-                        tint = TextDark
-                    )
-                }
-            }
         }
         Text(text = "🎉", fontSize = 24.sp)
     }
@@ -280,6 +263,7 @@ fun UpcomingEventItem(event: Event, onBtnClick: () -> Unit) {
 
 
     Card(
+        onClick = { onBtnClick() },
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -375,6 +359,7 @@ fun UpcomingEventItem(event: Event, onBtnClick: () -> Unit) {
 @Composable
 fun EventCard(event: Event, onClick: () -> Unit) {
     Card(
+        onClick = onClick,
         modifier = Modifier.size(240.dp, 300.dp),
         shape = MaterialTheme.shapes.large,
     ) {

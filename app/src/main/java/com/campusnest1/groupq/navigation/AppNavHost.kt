@@ -13,7 +13,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -74,7 +76,7 @@ fun AppNavHost() {
             startDestination = Screen.Login.route,
             modifier = Modifier.fillMaxSize()
         ) {
-            // Auth
+            //Auth
             composable(Screen.Login.route) {
                 LoginScreen(
                     navController = navController,
@@ -91,7 +93,7 @@ fun AppNavHost() {
                 PersonalInfoScreen(navController = navController, profileView = profileViewM)
             }
 
-            // Main Tabs
+            //Main Tabs
             composable(Screen.Home.route) {
                 CampusNestApp(navController, onScroll = { visible -> isBottomBarVisible = visible })
             }
@@ -112,7 +114,7 @@ fun AppNavHost() {
                 EventsScreen(navController = navController, viewModel = eventsviewModel, onScroll = { visible -> isBottomBarVisible = visible })
             }
 
-            // Details (No Bottom Bar)
+            //Details (No Bottom Bar)
             composable(
                 route = Screen.HostelDetails.route,
                 arguments = listOf(navArgument("hostelId") { type = NavType.StringType })
@@ -151,24 +153,35 @@ fun AppNavHost() {
             composable(Screen.SavedHostels.route) {
                 SavedHostelsScreen(navController = navController)
             }
+
+            composable(Screen.NotificationSettings.route) {
+                NotificationSettingsScreen(navController = navController, profileViewModel = profileViewM)
+            }
+
+            composable(Screen.BookingHistory.route) {
+                BookingHistoryScreen(navController = navController)
+            }
+
+            composable(Screen.SavedHostels.route) {
+                SavedHostelsScreen(navController = navController)
+            }
             
             composable("notifications") {
                 Text("Notifications Screen")
             }
         }
 
-        // Floating Bottom Nav Bar
+        //Floating Bottom Nav Bar
         if (currentRoute in bottomBarScreens) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .navigationBarsPadding() // Avoid system nav bar
+                    .navigationBarsPadding() 
                     .padding(bottom = 16.dp)
             ) {
                 BottomNavBar(
-                    navController,
+                    navController = navController,
                     isVisible = isBottomBarVisible
-
                 )
             }
         }

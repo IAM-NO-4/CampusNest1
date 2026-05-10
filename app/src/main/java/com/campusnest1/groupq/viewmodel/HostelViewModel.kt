@@ -2,7 +2,6 @@ package com.campusnest1.groupq.viewmodel
 
 import android.content.Context
 import android.content.Intent
-import android.content.Intent.ACTION_DIAL
 import android.widget.Toast.makeText
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -15,6 +14,7 @@ import com.campusnest1.groupq.data.HostelRepository
 import com.campusnest1.groupq.model.Booking
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.model.Room
+import com.campusnest1.groupq.model.Review
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.async
@@ -33,8 +33,7 @@ class HostelViewModel(
 
     var savedHostels by mutableStateOf<List<Hostel>>(emptyList())
         private set
-    
-    // Add state for tracking saved status of hostels by ID
+
     var savedStatus = mutableStateMapOf<String, Boolean>()
         private set
 
@@ -44,7 +43,6 @@ class HostelViewModel(
     var isLoading = mutableStateOf(false)
         private set
 
-    // Inside HostelViewModel.kt
     var isNotificationsEnabled = mutableStateOf(true)
         private set
 
@@ -56,7 +54,9 @@ class HostelViewModel(
     var currentRooms by mutableStateOf<List<Room>>(emptyList())
         private set
 
-    // Hostel Details UI State
+    var reviews by mutableStateOf<List<Review>>(emptyList())
+        private set
+
     var isDescriptionExpanded by mutableStateOf(false)
         private set
 
@@ -66,7 +66,9 @@ class HostelViewModel(
     var showBookingSheet by mutableStateOf(false)
         private set
 
-    //hostel results from firebase
+    var showReviewDialog by mutableStateOf(false)
+        private set
+
     fun fetchHostelsData(){
         viewModelScope.launch {
             isLoading.value = true
@@ -76,7 +78,6 @@ class HostelViewModel(
         }
     }
 
-    // Load saved status for all fetched hostels at once
     private suspend fun loadSavedStatus() {
         val userId = authRepository.getCurrentUser()?.userId ?: return
         hostels.forEach { hostel ->
@@ -88,11 +89,10 @@ class HostelViewModel(
         viewModelScope.launch {
             isLoading.value = true
             currentHostel = repository.getHostelById(hostelId)
-            val rooms = repository.getRoomsForHostel(hostelId)
-            currentRooms = rooms
-            
-            // Set initial selected room
-            selectedRoom = rooms.firstOrNull { it.isAvailable && !it.status.contains("Full", ignoreCase = true) }
+            currentRooms = repository.getRoomsForHostel(hostelId)
+            reviews = repository.getReviewsForHostel(hostelId)
+
+            selectedRoom = currentRooms.firstOrNull { it.isAvailable && !it.status.contains("Full", ignoreCase = true) }
             
             isLoading.value = false
         }
@@ -112,12 +112,14 @@ class HostelViewModel(
         showBookingSheet = show
     }
 
-    // 2. Function to fetch data when the screen opens
+    fun updateShowReviewDialog(show: Boolean) {
+        showReviewDialog = show
+    }
+
     fun loadStudentData(forceRefresh: Boolean = false) {
         val userId = authRepository.getCurrentUser()?.userId ?: ""
         if (userId.isEmpty()) return
 
-        // If we already have data and not forcing refresh, load in background
         val showLoading = forceRefresh || (savedHostels.isEmpty() && bookingHistory.value.isEmpty())
 
         viewModelScope.launch {
@@ -126,7 +128,6 @@ class HostelViewModel(
             }
 
             try {
-                // Fetch both lists in parallel
                 val savedTask = async { repository.getSavedHostels(userId) }
                 val bookingTask = async { repository.getBookingHistory(userId) }
 
@@ -153,15 +154,14 @@ class HostelViewModel(
         val userId = authRepository.getCurrentUser()?.userId ?: return
         val current = savedStatus[hostelId] ?: false
         val newState = !current
-        savedStatus[hostelId] = newState // Update UI immediately
+        savedStatus[hostelId] = newState //Update UI immediately
         viewModelScope.launch {
             try {
                 repository.toggleSavedHostel(userId, hostelId)
-                // Do NOT overwrite savedStatus here — keep the optimistic state
-                // Only refresh the savedHostels list silently in background
+                //Refresh the savedHostels list silently in background
                 savedHostels = repository.getSavedHostels(userId)
             } catch (e: Exception) {
-                // If Firestore fails, revert back to original state
+                //If Firestore fails, revert back to original state
                 savedStatus[hostelId] = current
             }
         }
@@ -192,5 +192,23 @@ class HostelViewModel(
         context.startActivity(intent)
     }
 
-
+    fun submitReview(rating: Double, comment: String, userName: String) {
+        val userId = authRepository.getCurrentUser()?.userId ?: return
+        val hostelId = currentHostel?.hostelId ?: return
+        
+        viewModelScope.launch {
+            val review = Review(
+                userId = userId,
+                userName = userName,
+                hostelId = hostelId,
+                rating = rating,
+                comment = comment
+            )
+            val success = repository.addReview(review)
+            if (success) {
+                reviews = repository.getReviewsForHostel(hostelId)
+                currentHostel = repository.getHostelById(hostelId)
+            }
+        }
+    }
 }
