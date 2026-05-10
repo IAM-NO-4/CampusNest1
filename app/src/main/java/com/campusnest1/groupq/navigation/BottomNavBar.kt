@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.campusnest1.groupq.ui.theme.TealPrimary
@@ -37,7 +38,8 @@ fun BottomNavBar(
         BottomNavItem.Profile
     )
 
-    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
     Surface(
         modifier = Modifier
@@ -82,8 +84,16 @@ fun BottomNavBar(
                         ) {
                             if (!selected) {
                                 navController.navigate(item.route) {
-                                    popUpTo("home") { saveState = true }
+                                    //Pop up to the start destination of the graph to
+                                    //avoid building up a large stack of destinations
+                                    //on the back stack as users select items
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    //Avoid multiple copies of the same destination when
+                                    //re-selecting the same item
                                     launchSingleTop = true
+                                    //Restore state when re-selecting a previously selected item
                                     restoreState = true
                                 }
                             }

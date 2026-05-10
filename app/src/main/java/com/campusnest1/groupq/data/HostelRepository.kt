@@ -3,6 +3,7 @@ package com.campusnest1.groupq.data
 import com.campusnest1.groupq.model.Booking
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.model.Room
+import com.campusnest1.groupq.model.Review
 
 interface HostelRepository {
     suspend fun getHostels(): List<Hostel>
@@ -15,4 +16,6 @@ interface HostelRepository {
     suspend fun toggleSavedHostel(userId: String, hostelId: String): Boolean
     suspend fun isHostelSaved(userId: String, hostelId: String): Boolean
     suspend fun getManagerContact(managerId: String): String?
+    suspend fun addReview(review: Review): Boolean
+    suspend fun getReviewsForHostel(hostelId: String): List<Review>
 }

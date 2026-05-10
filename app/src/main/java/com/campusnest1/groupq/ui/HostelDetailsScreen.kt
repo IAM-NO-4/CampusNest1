@@ -2,6 +2,7 @@ package com.campusnest1.groupq.ui
 
 import android.content.Intent
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -17,6 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -28,53 +30,89 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.model.Room
-import com.campusnest1.groupq.ui.BookingBottomSheet
-import com.campusnest1.groupq.ui.HostelRating
-import com.campusnest1.groupq.ui.MockData
+import com.campusnest1.groupq.model.Review
 import com.campusnest1.groupq.ui.theme.*
 import com.campusnest1.groupq.utils.formatCurrency
 import com.campusnest1.groupq.viewmodel.HostelViewModel
+import com.campusnest1.groupq.viewmodel.auth.profileViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HostelDetailsScreen(
     hostelId: String,
     viewModel: HostelViewModel = koinViewModel(),
+    profViewModel: profileViewModel = koinViewModel(),
     onBackClick: () -> Unit = {}
 ) {
     val hostel = viewModel.currentHostel
     val rooms = viewModel.currentRooms
+    val reviews = viewModel.reviews
     val isSaved = viewModel.savedStatus[hostelId] ?: false
     val context = LocalContext.current
 
     LaunchedEffect(hostelId) {
         viewModel.fetchHostelDetails(hostelId)
         viewModel.checkIfSaved(hostelId)
+        profViewModel.fetchProfileData()
     }
 
     if (hostel == null || viewModel.isLoading.value) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(SurfaceWhite), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = TealPrimary)
         }
     } else {
-        HostelDetailsContent(
-            hostel = hostel,
-            rooms = rooms,
-            isSaved = isSaved,
-            viewModel = viewModel,
-            onBackClick = onBackClick,
-            onToggleFavorite = { viewModel.toggleFavorite(hostel.hostelId) },
-            onShareClick = {
-                val sendIntent: Intent = Intent().apply {
-                    action = Intent.ACTION_SEND
-                    val displayName = hostel.name.ifBlank { "this hostel" }
-                    putExtra(Intent.EXTRA_TEXT, "Check out $displayName in ${hostel.location}! Prices starting from UGX ${hostel.lowestPrice}. Download CampusNest to see more.")
-                    type = "text/plain"
+        Surface(modifier = Modifier.fillMaxSize(), color = SurfaceWhite) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                HostelDetailsContent(
+                    hostel = hostel,
+                    rooms = rooms,
+                    reviews = reviews,
+                    isSaved = isSaved,
+                    viewModel = viewModel,
+                    onBackClick = onBackClick,
+                    onToggleFavorite = { viewModel.toggleFavorite(hostel.hostelId) },
+                    onShareClick = {
+                        val sendIntent: Intent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            val displayName = hostel.name.ifBlank { "this hostel" }
+                            putExtra(Intent.EXTRA_TEXT, "Check out $displayName in ${hostel.location}! Download CampusNest to see more.")
+                            type = "text/plain"
+                        }
+                        val shareIntent = Intent.createChooser(sendIntent, null)
+                        context.startActivity(shareIntent)
+                    }
+                )
+
+                //Booking Bottom Sheet
+                if (viewModel.showBookingSheet && viewModel.selectedRoom != null) {
+                    BookingBottomSheet(
+                        hostel = hostel,
+                        room = viewModel.selectedRoom!!,
+                        isConfirmed = viewModel.alreadyBookedForRoomType,
+                        viewModel = viewModel,
+                        onDismiss = { viewModel.updateShowBookingSheet(false) },
+                        onBook = { date, time ->
+                            viewModel.confirmBooking(date, time)
+                            viewModel.updateShowBookingSheet(false)
+                            viewModel.contactManager(hostel.managerId, context)
+                        }
+                    )
                 }
-                val shareIntent = Intent.createChooser(sendIntent, null)
-                context.startActivity(shareIntent)
+
+                //Review Bottom Sheet
+                if (viewModel.showReviewDialog) {
+                    ReviewBottomSheet(
+                        onDismiss = { viewModel.updateShowReviewDialog(false) },
+                        onSubmit = { rating, comment ->
+                            viewModel.submitReview(rating, comment, profViewModel.uiState.fname)
+                            viewModel.updateShowReviewDialog(false)
+                        }
+                    )
+                }
             }
-        )
+        }
     }
 }
 
@@ -82,6 +120,7 @@ fun HostelDetailsScreen(
 fun HostelDetailsContent(
     hostel: Hostel,
     rooms: List<Room>,
+    reviews: List<Review>,
     isSaved: Boolean,
     viewModel: HostelViewModel,
     onBackClick: () -> Unit,
@@ -92,29 +131,18 @@ fun HostelDetailsContent(
     val selectedRoom = viewModel.selectedRoom
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = Color.Transparent,
         bottomBar = {
             BottomBookingBar(viewModel = viewModel)
         }
     ) { padding ->
-        if (viewModel.showBookingSheet && viewModel.selectedRoom != null) {
-            BookingBottomSheet(
-                hostel = hostel,
-                room = viewModel.selectedRoom!!,
-                isConfirmed = viewModel.alreadyBookedForRoomType,
-                viewModel = viewModel,
-                onDismiss = { viewModel.updateShowBookingSheet(false) },
-                onBook = { date, time ->
-                    viewModel.confirmBooking(date, time)
-                }
-            )
-        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(bottom = padding.calculateBottomPadding())
         ) {
-            // Header Image Section
+
+            //Header Image Section
             item {
                 HostelHeaderImage(
                     imageUrl = hostel.imageUrl,
@@ -125,7 +153,7 @@ fun HostelDetailsContent(
                 )
             }
 
-            // Details Content
+            //Details Content
             item {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Row(
@@ -135,8 +163,8 @@ fun HostelDetailsContent(
                     ) {
                         Text(
                             text = hostel.name,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
                             color = TextDark
                         )
 
@@ -150,14 +178,14 @@ fun HostelDetailsContent(
                     Text(
                         text = "About",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = TextDark
                     )
 
                     Text(
                         text = hostel.description,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF4F4F4F),
+                        color = TextDark.copy(alpha = 0.8f),
                         modifier = Modifier.padding(top = 8.dp),
                         maxLines = if (isDescriptionExpanded) Int.MAX_VALUE else 3,
                         overflow = TextOverflow.Ellipsis
@@ -169,7 +197,7 @@ fun HostelDetailsContent(
                     ) {
                         Text(
                             text = if (isDescriptionExpanded) "Read less" else "Read more",
-                            color = Color(0xFF1BAFA9),
+                            color = TealPrimary,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -179,7 +207,7 @@ fun HostelDetailsContent(
                     Text(
                         text = "Amenities",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = TextDark
                     )
                     AmenitiesList(hostel.amenities)
@@ -193,12 +221,12 @@ fun HostelDetailsContent(
                     ) {
                         Text(
                             text = "Available Rooms",
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             style = MaterialTheme.typography.titleMedium,
                             color = TextDark
                         )
                         Text(
-                            text = "${rooms.size} Options",
+                            text = if (rooms.size > 1) " ${rooms.size} Options" else " ${rooms.size} Option" ,
                             color = TextGrey,
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -206,7 +234,7 @@ fun HostelDetailsContent(
                 }
             }
 
-            // Room Cards
+            //Room Cards
             itemsIndexed(rooms) { _, room ->
                 RoomCard(
                     room = room,
@@ -214,9 +242,130 @@ fun HostelDetailsContent(
                     onSelect = { viewModel.selectRoom(room) }
                 )
             }
+
+            //Reviews Section
+            item {
+                ReviewsSection(
+                    reviews = reviews,
+                    avgRating = hostel.avgRating,
+                    onWriteReviewClick = { viewModel.updateShowReviewDialog(true) }
+                )
+            }
             
             item { Spacer(modifier = Modifier.height(20.dp)) }
         }
+    }
+}
+
+@Composable
+fun ReviewsSection(
+    reviews: List<Review>,
+    avgRating: Double,
+    onWriteReviewClick: () -> Unit
+) {
+    Column(modifier = Modifier.padding(20.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Reviews",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = TextDark
+            )
+            
+            TextButton(onClick = onWriteReviewClick) {
+                Text("Write a review", color = TealPrimary, fontWeight = FontWeight.Bold)
+            }
+        }
+        
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Star, contentDescription = null, tint = StarYellow, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = String.format("%.1f", avgRating),
+                fontWeight = FontWeight.Bold,
+                color = TextDark,
+                fontSize = 16.sp
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "(${reviews.size} reviews)",
+                color = TextGrey,
+                fontSize = 14.sp
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        if (reviews.isEmpty()) {
+            Text(
+                text = "No reviews yet. Be the first to rate this hostel!",
+                color = TextGrey,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        } else {
+            reviews.take(3).forEach { review ->
+                ReviewItem(review)
+                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color(0xFFF5F5F5))
+            }
+        }
+    }
+}
+
+@Composable
+fun ReviewItem(review: Review) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    shape = CircleShape,
+                    color = TealSecondary,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = if (review.userName.isNotEmpty()) review.userName.take(1).uppercase() else "U",
+                            color = TealPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = review.userName.ifBlank { "Student User" },
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark,
+                    fontSize = 14.sp
+                )
+            }
+            
+            Row {
+                repeat(5) { index ->
+                    Icon(
+                        imageVector = if (index < review.rating) Icons.Default.Star else Icons.Default.StarBorder,
+                        contentDescription = null,
+                        tint = if (index < review.rating) StarYellow else Color.LightGray,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
+        }
+        
+        Text(
+            text = review.comment,
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextDark.copy(alpha = 0.8f),
+            modifier = Modifier.padding(top = 8.dp)
+        )
     }
 }
 
@@ -234,7 +383,7 @@ fun HostelAddress(hostel: Hostel) {
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
-            text = hostel.location.toString(),
+            text = hostel.location,
             style = MaterialTheme.typography.bodyMedium,
             color = TextGrey
         )
@@ -249,7 +398,9 @@ fun HostelHeaderImage(
     onToggleFavorite: () -> Unit,
     onShareClick: () -> Unit
 ) {
-    Box(modifier = Modifier.height(300.dp).fillMaxWidth()) {
+    Box(modifier = Modifier
+        .height(300.dp)
+        .fillMaxWidth()) {
         AsyncImage(
             model = imageUrl,
             contentDescription = null,
@@ -258,7 +409,10 @@ fun HostelHeaderImage(
         )
         
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
 
@@ -301,22 +455,27 @@ fun RoomCard(
     isSelected: Boolean = false,
     onSelect: () -> Unit = {}
 ) {
-    val isAvailable = room.isAvailable && !room.status.contains("Full", ignoreCase = true)
-    val statusColor = if (!isAvailable) Color.Red else Color(0xFFF2994A)
-    val statusBg = if (!isAvailable) Color(0xFFFFEBEE) else Color(0xFFFFF3E0)
-    val borderColor = if (isSelected) TealPrimary else if (room.status.isNotEmpty()) statusBg else Color.Transparent
+    val isFull = room.status.equals("Full", ignoreCase = true) || !room.isAvailable
+    val displayStatus = if (isFull) "Full" else "Available"
+    val statusColor = if (isFull) Color.Red else OrangeAccent
+    val statusBg = if (isFull) Color(0xFFFFEBEE) else OrangeAccentLight
 
     Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .alpha(if (isFull) 0.6f else 1f),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        border = BorderStroke(1.dp, borderColor)
+        border = BorderStroke(1.dp, if (isSelected) TealPrimary else Color.Transparent)
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)){
             if(isSelected){
                 Surface(
-                    modifier = Modifier.width(6.dp).fillMaxHeight(),
+                    modifier = Modifier
+                        .width(6.dp)
+                        .fillMaxHeight(),
                     color = TealPrimary
                 ){}
             }
@@ -331,25 +490,20 @@ fun RoomCard(
                         text = room.type,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleMedium,
-                        color = if (isAvailable) TextDark else TextGrey
+                        color = if (isFull) TextGrey else TextDark
                     )
-                    if (room.status.isNotEmpty()) {
-                        Surface(color = statusBg, shape = RoundedCornerShape(12.dp)) {
-                            Text(
-                                text = room.status,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                color = statusColor,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                    Surface(color = statusBg, shape = RoundedCornerShape(12.dp)) {
+                        Text(
+                            text = displayStatus,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            color = statusColor,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
 
-                Row(
-                    modifier = Modifier.padding(top = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(modifier = Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Bed, null, tint = TextGrey, modifier = Modifier.size(16.dp))
                     Text(" ${room.beds} Bed", color = TextGrey, fontSize = 13.sp)
                     Spacer(modifier = Modifier.width(12.dp))
@@ -358,29 +512,31 @@ fun RoomCard(
                 }
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text("Monthly Rent", color = TextGrey, fontSize = 12.sp)
+                        Text("Cost", color = TextGrey, fontSize = 12.sp)
                         Text(
                             text = "UGX ${formatCurrency(room.price)}",
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
-                            color = if (isAvailable) TextDark else TextGrey
+                            color = if (isFull) TextGrey else TextDark
                         )
                     }
                     Button(
                         onClick = onSelect,
-                        enabled = isAvailable,
+                        enabled = !isFull,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = TealPrimary,
                             disabledContainerColor = Color.LightGray
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text(if (isAvailable) "Select" else "Full")
+                        Text(if (isFull) "Full" else if (isSelected) "Selected" else "Select")
                     }
                 }
             }
@@ -394,26 +550,31 @@ fun AmenitiesList(amenities: List<String>) {
         contentPadding = PaddingValues(top = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        itemsIndexed(amenities) { index, amenity ->
-            val isSelected = index == 0
-            val bgColor = if (isSelected) TealSecondary else GreySurface
-            val iconColor = if (isSelected) TealPrimary else TextGrey
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        itemsIndexed(amenities) { _, amenity ->
+            val normalized = amenity.lowercase().trim()
+            val icon = when {
+                normalized.contains("wifi") || normalized.contains("wi-fi") -> Icons.Default.Wifi
+                normalized.contains("pool") -> Icons.Default.Pool
+                normalized.contains("tv") -> Icons.Default.Tv
+                normalized.contains("laundry") -> Icons.Default.LocalLaundryService
+                normalized.contains("cafeteria") || normalized.contains("restaurant") -> Icons.Default.Restaurant
+                normalized.contains("parking") -> Icons.Default.LocalParking
+                normalized.contains("gym") -> Icons.Default.FitnessCenter
+                normalized.contains("security") -> Icons.Default.Security
+                else -> Icons.Default.Done
+            }
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = 4.dp)) {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = bgColor,
+                    color = GreySurface,
                     modifier = Modifier.size(56.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = when(amenity) {
-                                "Free Wi-Fi" -> Icons.Default.Wifi
-                                "Gym" -> Icons.Default.FitnessCenter
-                                "Security" -> Icons.Default.Security
-                                else -> Icons.Default.Done
-                            },
-                            contentDescription = null,
-                            tint = iconColor
+                            imageVector = icon,
+                            contentDescription = amenity,
+                            tint = TealPrimary
                         )
                     }
                 }
@@ -473,7 +634,8 @@ fun BottomBookingBar(viewModel: HostelViewModel) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
                             imageVector = if (isAlreadyBooked) Icons.Default.CheckCircle else Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = Color.White
                         )
                     }
                 }
@@ -481,7 +643,6 @@ fun BottomBookingBar(viewModel: HostelViewModel) {
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

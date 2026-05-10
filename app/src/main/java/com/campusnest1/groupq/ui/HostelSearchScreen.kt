@@ -1,15 +1,16 @@
 package com.campusnest1.groupq.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -26,7 +27,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -383,19 +386,38 @@ fun SearchTopBar(
     CenterAlignedTopAppBar(
         title = {
             if (showSearchField) {
-                OutlinedTextField(
-                    value = searchQuery, onValueChange = onSearchQueryChange,
-                    placeholder = { Text("Search hostels...", color = TextGrey) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = TealPrimary, unfocusedBorderColor = LightGray,
-                        focusedContainerColor = SurfaceWhite, unfocusedContainerColor = SurfaceWhite,
-                        focusedTextColor = TextDark, unfocusedTextColor = TextDark, cursorColor = TealPrimary
-                    ),
-                    modifier = Modifier.fillMaxWidth().height(52.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp)
+                        .background(SurfaceWhite, RoundedCornerShape(20.dp))
+                        .padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    BasicTextField(
+                        value = searchQuery,
+                        onValueChange = onSearchQueryChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
+                            color = TextDark,
+                            fontWeight = FontWeight.Normal
+                        ),
+                        singleLine = true,
+                        cursorBrush = SolidColor(TealPrimary),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        decorationBox = { innerTextField ->
+                            if (searchQuery.isEmpty()) {
+                                Text(
+                                    "Search hostels...",
+                                    color = TextGrey,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Normal
+                                )
+                            }
+                            innerTextField()
+                        }
+                    )
+                }
             } else {
                 Text("Search Hostels", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }

@@ -37,6 +37,10 @@ val Typography = Typography(
     headlineSmall = TextStyle(
         fontFamily = FredokaFontFamily
     ),
+
+    headlineMedium = TextStyle(
+        fontFamily = FredokaFontFamily
+    ),
     titleLarge = TextStyle(
         fontFamily = FredokaFontFamily,
         fontWeight = FontWeight.SemiBold,
@@ -46,6 +50,10 @@ val Typography = Typography(
     ),
 
     titleSmall = TextStyle(
+        fontFamily = FredokaFontFamily
+    ),
+
+    titleMedium = TextStyle(
         fontFamily = FredokaFontFamily
     ),
     bodyLarge = TextStyle(

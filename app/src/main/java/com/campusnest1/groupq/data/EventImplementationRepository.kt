@@ -60,7 +60,7 @@ class EventImplementationRepository(
                     }
                 }
 
-                val eventDate = if (formattedDate.isNotEmpty()) formattedDate else (data["date"] as? String ?: "")
+                val eventDate = formattedDate.ifEmpty { (data["date"] as? String ?: "") }
                 val startTime = parseTimeField("startTime")
                 val endTime = parseTimeField("endTime")
 

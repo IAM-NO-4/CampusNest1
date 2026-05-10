@@ -4,6 +4,7 @@ import android.content.Context
 import com.campusnest1.groupq.model.Booking
 import com.campusnest1.groupq.model.Hostel
 import com.campusnest1.groupq.model.Room
+import com.campusnest1.groupq.model.Review
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -38,7 +39,7 @@ class HostelImplementationRepository(
     override suspend fun getRoomsForHostel(hostelId: String): List<Room> {
         if (hostelId.isEmpty()) return emptyList()
         return try {
-            // Rooms are a subcollection of hostels
+
             val snapshot = db.collection("hostels").document(hostelId)
                 .collection("rooms")
                 .get()
@@ -202,7 +203,7 @@ class HostelImplementationRepository(
     ): String? {
         return try {
             val document = db.collection("managers")
-                .document(managerId) // Assumes your Hostel model has a managerId
+                .document(managerId)
                 .get()
                 .await()
 
@@ -212,6 +213,35 @@ class HostelImplementationRepository(
                 null
             }
 
+    }
+
+    override suspend fun addReview(review: Review): Boolean {
+        return try {
+            val hostelRef = db.collection("hostels").document(review.hostelId)
+            val reviewRef = hostelRef.collection("reviews").document()
+            reviewRef.set(review.copy(reviewId = reviewRef.id)).await()
+
+            val reviewsSnapshot = hostelRef.collection("reviews").get().await()
+            val allReviews = reviewsSnapshot.documents.mapNotNull { it.toObject(Review::class.java) }
+            val newAvg = if (allReviews.isNotEmpty()) allReviews.sumOf { it.rating } / allReviews.size else 0.0
+            
+            hostelRef.update("avgRating", newAvg).await()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    override suspend fun getReviewsForHostel(hostelId: String): List<Review> {
+        return try {
+            val snapshot = db.collection("hostels").document(hostelId)
+                .collection("reviews").get().await()
+            snapshot.documents.mapNotNull { it.toObject(Review::class.java) }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
     }
 
     private fun mapDocumentToHostel(doc: com.google.firebase.firestore.DocumentSnapshot): Hostel? {
