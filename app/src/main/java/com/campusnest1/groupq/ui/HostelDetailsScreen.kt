@@ -57,7 +57,9 @@ fun HostelDetailsScreen(
     }
 
     if (hostel == null || viewModel.isLoading.value) {
-        Box(modifier = Modifier.fillMaxSize().background(SurfaceWhite), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(SurfaceWhite), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = TealPrimary)
         }
     } else {
@@ -83,13 +85,16 @@ fun HostelDetailsScreen(
                     }
                 )
 
-                // Show Booking Bottom Sheet
+                //Booking Bottom Sheet
                 if (viewModel.showBookingSheet && viewModel.selectedRoom != null) {
                     BookingBottomSheet(
                         hostel = hostel,
                         room = viewModel.selectedRoom!!,
+                        isConfirmed = viewModel.alreadyBookedForRoomType,
+                        viewModel = viewModel,
                         onDismiss = { viewModel.updateShowBookingSheet(false) },
-                        onBook = { _, _ ->
+                        onBook = { date, time ->
+                            viewModel.confirmBooking(date, time)
                             viewModel.updateShowBookingSheet(false)
                             viewModel.contactManager(hostel.managerId, context)
                         }
@@ -180,7 +185,7 @@ fun HostelDetailsContent(
                     Text(
                         text = hostel.description,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextDark.copy(alpha = 0.7f),
+                        color = TextDark.copy(alpha = 0.8f),
                         modifier = Modifier.padding(top = 8.dp),
                         maxLines = if (isDescriptionExpanded) Int.MAX_VALUE else 3,
                         overflow = TextOverflow.Ellipsis
@@ -247,7 +252,7 @@ fun HostelDetailsContent(
                 )
             }
             
-            item { Spacer(modifier = Modifier.height(100.dp)) }
+            item { Spacer(modifier = Modifier.height(20.dp)) }
         }
     }
 }
@@ -393,7 +398,9 @@ fun HostelHeaderImage(
     onToggleFavorite: () -> Unit,
     onShareClick: () -> Unit
 ) {
-    Box(modifier = Modifier.height(300.dp).fillMaxWidth()) {
+    Box(modifier = Modifier
+        .height(300.dp)
+        .fillMaxWidth()) {
         AsyncImage(
             model = imageUrl,
             contentDescription = null,
@@ -404,7 +411,7 @@ fun HostelHeaderImage(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding() 
+                .statusBarsPadding()
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -433,7 +440,7 @@ fun HostelHeaderImage(
                         Icon(
                             imageVector = if (isSaved) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Favorite",
-                            tint = if (isSaved) RedStandard else LightGray
+                            tint = if (isSaved) Color.Red else Color.LightGray
                         )
                     }
                 }
@@ -450,8 +457,8 @@ fun RoomCard(
 ) {
     val isFull = room.status.equals("Full", ignoreCase = true) || !room.isAvailable
     val displayStatus = if (isFull) "Full" else "Available"
-    val statusColor = if (isFull) ErrorRed else OrangeAccent
-    val statusBg = if (isFull) RedAccentLight else OrangeAccentLight
+    val statusColor = if (isFull) Color.Red else OrangeAccent
+    val statusBg = if (isFull) Color(0xFFFFEBEE) else OrangeAccentLight
 
     Card(
         modifier = Modifier
@@ -465,7 +472,12 @@ fun RoomCard(
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)){
             if(isSelected){
-                Surface(modifier = Modifier.width(6.dp).fillMaxHeight(), color = TealPrimary){}
+                Surface(
+                    modifier = Modifier
+                        .width(6.dp)
+                        .fillMaxHeight(),
+                    color = TealPrimary
+                ){}
             }
 
             Column(modifier = Modifier.padding(16.dp)) {
@@ -500,7 +512,9 @@ fun RoomCard(
                 }
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -577,23 +591,58 @@ fun AmenitiesList(amenities: List<String>) {
 
 @Composable
 fun BottomBookingBar(viewModel: HostelViewModel) {
-
-    Surface(shadowElevation = 8.dp, color = Color.White, modifier = Modifier.fillMaxWidth()) {
-        Button(
-            onClick = { viewModel.updateShowBookingSheet(true) },
-            modifier = Modifier.padding(20.dp).fillMaxWidth().height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
-            shape = RoundedCornerShape(16.dp)
+    val isAlreadyBooked = viewModel.alreadyBookedForRoomType
+    val selectedRoom = viewModel.selectedRoom
+    
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shadowElevation = 8.dp,
+        color = Color.White
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .navigationBarsPadding()
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Book Viewing", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White)
+            Button(
+                onClick = {
+                    if (selectedRoom != null) {
+                        viewModel.updateShowBookingSheet(true)
+                    }
+                },
+                modifier = Modifier
+                    .height(56.dp)
+                    .fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isAlreadyBooked) TealPrimary else OrangeAccent,
+                    disabledContainerColor = Color.LightGray
+                ),
+                shape = RoundedCornerShape(16.dp),
+                enabled = selectedRoom != null
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = when {
+                            selectedRoom == null -> "Select a Room"
+                            isAlreadyBooked -> "View Appointment"
+                            else -> "Book Viewing"
+                        },
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                    if (selectedRoom != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = if (isAlreadyBooked) Icons.Default.CheckCircle else Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                    }
+                }
             }
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

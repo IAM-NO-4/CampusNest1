@@ -3,6 +3,7 @@ package com.campusnest1.groupq.viewmodel
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast.makeText
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -65,10 +66,25 @@ class HostelViewModel(
 
     var showBookingSheet by mutableStateOf(false)
         private set
-
+    
     var showReviewDialog by mutableStateOf(false)
         private set
+    
+    val alreadyBookedForRoomType by derivedStateOf {
+        val userId = authRepository.getCurrentUser()?.userId ?: return@derivedStateOf false
+        val hId = currentHostel?.hostelId ?: return@derivedStateOf false
+        val rType = selectedRoom?.type ?: return@derivedStateOf false
+        
+        bookingHistory.value.any { 
+            it.userId == userId &&
+            it.hostelId.trim().equals(hId.trim(), ignoreCase = true) &&
+            it.roomType.trim().equals(rType.trim(), ignoreCase = true)
+        }
+    }
 
+    var bookingConfirmed by mutableStateOf(false)
+        private set
+    
     fun fetchHostelsData(){
         viewModelScope.launch {
             isLoading.value = true
@@ -89,10 +105,18 @@ class HostelViewModel(
         viewModelScope.launch {
             isLoading.value = true
             currentHostel = repository.getHostelById(hostelId)
+
             currentRooms = repository.getRoomsForHostel(hostelId)
             reviews = repository.getReviewsForHostel(hostelId)
 
             selectedRoom = currentRooms.firstOrNull { it.isAvailable && !it.status.contains("Full", ignoreCase = true) }
+            
+            // Refresh booking history to ensure 'already booked' logic works
+            val userId = authRepository.getCurrentUser()?.userId ?: ""
+            if (userId.isNotEmpty()) {
+                bookingHistory.value = repository.getBookingHistory(userId)
+            }
+
             
             isLoading.value = false
         }
@@ -108,14 +132,52 @@ class HostelViewModel(
         }
     }
 
+
     fun updateShowBookingSheet(show: Boolean) {
         showBookingSheet = show
     }
-
+    
     fun updateShowReviewDialog(show: Boolean) {
         showReviewDialog = show
     }
+    
+    fun clearHistory() {
+        val userId = authRepository.getCurrentUser()?.userId ?: return
+        viewModelScope.launch {
+            val success = repository.clearBookingHistory(userId)
+            if (success) {
+                bookingHistory.value = emptyList()
+            }
+        }
+    }
 
+    fun confirmBooking(date: String, time: String) {
+        val userId = authRepository.getCurrentUser()?.userId ?: return
+        val hostel = currentHostel ?: return
+        val room = selectedRoom ?: return
+        
+        viewModelScope.launch {
+            val newBooking = Booking(
+                hostelId = hostel.hostelId,
+                roomType = room.type,
+                hostelName = hostel.name.ifBlank { "Unnamed Hostel" },
+                hostelLocation = hostel.location,
+                hostelImageUrl = hostel.imageUrl,
+                userId = userId,
+                date = date,
+                time = time,
+                status = "Confirmed"
+            )
+            
+            val success = repository.createBooking(newBooking)
+            if (success) {
+                //Refresh booking history - alreadyBookedForRoomType updates automatically
+                bookingHistory.value = repository.getBookingHistory(userId)
+                bookingConfirmed = true
+            }
+        }
+    }
+    
     fun loadStudentData(forceRefresh: Boolean = false) {
         val userId = authRepository.getCurrentUser()?.userId ?: ""
         if (userId.isEmpty()) return

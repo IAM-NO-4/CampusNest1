@@ -1,9 +1,11 @@
 package com.campusnest1.groupq.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -42,6 +44,7 @@ import com.campusnest1.groupq.ui.theme.SurfaceWhite
 import com.campusnest1.groupq.ui.theme.TextDark
 import com.campusnest1.groupq.ui.theme.TextGrey
 import com.campusnest1.groupq.ui.theme.TextPrimary
+import com.campusnest1.groupq.ui.theme.LightGray
 import com.campusnest1.groupq.viewmodel.AuthViewModel
 
 @Composable
@@ -144,6 +147,8 @@ fun RegisterScreenContent(
     getPasswordStrength: (String) -> String,
     isFormValid: () -> Boolean
 ) {
+    val scrollState = rememberScrollState()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -156,16 +161,19 @@ fun RegisterScreenContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .verticalScroll(scrollState)
                 .padding(horizontal = 30.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             // Logo and Branding Section
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 // CampusNest logo
                 Icon(
-                    imageVector = Icons.Default.Email, //place holder
+                    imageVector = Icons.Default.Email, // Placeholder
                     contentDescription = null,
                     modifier = Modifier.size(60.dp),
                     tint = TealAccent
@@ -195,7 +203,7 @@ fun RegisterScreenContent(
                 )
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Text(
                 text = "Welcome Student!",
@@ -211,7 +219,7 @@ fun RegisterScreenContent(
                 modifier = Modifier.padding(top = 8.dp)
             )
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Row(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -241,7 +249,8 @@ fun RegisterScreenContent(
                             errorBorderColor = ErrorRed,
                             unfocusedBorderColor = BorderLight,
                             cursorColor = TealAccent
-                        )
+                        ),
+                        modifier = Modifier.fillMaxWidth()
                     )
                     state.fnameError?.let {
                         Text(
@@ -278,7 +287,8 @@ fun RegisterScreenContent(
                             errorBorderColor = ErrorRed,
                             unfocusedBorderColor = BorderLight,
                             cursorColor = TealAccent
-                        )
+                        ),
+                        modifier = Modifier.fillMaxWidth()
                     )
                     state.lnameError?.let {
                         Text(
@@ -289,7 +299,7 @@ fun RegisterScreenContent(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Phone number",
@@ -318,7 +328,7 @@ fun RegisterScreenContent(
                     )
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             // Email Input Field
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -353,7 +363,6 @@ fun RegisterScreenContent(
                     ),
                     singleLine = true
                 )
-                Spacer(modifier = Modifier.height(4.dp))
                 state.emailError?.let {
                     Text(
                         text = it,
@@ -363,7 +372,7 @@ fun RegisterScreenContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Password Input Field
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -373,6 +382,7 @@ fun RegisterScreenContent(
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
+                Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = state.password,
                     onValueChange = onPasswordChange,
@@ -410,40 +420,43 @@ fun RegisterScreenContent(
                 )
                 val strength = getPasswordStrength(state.password)
 
-                Text(
-                    text = "Strength: $strength",
-                    color = when (strength) {
-                        "Weak" -> ErrorRed
-                        "Medium" -> OrangeStandard
-                        "Strong" -> SuccessGreen
-                        else -> TextGrey
-                    },
-                    fontSize = 12.sp
-                )
-                Spacer(modifier = Modifier.height(4.dp))
+                if (state.password.isNotEmpty()) {
+                    Text(
+                        text = "Strength: $strength",
+                        color = when (strength) {
+                            "Weak" -> ErrorRed
+                            "Medium" -> OrangeStandard
+                            "Strong" -> SuccessGreen
+                            else -> TextGrey
+                        },
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
                 state.passwordError?.let {
                     Text(
                         text = it,
                         color = ErrorRed,
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // ── Error Message from AuthViewModel ──────────────────────────
+            //Error Message from AuthViewModel
             if (authErrorMessage != null) {
                 Text(
                     text = authErrorMessage,
                     color = ErrorRed,
                     fontSize = 13.sp,
-                    modifier = Modifier.padding(bottom = 8.dp),
+                    modifier = Modifier.padding(bottom = 12.dp),
                     textAlign = TextAlign.Center
                 )
             }
 
-            // Main Action Button (Login)
+            //Main Action Button
             Button(
                 onClick = onRegisterClick,
                 enabled = isFormValid() && !state.isLoading && !authIsLoading,
@@ -451,13 +464,19 @@ fun RegisterScreenContent(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = TealAccent)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = TealAccent,
+                    contentColor = Color.White,
+                    disabledContainerColor = LightGray,
+                    disabledContentColor = TextDark
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (state.isLoading || authIsLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = SurfaceWhite,
+                            color = if (isFormValid()) Color.White else TextDark,
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -474,15 +493,15 @@ fun RegisterScreenContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(22.dp))
-            Text(
-                text = "Already have an account?",
-                fontSize = 14.sp,
-                color = TextGrey,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-            TextButton(onClick = onLoginClick) {
-                Text(text = "Login", fontSize = 14.sp, color = TealAccent)
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 32.dp)
+            ) {
+                Text(text = "Already have an account? ", color = TextGrey, fontSize = 14.sp)
+                TextButton(onClick = onLoginClick, contentPadding = PaddingValues(0.dp)) {
+                    Text(text = "Login", fontSize = 14.sp, color = TealAccent, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
