@@ -10,6 +10,8 @@ interface HostelRepository {
     suspend fun getRoomsForHostel(hostelId: String): List<Room>
     suspend fun getSavedHostels(userId: String): List<Hostel>
     suspend fun getBookingHistory(userId: String): List<Booking>
+    suspend fun createBooking(booking: Booking): Boolean
+    suspend fun clearBookingHistory(userId: String): Boolean
     suspend fun toggleSavedHostel(userId: String, hostelId: String): Boolean
     suspend fun isHostelSaved(userId: String, hostelId: String): Boolean
     suspend fun getManagerContact(managerId: String): String?

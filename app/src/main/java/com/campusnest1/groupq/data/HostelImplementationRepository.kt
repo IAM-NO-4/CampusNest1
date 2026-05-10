@@ -85,11 +85,66 @@ class HostelImplementationRepository(
         if (userId.isEmpty()) return emptyList()
         return try {
             val snapshot = db.collection("bookings")
-                .whereEqualTo("studentId", userId).get().await()
-            snapshot.documents.mapNotNull { it.toObject(Booking::class.java) }
+                .whereEqualTo("userId", userId).get().await()
+            snapshot.documents.mapNotNull { doc ->
+                val data = doc.data ?: return@mapNotNull null
+                Booking(
+                    bookingId = doc.id,
+                    hostelId = data["hostelId"] as? String ?: "",
+                    roomType = data["roomType"] as? String ?: "",
+                    hostelName = data["hostelName"] as? String ?: "",
+                    hostelLocation = data["hostelLocation"] as? String ?: "",
+                    hostelImageUrl = data["hostelImageUrl"] as? String ?: "",
+                    userId = data["userId"] as? String ?: "",
+                    date = data["date"] as? String ?: "",
+                    time = data["time"] as? String ?: "",
+                    status = data["status"] as? String ?: ""
+                )
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
+        }
+    }
+
+    override suspend fun createBooking(booking: Booking): Boolean {
+        return try {
+            val data = mutableMapOf(
+                "hostelId" to booking.hostelId,
+                "roomType" to booking.roomType,
+                "hostelName" to booking.hostelName,
+                "hostelLocation" to booking.hostelLocation,
+                "hostelImageUrl" to booking.hostelImageUrl,
+                "userId" to booking.userId,
+                "date" to booking.date,
+                "time" to booking.time,
+                "status" to booking.status
+            )
+            db.collection("bookings").add(data).await()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    override suspend fun clearBookingHistory(userId: String): Boolean {
+        if (userId.isEmpty()) return false
+        return try {
+            val snapshot = db.collection("bookings")
+                .whereEqualTo("userId", userId)
+                .get()
+                .await()
+            
+            val batch = db.batch()
+            for (doc in snapshot.documents) {
+                batch.delete(doc.reference)
+            }
+            batch.commit().await()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
     }
 

@@ -97,6 +97,18 @@ fun HostelDetailsContent(
             BottomBookingBar(viewModel = viewModel)
         }
     ) { padding ->
+        if (viewModel.showBookingSheet && viewModel.selectedRoom != null) {
+            BookingBottomSheet(
+                hostel = hostel,
+                room = viewModel.selectedRoom!!,
+                isConfirmed = viewModel.alreadyBookedForRoomType,
+                viewModel = viewModel,
+                onDismiss = { viewModel.updateShowBookingSheet(false) },
+                onBook = { date, time ->
+                    viewModel.confirmBooking(date, time)
+                }
+            )
+        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -418,20 +430,56 @@ fun AmenitiesList(amenities: List<String>) {
 
 @Composable
 fun BottomBookingBar(viewModel: HostelViewModel) {
-
+    val isAlreadyBooked = viewModel.alreadyBookedForRoomType
+    val selectedRoom = viewModel.selectedRoom
+    
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shadowElevation = 8.dp,
+        color = Color.White
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .navigationBarsPadding()
+        ) {
             Button(
-                onClick = { viewModel.updateShowBookingSheet(true) },
-                modifier = Modifier.height(56.dp).fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
-                shape = RoundedCornerShape(16.dp)
+                onClick = {
+                    if (selectedRoom != null) {
+                        viewModel.updateShowBookingSheet(true)
+                    }
+                },
+                modifier = Modifier
+                    .height(56.dp)
+                    .fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isAlreadyBooked) TealPrimary else OrangeAccent,
+                    disabledContainerColor = Color.LightGray
+                ),
+                shape = RoundedCornerShape(16.dp),
+                enabled = selectedRoom != null
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Book Viewing", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
+                    Text(
+                        text = when {
+                            selectedRoom == null -> "Select a Room"
+                            isAlreadyBooked -> "View Appointment"
+                            else -> "Book Viewing"
+                        },
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                    if (selectedRoom != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = if (isAlreadyBooked) Icons.Default.CheckCircle else Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null
+                        )
+                    }
                 }
             }
-
+        }
+    }
 }
 
 
